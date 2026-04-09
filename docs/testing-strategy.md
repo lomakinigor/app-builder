@@ -1,0 +1,123 @@
+# Testing Strategy
+
+This document defines how testing works in AI Product Studio — both for building the app itself and for the applications and websites users build with it.
+
+---
+
+## Scope
+
+Testing in AI Product Studio serves two purposes:
+
+1. **Internal quality gate:** verify that the app behaves correctly as it is developed.
+2. **Workflow model:** the same TDD discipline the app enforces on itself is what it teaches users to apply when building their own applications and websites through the prompt loop.
+
+---
+
+## Testing levels
+
+### Unit
+What: individual functions, utilities, and domain logic with no UI or store dependency.
+Examples in this project:
+- `normalizeResearchText()` — heuristic normalizer correctness (T-012)
+- `canAdvanceFromIdea/Research/Spec/Architecture()` — stage gate logic (T-016)
+- `validateIdeaDraft()` — idea validation rules
+
+Tool: Vitest (to be wired in T-018)
+When to write: for every pure function in `src/shared/lib/` and `src/features/*/` that carries meaningful logic.
+
+### Integration
+What: components or page flows that exercise store interactions, mock service calls, and rendered UI together.
+Examples in this project:
+- Idea page: enter idea → validate → advance gate opens (T-011)
+- Import tab: paste text → normalizer runs → brief displayed with warnings (T-011, T-012)
+- Spec page: generate spec → edit → save → store updated → gate passes (T-013)
+
+Tool: Vitest + Testing Library
+When to write: for every impl task (T-xxx) that changes a page or feature component, before that task is marked done.
+
+### E2E
+What: full user journey through the app from Idea to Prompt Loop, running in a real browser.
+Examples in this project:
+- Happy path: idea → research → spec → architecture → first prompt generated
+- Import path: paste research → brief normalized → spec generated → first prompt
+
+Tool: Playwright (planned, not yet configured)
+When to write: once the happy path is stable (after T-008 is done). One E2E per major user story set.
+
+### Smoke
+What: minimal check that the app starts, routes resolve, and no obvious crashes occur.
+Examples in this project:
+- `npm run dev` starts without errors
+- all 7 routes render without throwing
+- demo seed data loads and displays correctly
+
+Tool: manual for now; can be automated with a Playwright health-check script.
+When to run: before any PR or deployment.
+
+---
+
+## TDD contract
+
+Every impl task (type=impl) must have at least one paired test task (type=test) defined in `tasks.md` before the impl task begins.
+
+The test task defines:
+- which testing level applies (unit / integration / e2e / smoke)
+- the acceptance criteria (explicit, checkable statements)
+- which impl task it pairs with
+
+### Pairing table (current)
+
+| Impl task | Test task | Level |
+|-----------|-----------|-------|
+| T-005 (Idea + Research workflow) | T-011 | integration |
+| T-006 (Import research) | T-011, T-012 | integration, unit |
+| T-007 (Spec + Architecture workflow) | T-013, T-016 | integration, unit |
+| T-008 (Prompt Loop MVP) | T-014 | integration |
+| T-009 (Local persistence) | T-015 | integration |
+| T-010 (Polish, empty states) | T-017 | integration |
+| T-001–T-004 (foundation) | T-016 (partial) | unit |
+
+### Test task format (in tasks.md)
+
+```
+## T-0xx — Tests: [feature area]
+Type: test
+Description: what is being verified
+Links: F-xxx, US-xxx — pairs with T-xxx
+Status: todo
+Owner: human | AI
+Acceptance criteria:
+- [checkable statement]
+- [checkable statement]
+```
+
+Acceptance criteria must be checkable by a person or a test runner — not vague ("works correctly") but specific ("canAdvanceFromSpec returns false when productSummary is empty").
+
+---
+
+## Test runner setup (T-018)
+
+Test tasks T-011–T-017 are defined but the test runner is not yet configured.
+A dedicated task (T-018, type=ops) must be completed before any test task can be marked done.
+
+T-018 deliverables:
+- Vitest configured in `vite.config.ts`
+- Testing Library (`@testing-library/react`, `@testing-library/user-event`) installed
+- `jsdom` environment set for component tests
+- One passing smoke test as proof of setup
+- `npm test` script added to `package.json`
+
+See: D-004 in `decisions.md` for the rationale behind deferring this.
+
+---
+
+## How this applies to user projects
+
+When AI Product Studio generates prompts for a user's application or website, the same discipline applies:
+
+1. The first prompt generated for any impl work should include a request for the corresponding test (unit or integration) as part of the same Claude Code task.
+2. The response parser checks for test file mentions in the list of changed files.
+3. If no test is present in the parsed response, the next prompt should explicitly request it before moving to the next feature.
+
+This is the "Code (+Tests)" step of the Superpowers cycle surfaced at the user level.
+The app should never generate a prompt that says "implement X" without also requesting "write at least one test for X."

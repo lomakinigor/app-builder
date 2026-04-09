@@ -1,0 +1,25 @@
+import { createBrowserRouter } from 'react-router-dom'
+import { AppLayout } from '../layout/AppLayout'
+import { HomePage } from '../../pages/home/HomePage'
+import { IdeaPage } from '../../pages/idea/IdeaPage'
+import { ResearchPage } from '../../pages/research/ResearchPage'
+import { SpecPage } from '../../pages/spec/SpecPage'
+import { ArchitecturePage } from '../../pages/architecture/ArchitecturePage'
+import { PromptLoopPage } from '../../pages/prompt-loop/PromptLoopPage'
+import { HistoryPage } from '../../pages/history/HistoryPage'
+
+export const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <AppLayout />,
+    children: [
+      { index: true, element: <HomePage /> },
+      { path: 'idea', element: <IdeaPage /> },
+      { path: 'research', element: <ResearchPage /> },
+      { path: 'spec', element: <SpecPage /> },
+      { path: 'architecture', element: <ArchitecturePage /> },
+      { path: 'prompt-loop', element: <PromptLoopPage /> },
+      { path: 'history', element: <HistoryPage /> },
+    ],
+  },
+])
