@@ -63,14 +63,14 @@ Status: done
 ### F-024 — Guided project lifecycle
 Description: The app makes the Brainstorm → Spec → Plan → Tasks → Code+Tests → Review cycle explicit and visible throughout the UI. Each screen corresponds to a cycle stage; stage gates enforce the correct order. The user always knows which stage they are on and what is required to advance. This applies to every project (app or website) created in AI Product Studio.
 User stories: US-014
-Tasks: T-001, T-002, T-005, T-007, T-008
+Tasks: T-001, T-002, T-005, T-007, T-008, T-109
 Status: in-dev
 
 ### F-025 — Project type selection
 Description: At project creation, the user selects whether they are building an application or a website. This type is stored on the Project entity and used to tailor generated spec language, architecture suggestions, and prompt context throughout the cycle.
 User stories: US-015
-Tasks: (planned)
-Status: planned
+Tasks: T-101, T-102, T-103, T-104
+Status: in-dev
 
 ---
 
@@ -105,6 +105,18 @@ Description: Import normalizer accepts plain text, markdown, exported chat logs,
 User stories: US-004, US-005
 Tasks: T-006
 Status: planned
+
+### F-026 — Per-project docs representation
+Description: AI Product Studio represents each user project's documentation through its in-app entities — IdeaDraft, ResearchBrief, SpecPack, ArchitectureDraft, and the PromptIteration log. These are the canonical equivalent of a per-project docs/ structure (PRD, features, plan, tech-spec, data-model, user-stories, tasks, decisions). No separate markdown files are generated or maintained as a parallel source of truth for MVP. Markdown export of individual artifacts is a separate, additive capability covered by F-012 and does not create a second source of truth. See D-006 for the rationale.
+User stories: US-013, US-014
+Tasks: (none — current in-app behaviour; export addendum tracked by F-012)
+Status: done
+
+### F-027 — Project registry and selection
+Description: The app maintains an explicit registry of Project records (applications and websites). A selectedProjectId determines which project is active at any given time. Users can create new projects, select a project from the registry, and update a project's name or type. Downstream pages (Idea, Research, Spec, Architecture, Prompt Loop, History) bind their stage data to the selected project. MVP scope: registry + selection + HomePage summary; full create/edit/delete UI is T-202.
+User stories: US-014, US-015
+Tasks: T-201
+Status: done
 
 ---
 

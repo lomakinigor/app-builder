@@ -32,6 +32,10 @@ For each user project, the app:
 7. generates the next focused prompt based on parsed output (Code+Tests),
 8. continues iteratively until the application or website is complete (Review).
 
+Every project — application or website — created in AI Product Studio follows the same cycle from start to finish. The stage gates enforce this; no stage can be skipped.
+
+As a project moves through the cycle it accumulates a per-project documentation set equivalent to: a PRD and goals (Research Brief + SpecPack), a technical plan and architecture (ArchitectureDraft + roadmap), a task list (roadmap phases mapped to prompts), and a code-and-test history (prompt iteration log with parsed responses). These artifacts are the natural output of completing the guided flow — they are not separate documents the user has to write in advance.
+
 Each stage has a gate. The user cannot skip stages. The app always shows what was input, what was generated, and what comes next.
 
 ### Value proposition

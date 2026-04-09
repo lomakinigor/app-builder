@@ -8,6 +8,50 @@ import { Badge } from '../../shared/ui/Badge'
 import { EmptyState } from '../../shared/ui/EmptyState'
 import { mockPromptService } from '../../mocks/services/promptService'
 import { generateId } from '../../shared/lib/id'
+import { promptIterationToMarkdown } from '../../shared/lib/markdown/exportArtifactToMarkdown'
+import { copyMarkdown } from '../../shared/lib/clipboard/copyMarkdown'
+
+// ─── Cycle context bar ────────────────────────────────────────────────────────
+// Shows project type, cycle phase, and current target task in a subtle strip.
+
+function CycleContextBar({
+  projectType,
+  cyclePhase,
+  targetTaskId,
+  phaseNumber,
+}: {
+  projectType: 'application' | 'website' | null
+  cyclePhase: 'code_and_tests' | 'review' | null
+  targetTaskId: string | null
+  phaseNumber: number | null
+}) {
+  if (!projectType && !cyclePhase) return null
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-400">
+      <span className="font-medium text-zinc-400 dark:text-zinc-500">Cycle context</span>
+      <span className="text-zinc-300 dark:text-zinc-600">·</span>
+      {projectType && (
+        <Badge variant="default">
+          {projectType === 'website' ? '🌐 Website' : '📱 Application'}
+        </Badge>
+      )}
+      {cyclePhase && (
+        <Badge variant={cyclePhase === 'review' ? 'success' : 'info'}>
+          {cyclePhase === 'review' ? '✅ Review' : '🔄 Code + Tests'}
+        </Badge>
+      )}
+      {targetTaskId && (
+        <Badge variant="warning">{targetTaskId}</Badge>
+      )}
+      {phaseNumber !== null && phaseNumber !== undefined && (
+        <span className="text-zinc-400 dark:text-zinc-500">Phase {phaseNumber}</span>
+      )}
+    </div>
+  )
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export function PromptLoopPage() {
   const navigate = useNavigate()
@@ -28,21 +72,30 @@ export function PromptLoopPage() {
   const [responseInput, setResponseInput] = useState('')
   const [parsing, setParsing] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [iterCopied, setIterCopied] = useState(false)
 
   const activeIteration = promptIterations.find((p) => p.id === activeIterationId) ?? null
   const latestIteration = promptIterations.length > 0
     ? promptIterations[promptIterations.length - 1]
     : null
 
+  const projectType = activeProject?.projectType ?? specPack?.projectType ?? null
+
+  // Derive the current cycle phase for the context bar
+  const displayCyclePhase = activeIteration?.status === 'parsed' ? 'review' as const
+    : activeIteration ? 'code_and_tests' as const
+    : null
+
   async function handleGenerateFirst() {
-    if (!specPack || !architectureDraft || !activeProject) return
+    if (!specPack || !architectureDraft || !activeProject || !projectType) return
     setGenerating(true)
     try {
       const iteration = await mockPromptService.generateFirstPrompt(
         specPack,
         architectureDraft,
+        projectType,
         activeProject.id,
-        generateId('prompt')
+        generateId('prompt'),
       )
       addPromptIteration(iteration)
       setActiveIterationId(iteration.id)
@@ -70,15 +123,16 @@ export function PromptLoopPage() {
   }
 
   async function handleGenerateNext() {
-    if (!activeProject || !latestIteration?.parsedSummary) return
+    if (!activeProject || !latestIteration?.parsedSummary || !projectType) return
     setGenerating(true)
     try {
       const next = await mockPromptService.generateNextPrompt(
         latestIteration,
         latestIteration.parsedSummary,
+        projectType,
         activeProject.id,
         generateId('prompt'),
-        promptIterations.length + 1
+        promptIterations.length + 1,
       )
       addPromptIteration(next)
       setActiveIterationId(next.id)
@@ -95,7 +149,31 @@ export function PromptLoopPage() {
     })
   }
 
+  async function handleCopyIterationMarkdown() {
+    if (!activeIteration) return
+    const md = promptIterationToMarkdown(activeIteration, activeProject?.name ?? null)
+    const result = await copyMarkdown(md, `prompt-iteration-${activeIteration.iterationNumber}.md`)
+    if (result.method !== 'failed') {
+      setIterCopied(true)
+      setTimeout(() => setIterCopied(false), 2000)
+    }
+  }
+
   const hasReadyIteration = !!latestIteration?.parsedSummary
+
+  if (!activeProject) {
+    return (
+      <div className="space-y-6">
+        <PageHeader title="Prompt Loop" icon="⚡" description="Iterate with Claude Code." />
+        <EmptyState
+          icon="📂"
+          title="No project selected"
+          description="Create a project first to start the prompt loop."
+          action={{ label: 'Create project', onClick: () => navigate('/project/new') }}
+        />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -104,9 +182,16 @@ export function PromptLoopPage() {
         icon="⚡"
         description="Generate Claude Code prompts, paste responses, parse results, generate next prompt. One task at a time."
         badge={
-          promptIterations.length > 0
-            ? <Badge variant="info">Iteration {promptIterations.length}</Badge>
-            : <Badge variant="muted">Not started</Badge>
+          <div className="flex items-center gap-2">
+            {projectType && (
+              <Badge variant="default">
+                {projectType === 'website' ? '🌐 Website' : '📱 Application'}
+              </Badge>
+            )}
+            {promptIterations.length > 0
+              ? <Badge variant="info">Iteration {promptIterations.length}</Badge>
+              : <Badge variant="muted">Not started</Badge>}
+          </div>
         }
         action={
           hasReadyIteration ? (
@@ -116,6 +201,16 @@ export function PromptLoopPage() {
           ) : undefined
         }
       />
+
+      {/* Cycle context bar — visible as soon as there is an active iteration */}
+      {(activeIteration || architectureDraft) && (
+        <CycleContextBar
+          projectType={projectType}
+          cyclePhase={displayCyclePhase}
+          targetTaskId={activeIteration?.targetTaskId ?? null}
+          phaseNumber={activeIteration?.roadmapPhaseNumber ?? null}
+        />
+      )}
 
       {!architectureDraft && (
         <Card className="border-amber-200 bg-amber-50 dark:border-amber-800/40 dark:bg-amber-950/20">
@@ -139,18 +234,20 @@ export function PromptLoopPage() {
         <Card>
           <CardHeader
             title="Generate first Claude Code prompt"
-            description="Creates a structured prompt from your spec and architecture for Phase 0."
+            description="Creates a structured, cycle-aligned prompt from your spec and architecture."
             icon="⚡"
           />
           <div className="space-y-3">
             <div className="rounded-xl bg-zinc-50 p-4 dark:bg-zinc-800/50">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">What the prompt will contain</p>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                What the prompt will contain
+              </p>
               <ul className="space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
-                <li>• Product context and stack</li>
-                <li>• Phase 0 goals</li>
-                <li>• Must-have features</li>
-                <li>• Constraints and rules</li>
-                <li>• Required response format</li>
+                <li>• Project type ({projectType ?? 'not set'}) and cycle stage (Code + Tests)</li>
+                <li>• Required docs to read (PRD, features, tech-spec, data-model, tasks)</li>
+                <li>• Stack, Phase 0 goals, must-have features, constraints</li>
+                <li>• TDD rule — tests required in the same response</li>
+                <li>• Structured 5-section response format</li>
               </ul>
             </div>
             <Button
@@ -189,6 +286,13 @@ export function PromptLoopPage() {
                 >
                   {copied ? '✓ Copied' : 'Copy prompt'}
                 </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={handleCopyIterationMarkdown}
+                >
+                  {iterCopied ? '✓ Copied' : '↓ Copy step as markdown'}
+                </Button>
               </div>
             }
           />
@@ -212,7 +316,7 @@ export function PromptLoopPage() {
         <Card>
           <CardHeader
             title="Paste Claude's response"
-            description="Paste the full response from Claude Code. The parser will extract analysis, plan, files, implementation summary, and next step."
+            description="Paste the full response from Claude Code. The parser extracts analysis, plan, files, implementation summary, next step, and checks for test files."
             icon="📋"
           />
           <div className="space-y-3">
@@ -239,7 +343,18 @@ export function PromptLoopPage() {
       {activeIteration?.parsedSummary && (
         <div className="space-y-4">
           <Card>
-            <CardHeader title="Parsed response" icon="🔍" action={<Badge variant="success">Parsed</Badge>} />
+            <CardHeader
+              title="Parsed response"
+              icon="🔍"
+              action={
+                <div className="flex items-center gap-2">
+                  <Badge variant="success">Parsed</Badge>
+                  {activeIteration.parsedSummary.hasTests
+                    ? <Badge variant="success">✓ Tests found</Badge>
+                    : <Badge variant="warning">⚠️ No tests</Badge>}
+                </div>
+              }
+            />
             <div className="space-y-4">
               {activeIteration.parsedSummary.analysis && (
                 <ParsedSection label="Brief analysis" content={activeIteration.parsedSummary.analysis} />
@@ -252,16 +367,40 @@ export function PromptLoopPage() {
                   <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Files changed</p>
                   <div className="flex flex-wrap gap-1.5">
                     {activeIteration.parsedSummary.changedFiles.map((f) => (
-                      <span key={f} className="rounded-md bg-zinc-100 px-2 py-0.5 text-xs font-mono text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                      <span
+                        key={f}
+                        className={`rounded-md px-2 py-0.5 text-xs font-mono ${
+                          /\.(test|spec)\.(ts|tsx|js|jsx)$/.test(f) || f.startsWith('[TEST]')
+                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+                            : 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300'
+                        }`}
+                      >
                         {f}
                       </span>
                     ))}
                   </div>
                 </div>
               )}
+              {activeIteration.parsedSummary.implementedTaskIds.length > 0 && (
+                <div>
+                  <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Task IDs referenced</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {activeIteration.parsedSummary.implementedTaskIds.map((id) => (
+                      <Badge key={id} variant="warning">{id}</Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
               {activeIteration.parsedSummary.nextStep && (
                 <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-800/40 dark:bg-emerald-950/20">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">Recommended next step</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
+                      Recommended next step
+                    </p>
+                    {activeIteration.parsedSummary.nextTaskId && (
+                      <Badge variant="warning">{activeIteration.parsedSummary.nextTaskId}</Badge>
+                    )}
+                  </div>
                   <p className="mt-1 text-sm text-emerald-800 dark:text-emerald-300">
                     {activeIteration.parsedSummary.nextStep}
                   </p>
@@ -269,7 +408,9 @@ export function PromptLoopPage() {
               )}
               {activeIteration.parsedSummary.warnings.length > 0 && (
                 <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 dark:border-amber-800/40 dark:bg-amber-950/20">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400">Parse warnings</p>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400">
+                    Parse warnings
+                  </p>
                   {activeIteration.parsedSummary.warnings.map((w, i) => (
                     <p key={i} className="mt-1 text-sm text-amber-700 dark:text-amber-400">⚠️ {w}</p>
                   ))}
@@ -282,9 +423,18 @@ export function PromptLoopPage() {
           <Card className="border-violet-200 bg-violet-50/50 dark:border-violet-800/40 dark:bg-violet-950/20">
             <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="font-semibold text-violet-800 dark:text-violet-300">Ready for iteration {promptIterations.length + 1}</p>
+                <p className="font-semibold text-violet-800 dark:text-violet-300">
+                  Ready for iteration {promptIterations.length + 1}
+                </p>
                 <p className="mt-0.5 text-sm text-violet-700/80 dark:text-violet-400">
-                  Generate the next prompt based on what was implemented and the recommended next step.
+                  {activeIteration.parsedSummary.nextTaskId
+                    ? `Next task: ${activeIteration.parsedSummary.nextTaskId} — generate a cycle-aligned prompt.`
+                    : 'Generate the next prompt based on what was implemented and the recommended next step.'}
+                  {!activeIteration.parsedSummary.hasTests && (
+                    <span className="ml-1 font-medium text-amber-600 dark:text-amber-400">
+                      Missing tests will be requested first.
+                    </span>
+                  )}
                 </p>
               </div>
               <Button onClick={handleGenerateNext} loading={generating}>
@@ -313,6 +463,7 @@ export function PromptLoopPage() {
               >
                 #{iter.iterationNumber}
                 {iter.status === 'parsed' && ' ✓'}
+                {iter.targetTaskId && ` · ${iter.targetTaskId}`}
               </button>
             ))}
           </div>

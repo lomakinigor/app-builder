@@ -97,17 +97,24 @@ Acceptance criteria must be checkable by a person or a test runner — not vague
 
 ## Test runner setup (T-018)
 
-Test tasks T-011–T-017 are defined but the test runner is not yet configured.
-A dedicated task (T-018, type=ops) must be completed before any test task can be marked done.
-
-T-018 deliverables:
-- Vitest configured in `vite.config.ts`
-- Testing Library (`@testing-library/react`, `@testing-library/user-event`) installed
-- `jsdom` environment set for component tests
-- One passing smoke test as proof of setup
-- `npm test` script added to `package.json`
+Completed. Vitest is configured in `vite.config.ts` with `environment: 'node'` as default; individual test files annotate `// @vitest-environment jsdom` when they need browser APIs. Testing Library (`@testing-library/react`, `@testing-library/user-event`) and `jsdom` are installed. `npm test` runs `vitest run`.
 
 See: D-004 in `decisions.md` for the rationale behind deferring this.
+
+---
+
+## CI gate (T-113)
+
+All tests run automatically via GitHub Actions on every push to `main` and every pull request targeting `main`.
+
+Workflow file: `.github/workflows/test.yml`
+
+Steps: checkout → Node 20 LTS → `npm ci` → `npm test`
+
+**To enforce blocking merges**, configure branch protection in GitHub:
+> Settings → Branches → Add rule for `main` → ✓ Require status checks to pass before merging → add the `test` check
+
+Once branch protection is enabled, a failing `npm test` will prevent a PR from being merged into main. No other pipeline changes are needed — `npm test` runs identically locally and in CI.
 
 ---
 

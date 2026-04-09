@@ -1,6 +1,9 @@
+import type { ProjectType } from '../project/types'
+
 // ─── Architecture ─────────────────────────────────────────────────────────────
 
 export interface ArchitectureDraft {
+  projectType: ProjectType
   recommendedStack: StackItem[]
   moduleArchitecture: string
   dataFlow: string

@@ -1,4 +1,4 @@
-import type { IdeaDraft, ResearchBrief, SpecPack, ArchitectureDraft } from '../types'
+import type { IdeaDraft, ResearchBrief, SpecPack, ArchitectureDraft, ProjectType } from '../types'
 import { IDEA_MIN_LENGTH } from '../../features/idea-input/validation'
 
 // ─── Stage gate result ────────────────────────────────────────────────────────
@@ -11,7 +11,10 @@ export interface StageGateResult {
 
 // ─── Idea → Research ──────────────────────────────────────────────────────────
 
-export function canAdvanceFromIdea(ideaDraft: IdeaDraft | null): StageGateResult {
+export function canAdvanceFromIdea(
+  ideaDraft: IdeaDraft | null,
+  projectType: ProjectType | null,
+): StageGateResult {
   if (!ideaDraft) {
     return { canAdvance: false, reason: 'No idea saved yet. Fill in your product idea first.' }
   }
@@ -27,6 +30,10 @@ export function canAdvanceFromIdea(ideaDraft: IdeaDraft | null): StageGateResult
       canAdvance: false,
       reason: `Your idea is too short (${rawIdea.length}/${IDEA_MIN_LENGTH} chars). Add more detail before continuing.`,
     }
+  }
+
+  if (!projectType) {
+    return { canAdvance: false, reason: 'Select whether you are building an application or a website.' }
   }
 
   return { canAdvance: true, reason: null }
@@ -69,6 +76,13 @@ export function canAdvanceFromSpec(specPack: SpecPack | null): StageGateResult {
     }
   }
 
+  if (!specPack.projectType) {
+    return {
+      canAdvance: false,
+      reason: 'Spec is missing a project type. Regenerate the specification.',
+    }
+  }
+
   return { canAdvance: true, reason: null }
 }
 
@@ -93,6 +107,13 @@ export function canAdvanceFromArchitecture(architectureDraft: ArchitectureDraft 
     return {
       canAdvance: false,
       reason: 'Architecture is incomplete — no roadmap phases defined. Edit the architecture before continuing.',
+    }
+  }
+
+  if (!architectureDraft.projectType) {
+    return {
+      canAdvance: false,
+      reason: 'Architecture is missing a project type. Regenerate the architecture.',
     }
   }
 

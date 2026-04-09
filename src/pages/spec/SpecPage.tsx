@@ -5,9 +5,12 @@ import { Button } from '../../shared/ui/Button'
 import { Card, CardHeader } from '../../shared/ui/Card'
 import { PageHeader } from '../../shared/ui/PageHeader'
 import { Badge } from '../../shared/ui/Badge'
+import { EmptyState } from '../../shared/ui/EmptyState'
 import { mockSpecService } from '../../mocks/services/specService'
 import { canAdvanceFromSpec } from '../../shared/lib/stageGates'
 import { EditableSpecPack } from '../../features/spec-output/EditableSpecPack'
+import { specPackToMarkdown } from '../../shared/lib/markdown/exportArtifactToMarkdown'
+import { copyMarkdown } from '../../shared/lib/clipboard/copyMarkdown'
 import type { SpecPack } from '../../shared/types'
 
 // ─── Gate banner ──────────────────────────────────────────────────────────────
@@ -25,16 +28,28 @@ function GateBanner({ reason }: { reason: string }) {
 
 export function SpecPage() {
   const navigate = useNavigate()
-  const { researchBrief, specPack, setSpecPack, updateSpecPack, setCurrentStage } = useProjectStore()
+  const { activeProject, researchBrief, specPack, setSpecPack, updateSpecPack, setCurrentStage } = useProjectStore()
   const [generating, setGenerating] = useState(false)
+  const [specCopied, setSpecCopied] = useState(false)
 
   const specGate = canAdvanceFromSpec(specPack)
+  const projectType = activeProject?.projectType ?? 'application'
+
+  async function handleCopySpecMarkdown() {
+    if (!specPack) return
+    const md = specPackToMarkdown(specPack, activeProject?.name ?? null)
+    const result = await copyMarkdown(md, 'specification.md')
+    if (result.method !== 'failed') {
+      setSpecCopied(true)
+      setTimeout(() => setSpecCopied(false), 2000)
+    }
+  }
 
   async function handleGenerate() {
     if (!researchBrief) return
     setGenerating(true)
     try {
-      const spec = await mockSpecService.generateSpec(researchBrief)
+      const spec = await mockSpecService.generateSpec(researchBrief, projectType)
       setSpecPack(spec)
       setCurrentStage('specification')
     } finally {
@@ -46,13 +61,34 @@ export function SpecPage() {
     updateSpecPack(updated)
   }
 
+  if (!activeProject) {
+    return (
+      <div className="space-y-6">
+        <PageHeader title="Specification" icon="📋" description="Generate a structured product spec." />
+        <EmptyState
+          icon="📂"
+          title="No project selected"
+          description="Create a project first to reach the specification stage."
+          action={{ label: 'Create project', onClick: () => navigate('/project/new') }}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Specification"
         icon="📋"
         description="Generate a structured product spec from your research brief. Defines MVP scope, feature list, assumptions, and constraints."
-        badge={specPack ? <Badge variant="success">Generated</Badge> : <Badge variant="muted">Not generated</Badge>}
+        badge={
+          <div className="flex items-center gap-2">
+            <Badge variant="default">
+              {projectType === 'website' ? '🌐 Website' : '📱 Application'}
+            </Badge>
+            {specPack ? <Badge variant="success">Generated</Badge> : <Badge variant="muted">Not generated</Badge>}
+          </div>
+        }
       />
 
       {/* Blocked: no research brief */}
@@ -101,7 +137,14 @@ export function SpecPage() {
 
       {/* Editable spec output */}
       {specPack && (
-        <EditableSpecPack spec={specPack} onSave={handleSaveSpec} />
+        <>
+          <div className="flex justify-end">
+            <Button size="sm" variant="ghost" onClick={handleCopySpecMarkdown}>
+              {specCopied ? '✓ Copied' : '↓ Copy as markdown'}
+            </Button>
+          </div>
+          <EditableSpecPack spec={specPack} onSave={handleSaveSpec} />
+        </>
       )}
 
       {/* Bottom action bar */}

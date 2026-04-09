@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useProjectStore } from '../../app/store/projectStore'
+import { useProjectRegistry, selectSelectedProject } from '../../app/store/projectRegistryStore'
 import { Button } from '../../shared/ui/Button'
 import { Card, CardHeader } from '../../shared/ui/Card'
 import { Badge } from '../../shared/ui/Badge'
@@ -26,10 +27,19 @@ const WORKFLOW_STEPS = [
 
 export function HomePage() {
   const navigate = useNavigate()
-  const { activeProject, setActiveProject, setIdeaDraft, setResearchBrief, setSpecPack, setArchitectureDraft, addPromptIteration, addImportedArtifact, addResearchRun } = useProjectStore()
+
+  // Registry: canonical list + selected project identity
+  const { selectProject } = useProjectRegistry()
+  const selectedProject = useProjectRegistry(selectSelectedProject)
+
+  // Project store: stage-level data (ideaDraft, brief, spec, etc.)
+  // activeProject.currentStage stays live-updated as the user progresses.
+  const { activeProject, setIdeaDraft, setResearchBrief, setSpecPack, setArchitectureDraft, addPromptIteration, addImportedArtifact, addResearchRun } = useProjectStore()
 
   function loadMockProject() {
-    setActiveProject(mockProject)
+    // 1. Select the demo project in the registry (bridges to projectStore.setActiveProject)
+    selectProject(mockProject.id)
+    // 2. Load stage data into the project store
     setIdeaDraft(mockIdeaDraft)
     addResearchRun(mockResearchRun)
     addImportedArtifact(mockImportedArtifact)
@@ -41,8 +51,14 @@ export function HomePage() {
   }
 
   function startNew() {
-    navigate('/idea')
+    navigate('/project/new')
   }
+
+  // currentStage is live in projectStore when the selected project is active
+  const currentStage =
+    activeProject?.id === selectedProject?.id
+      ? activeProject?.currentStage
+      : selectedProject?.currentStage
 
   return (
     <div className="space-y-8">
@@ -69,27 +85,32 @@ export function HomePage() {
         </div>
       </div>
 
-      {/* Active project card */}
-      {activeProject && (
+      {/* Selected project card — driven by registry (T-201 / F-027) */}
+      {selectedProject ? (
         <Card>
           <CardHeader
-            title="Active Project"
+            title="Selected Project"
             icon="📂"
             action={
               <Badge variant="success">
-                {activeProject.status}
+                {selectedProject.status}
               </Badge>
             }
           />
           <div className="mb-4">
-            <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-              {activeProject.name}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                {selectedProject.name}
+              </p>
+              <Badge variant="muted">
+                {selectedProject.projectType === 'application' ? '📱 Application' : '🌐 Website'}
+              </Badge>
+            </div>
             <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
-              Created {new Date(activeProject.createdAt).toLocaleDateString()}
+              Created {new Date(selectedProject.createdAt).toLocaleDateString()}
             </p>
           </div>
-          <StageIndicator currentStage={activeProject.currentStage} />
+          {currentStage && <StageIndicator currentStage={currentStage} />}
           <div className="mt-4 flex flex-wrap gap-2">
             <Button size="sm" onClick={() => navigate('/idea')}>
               Continue →
@@ -97,6 +118,13 @@ export function HomePage() {
             <Button size="sm" variant="secondary" onClick={() => navigate('/history')}>
               View History
             </Button>
+          </div>
+        </Card>
+      ) : (
+        <Card className="border-dashed border-zinc-300 dark:border-zinc-600">
+          <div className="flex items-center gap-3 py-1 text-zinc-500 dark:text-zinc-400">
+            <span className="text-xl">📂</span>
+            <p className="text-sm">No project selected. Start a new project or load the demo above.</p>
           </div>
         </Card>
       )}

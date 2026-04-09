@@ -3,8 +3,8 @@
 This document describes the development cycle used by AI Product Studio.
 
 It applies at two levels:
-- **Internal:** how AI Product Studio itself is designed, built, and iterated.
-- **External:** how users of AI Product Studio build their own applications and websites.
+- **(a) Internal:** how AI Product Studio itself is designed, built, and iterated — governed by the `docs/` folder in this repository.
+- **(b) External:** how each individual project (application or website) that users create with AI Product Studio is built — governed by the per-project doc set produced by the guided flow.
 
 The cycle is the same in both cases. The tooling differs; the discipline does not.
 
@@ -35,6 +35,8 @@ No structure required yet. The goal is to get the right questions on the table, 
 - `docs/user-stories.md` — write US-xxx entries from the raw idea
 - `docs/PRD.md` — draft or update the Problem and Goals sections
 
+**For user projects:** this phase produces the project's own `PRD.md` (problem, goals, target users) and `user-stories.md` (acceptance direction). In AI Product Studio these are captured via the Idea page and Research Brief.
+
 **Bad step:**
 > "Let's start coding the auth screen, we know we need it."
 
@@ -57,6 +59,8 @@ Define what the product does (features), what it does not do (non-goals), and wh
 - `docs/features.md` — define F-xxx entries with US-xxx links and status
 - `docs/PRD.md` — confirm or refine success criteria and non-goals
 - `docs/data-model.md` — identify any new entities this spec requires
+
+**For user projects:** this phase produces the project's own `features.md` (F-xxx feature list with priorities), `PRD.md` (success criteria, non-goals), and `data-model.md` (entity definitions). In AI Product Studio these are captured in the SpecPack.
 
 **Bad step:**
 > "I'll add editable spec packs — it's obvious we need it, no need to write it up."
@@ -82,6 +86,8 @@ Any architecture decision that is not obvious goes into `decisions.md`.
 - `docs/tech-spec.md` — confirm stack, module structure, core flows, constraints
 - `docs/decisions.md` — record any non-obvious architecture or scope decision (D-xxx)
 
+**For user projects:** this phase produces the project's own `plan.md` (phases and task order), `tech-spec.md` (stack, module structure, constraints), and `decisions.md` (architecture trade-offs). In AI Product Studio these are captured in the ArchitectureDraft and roadmap.
+
 **Bad step:**
 > "We'll figure out the state management later."
 
@@ -105,6 +111,8 @@ Tasks are the contract between the plan and the code.
 - `docs/tasks.md` — write T-xxx entries; assign type, status, owner, DoD
 - `docs/testing-strategy.md` — confirm which testing level applies to each task
 - `docs/features.md` — update T-xxx references on parent F-xxx features
+
+**For user projects:** this phase produces the project's own `tasks.md` (T-xxx entries with type, DoD, and paired test tasks). In AI Product Studio the roadmap phases act as the task scope; each phase maps to one prompt iteration.
 
 **Bad step:**
 > "I'll write the tests after, once I know what the code actually does."
@@ -130,6 +138,8 @@ Tests are written as part of the same task cycle, not after.
 - `docs/tasks.md` — update status (in-progress → in-review → done)
 - `docs/testing-strategy.md` — confirm which test level was used
 
+**For user projects:** work happens in the project's own codebase. Every change should reference the project's own T-xxx and F-xxx IDs. The project's `tasks.md` tracks status. AI Product Studio generates the prompts that drive this work; Claude Code executes them.
+
 **Bad step:**
 > "Just pushing this fix, I'll add the task entry later."
 
@@ -154,6 +164,8 @@ Any gap found goes back to Spec or Plan as a new or updated entry, not a silent 
 - `docs/user-stories.md` — confirm acceptance direction is met
 - `docs/tasks.md` — mark task done; add follow-on tasks if gaps found
 - `docs/decisions.md` — add D-xxx if the review surfaced a significant trade-off or reversal
+
+**For user projects:** check the project's own `features.md`, `user-stories.md`, `tasks.md`, and `decisions.md`. AI Product Studio surfaces this review in the History (Review) page — the cycle-aware prompt parser flags missing tests, unimplemented task IDs, and next recommended steps.
 
 **Bad step:**
 > "Looks good to me, shipping."

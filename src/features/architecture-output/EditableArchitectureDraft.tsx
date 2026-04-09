@@ -35,7 +35,7 @@ function archToEditState(arch: ArchitectureDraft): EditState {
   }
 }
 
-function editStateToArch(state: EditState): ArchitectureDraft {
+function editStateToArch(state: EditState): Omit<ArchitectureDraft, 'projectType'> {
   return {
     moduleArchitecture: state.moduleArchitecture.trim(),
     dataFlow: state.dataFlow.trim(),
@@ -222,7 +222,7 @@ export function EditableArchitectureDraft({ arch, onSave }: EditableArchitecture
   }
 
   function handleSave() {
-    onSave(editStateToArch(editState))
+    onSave({ ...editStateToArch(editState), projectType: arch.projectType })
     setEditing(false)
   }
 

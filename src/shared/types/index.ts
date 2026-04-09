@@ -1,6 +1,6 @@
 // Re-export all domain types from one place for convenient imports.
 
-export type { Project, IdeaDraft, ProjectStage, ProjectStatus } from '../../entities/project/types'
+export type { Project, IdeaDraft, ProjectType, ProjectStage, ProjectStatus } from '../../entities/project/types'
 
 export type {
   ResearchProvider,
@@ -26,4 +26,5 @@ export type {
   PromptIteration,
   ParsedClaudeResponse,
   PromptStatus,
+  CyclePhase,
 } from '../../entities/prompt-iteration/types'

@@ -14,6 +14,7 @@ import type {
 export const mockProject: Project = {
   id: 'proj-001',
   name: 'TaskFlow — AI-assisted project manager',
+  projectType: 'application',
   createdAt: '2026-04-01T10:00:00Z',
   updatedAt: '2026-04-07T08:30:00Z',
   status: 'active',
@@ -77,6 +78,7 @@ export const mockResearchBrief: ResearchBrief = {
 // ─── Mock spec pack ───────────────────────────────────────────────────────────
 
 export const mockSpecPack: SpecPack = {
+  projectType: 'application',
   productSummary:
     'TaskFlow is a lightweight, AI-native project manager for solo developers and small teams. It reduces planning friction by generating structured task breakdowns and recommending next actions from natural language project goals.',
   MVPScope:
@@ -112,6 +114,7 @@ export const mockSpecPack: SpecPack = {
 // ─── Mock architecture draft ──────────────────────────────────────────────────
 
 export const mockArchitectureDraft: ArchitectureDraft = {
+  projectType: 'application',
   recommendedStack: [
     { name: 'React', role: 'UI layer', rationale: 'Component-based, excellent mobile support, strong ecosystem' },
     { name: 'TypeScript', role: 'Type safety', rationale: 'Prevents runtime errors, self-documenting domain models' },
@@ -171,32 +174,70 @@ export const mockPromptIterations: PromptIteration[] = [
     id: 'prompt-001',
     projectId: 'proj-001',
     iterationNumber: 1,
-    promptText: `You are a senior full-stack engineer implementing TaskFlow, an AI-native project manager.
+    promptText: `You are a senior full-stack engineer building an application.
 
-## Context
-- Stack: React + TypeScript + Vite + Zustand + Tailwind CSS
-- Phase 0: Foundation
-- Goal: App shell, routing, state store, typed models, placeholder screens
+## Build context
+Project: TaskFlow — a lightweight, AI-native project manager for solo developers and small teams.
+Type: application
+Stage: Code + Tests (Superpowers cycle — Stage 5 of 6)
 
-## Task
-Implement Phase 0 only:
-1. Vite + React + TS scaffold
-2. React Router with routes: /, /project, /goals, /tasks, /settings
-3. Zustand store with Project, Goal, Task types
-4. Tailwind setup
-5. Placeholder pages for each route
-6. Basic responsive navigation
+## Documents to read before writing any code
+1. docs/PRD.md — goals, success criteria, non-goals
+2. docs/features.md — feature definitions (F-xxx) and status
+3. docs/tech-spec.md — architecture decisions and module structure
+4. docs/data-model.md — typed entity definitions
+5. docs/tasks.md — task list (T-xxx) — this defines your exact scope
+6. docs/user-stories.md — acceptance direction for Review
 
-## Rules
-- TypeScript strict mode
-- Mobile-first layout
-- Mock data only, no real API calls
-- One prompt = one phase`,
+## Stack
+React + TypeScript + Vite + Zustand + Tailwind CSS + Claude API
+
+## Phase 0: Foundation
+Goals:
+- App shell
+- Routing
+- State store
+- Typed models
+- Mock data
+
+## Target task
+You are implementing Phase 0. The relevant tasks are T-001 through T-004 in docs/tasks.md.
+Read each task's Definition of Done before you write any code.
+Reference T-xxx and F-xxx IDs in your response.
+
+## Must-have features (Phase 0 scope)
+- F-019 Strict TypeScript — no 'any' in production paths
+- F-020 Responsive layout — mobile-first
+- F-021 Dark mode — Tailwind CSS
+- F-022 Modular architecture — entities/, features/, pages/, shared/
+
+## Constraints
+- No backend server in MVP
+- No user accounts
+- No billing
+- Must work on mobile
+
+## TDD rule
+You must write tests as part of this task — not after.
+Include at least one unit or integration test per non-trivial function or component.
+Mark test files clearly in your files list: [TEST] src/path/to/file.test.ts
+A response that implements code with no test files will be flagged in the Review stage.
+
+## Required response format
+1. Brief analysis — what you are implementing and why (reference T-xxx, F-xxx)
+2. Implementation plan — list every change, include test approach
+3. Files created/changed — list all files; mark [TEST] on test files
+4. Implementation — the actual code
+5. Recommended next step — the next T-xxx task and why`,
     claudeResponseRaw: null,
     parsedSummary: null,
     recommendedNextStep: null,
     status: 'draft',
     createdAt: '2026-04-07T08:45:00Z',
+    projectType: 'application',
+    cyclePhase: 'code_and_tests',
+    targetTaskId: 'T-001',
+    roadmapPhaseNumber: 0,
   },
 ]
 

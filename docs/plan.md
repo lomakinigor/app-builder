@@ -59,7 +59,23 @@ Tasks execute in phase order. An impl task may not begin until its paired test t
 | T-015 | test | Tests: Local persistence correctness | T-009 | — | todo |
 | T-016 | test | Tests: Stage gate unit tests | T-005, T-007 | — | todo |
 | T-017 | test | Tests: Empty states and error display | T-010 | — | todo |
-| T-018 | ops | Wire test runner: Vitest + Testing Library | testing-strategy, decisions D-004 | — | todo |
+| T-018 | ops | Wire test runner: Vitest + Testing Library | testing-strategy, decisions D-004 | — | done |
+| T-101 | impl | Introduce ProjectType ('application' \| 'website') in types, Project entity, store, seed data | data-model, F-025 | T-102 | done |
+| T-102 | test | Tests: ProjectType in store — setProjectType action, persist round-trip, seed value | T-101 | — | todo |
+| T-103 | impl | Add project type selector (Application / Website) to Idea page; wire stage gate and store | F-025, US-015 | T-104 | done |
+| T-104 | test | Tests: project type selector — selection state, validation block, store update, HomePage display | T-103 | — | todo |
+| T-105 | impl | Make Spec and Architecture generation aware of ProjectType; type-aware mock outputs, type badges in UI, tightened stage gates | F-025, F-005, F-006, US-015 | T-106 | done |
+| T-106 | test | Tests: type-aware spec/arch generation — application vs website outputs, stage gate assertions, badge display | T-105 | — | todo |
+| T-107 | impl | Align Prompt Loop with Superpowers cycle — add CyclePhase + projectType to PromptIteration; cycle-aware first/next prompts with TDD requirement; parser extracts hasTests, task IDs; UI shows phase/type/task context | F-007, F-024, US-011, US-012, US-013 | T-108 | done |
+| T-108 | test | Tests: cycle-aware prompt generation — first prompt mentions projectType and TDD rule; parser detects test files and task IDs; UI shows correct phase badges | T-107 | — | todo |
+| T-109 | impl | Make HistoryPage the visible Review phase — 6-stage cycle timeline, iteration T-xxx/F-xxx/test badges, decisions panel, review checklist | F-024, F-007, US-011–013 | T-110 | done |
+| T-110 | test | Tests: Review phase history view — cycle stages, test badges, task ID badges, decisions panel | T-109 | — | todo |
+| T-111 | impl | Per-artifact "Copy as markdown" — pure formatters + clipboard/download utility + UI buttons on 4 pages | F-012, F-026, D-006 | T-112 | done |
+| T-112 | test | Tests: markdown formatters (content, projectType label) + clipboard utility (copy path, download fallback) | T-111 | — | done |
+| T-113 | ops | Wire CI: GitHub Actions workflow runs `npm test` on push/PR to main; failures block merges | testing-strategy, T-018, T-112 | — | done |
+| T-201 | impl | Project registry store (projects[], selectedProjectId) + bridge to projectStore + HomePage selected-project summary | F-027, data-model | T-202 | done |
+| T-202 | impl | Project creation page: name + type form → createProject + selectProject + navigate /idea; HomePage "Start New Project" → /project/new | F-025, F-027 | T-104 | done |
+| T-203 | impl | Per-project state map in projectStore + TopBar project switcher dropdown + no-project EmptyState guards on all flow pages | F-027, US-014 | T-104 | done |
 
 ---
 

@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware'
 import type {
   Project,
   IdeaDraft,
+  ProjectType,
   ProjectStage,
   ResearchRun,
   ImportedResearchArtifact,
@@ -12,13 +13,44 @@ import type {
   PromptIteration,
 } from '../../shared/types'
 
+// ─── Per-project stage data ───────────────────────────────────────────────────
+// All artifact data is scoped to a project ID.
+// When setActiveProject is called with a new project, the current flat data is
+// snapshotted into projectData[currentId] before loading projectData[newId].
+// This means switching projects restores the correct stage state without any
+// page code changes.
+
+export interface ProjectData {
+  ideaDraft: IdeaDraft | null
+  researchRuns: ResearchRun[]
+  importedArtifacts: ImportedResearchArtifact[]
+  researchBrief: ResearchBrief | null
+  specPack: SpecPack | null
+  architectureDraft: ArchitectureDraft | null
+  promptIterations: PromptIteration[]
+}
+
+export const emptyProjectData: ProjectData = {
+  ideaDraft: null,
+  researchRuns: [],
+  importedArtifacts: [],
+  researchBrief: null,
+  specPack: null,
+  architectureDraft: null,
+  promptIterations: [],
+}
+
 // ─── State shape ──────────────────────────────────────────────────────────────
 
 interface ProjectState {
-  // Active project
+  // Active project metadata
   activeProject: Project | null
 
-  // Stage data
+  // Cold store: artifact data keyed by project ID.
+  // Pages do not read this directly; they read the flat hot slots below.
+  projectData: Record<string, ProjectData>
+
+  // Hot slots: always reflect the active project's stage data.
   ideaDraft: IdeaDraft | null
   researchRuns: ResearchRun[]
   importedArtifacts: ImportedResearchArtifact[]
@@ -38,6 +70,7 @@ interface ProjectState {
 
 interface ProjectActions {
   setActiveProject: (project: Project) => void
+  setProjectType: (type: ProjectType) => void
   setCurrentStage: (stage: ProjectStage) => void
   setIdeaDraft: (draft: IdeaDraft) => void
   addResearchRun: (run: ResearchRun) => void
@@ -59,13 +92,8 @@ interface ProjectActions {
 
 const initialState: ProjectState = {
   activeProject: null,
-  ideaDraft: null,
-  researchRuns: [],
-  importedArtifacts: [],
-  researchBrief: null,
-  specPack: null,
-  architectureDraft: null,
-  promptIterations: [],
+  projectData: {},
+  ...emptyProjectData,
   ui: {
     sidebarOpen: false,
     activeTab: 'overview',
@@ -80,7 +108,41 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(
       ...initialState,
 
       setActiveProject: (project) =>
-        set({ activeProject: project }),
+        set((state) => {
+          const currentId = state.activeProject?.id
+
+          // Snapshot the current project's flat data before switching.
+          const saved: Record<string, ProjectData> = currentId
+            ? {
+                ...state.projectData,
+                [currentId]: {
+                  ideaDraft: state.ideaDraft,
+                  researchRuns: state.researchRuns,
+                  importedArtifacts: state.importedArtifacts,
+                  researchBrief: state.researchBrief,
+                  specPack: state.specPack,
+                  architectureDraft: state.architectureDraft,
+                  promptIterations: state.promptIterations,
+                },
+              }
+            : state.projectData
+
+          // Restore the incoming project's data, or start with empty slots.
+          const incoming = saved[project.id] ?? emptyProjectData
+
+          return {
+            activeProject: project,
+            projectData: saved,
+            ...incoming,
+          }
+        }),
+
+      setProjectType: (type) =>
+        set((state) => ({
+          activeProject: state.activeProject
+            ? { ...state.activeProject, projectType: type, updatedAt: new Date().toISOString() }
+            : null,
+        })),
 
       setCurrentStage: (stage) =>
         set((state) => ({

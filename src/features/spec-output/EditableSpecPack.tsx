@@ -36,7 +36,7 @@ function specToEditState(spec: SpecPack): EditState {
   }
 }
 
-function editStateToSpec(state: EditState): SpecPack {
+function editStateToSpec(state: EditState): Omit<SpecPack, 'projectType'> {
   return {
     productSummary: state.productSummary.trim(),
     MVPScope: state.MVPScope.trim(),
@@ -159,7 +159,7 @@ export function EditableSpecPack({ spec, onSave }: EditableSpecPackProps) {
   }
 
   function handleSave() {
-    onSave(editStateToSpec(editState))
+    onSave({ ...editStateToSpec(editState), projectType: spec.projectType })
     setEditing(false)
   }
 

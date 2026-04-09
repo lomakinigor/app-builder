@@ -1,6 +1,9 @@
+import type { ProjectType } from '../project/types'
+
 // ─── Specification ────────────────────────────────────────────────────────────
 
 export interface SpecPack {
+  projectType: ProjectType
   productSummary: string
   MVPScope: string
   featureList: SpecFeature[]

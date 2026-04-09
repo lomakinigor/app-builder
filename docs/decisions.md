@@ -93,6 +93,23 @@ Links: tasks.md (T-011–T-017), testing-strategy.md, tech-spec §4 risks
 
 ---
 
+## D-006 — Representation of per-project docs
+
+Date: 2026-04-09
+Context: PRD §1 Solution, tech-spec §5, and superpowers-workflow.md define that each project (application or website) accumulates its own logical doc set (PRD, features, plan, tech-spec, data-model, user-stories, tasks, decisions) as it moves through the Brainstorm → Spec → Plan → Tasks → Code+Tests → Review cycle. It was left open whether these docs exist only as in-app entities or also as generated and maintained markdown files.
+Options considered:
+- Option A — In-app only: in-app entities (IdeaDraft, ResearchBrief, SpecPack, ArchitectureDraft, PromptIteration log) are the canonical representation of the per-project doc set. No markdown files are generated or maintained as a parallel source of truth.
+- Option B — Hybrid: in-app entities remain, and the platform also generates and keeps in sync a per-project docs/ folder (downloadable zip, markdown files, or git-friendly output).
+- Option C — Files-first: markdown files are the primary source of truth; in-app entities are derived from them. The platform reads and writes project docs as files.
+Decision: Option A — in-app only for MVP. The in-app entities are the canonical representation of each project's doc set. No per-project markdown files are generated or maintained. Markdown export per F-012 is an additive, optional capability that lets users extract individual artifacts — it does not create a second source of truth. Options B and C are explicitly deferred past MVP.
+Consequences:
+- Enables: no file I/O complexity in the frontend-only MVP; consistent with D-001 (frontend-only, no backend); no sync problem between in-app state and external files
+- Forecloses: users cannot open a terminal and read their project docs as markdown files in MVP; a future backend is required before files-first (Option C) becomes viable
+- Mitigation: F-012 (copy/export markdown, should-have) lets users manually extract any artifact as markdown; the History (Review) page renders the full cycle view as a read-only review surface in the UI
+Links: F-026 (features.md), F-012, PRD §1 Solution, tech-spec §5, superpowers-workflow.md, D-001
+
+---
+
 ## D-005 — Provider-agnostic ResearchBrief as the normalization target
 
 Date: 2026-04-07

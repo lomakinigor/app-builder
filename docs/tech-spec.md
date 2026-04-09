@@ -127,12 +127,16 @@ When a user builds their own application or website through AI Product Studio, t
 The `ProjectStage` enum tracks which cycle stage the active project is currently at.
 The stage gate functions (`canAdvanceFromIdea`, `canAdvanceFromResearch`, `canAdvanceFromSpec`, `canAdvanceFromArchitecture`) enforce that no stage is skipped.
 
-Every project has a `projectType` (`app` | `website`) that is used to tailor generated spec language and architecture suggestions. The cycle is the same for both; the content differs.
+Every project has a `projectType` (`application` | `website`) that is used to tailor generated spec language and architecture suggestions. The cycle is the same for both; the content differs.
 
-This design means that a user following AI Product Studio to completion has, at the end, produced artifacts equivalent to:
-- a PRD and user stories (captured in the Research Brief and Spec Pack),
-- a tech spec and plan (captured in the Architecture Draft and roadmap),
-- a task list (the Roadmap Phases, each mapped to one prompt),
-- a code+test history (the Prompt Iteration log with parsed responses).
+A user who completes the guided flow will have produced a per-project documentation set equivalent to:
+- `PRD.md` and user stories — captured in the Research Brief and SpecPack,
+- `features.md` — the feature list with priorities and status,
+- `tech-spec.md` and `plan.md` — captured in the ArchitectureDraft and roadmap phases,
+- `data-model.md` — the typed entity definitions implied by the SpecPack,
+- `tasks.md` — the roadmap phases, each scoped to one prompt iteration,
+- `decisions.md` — any trade-offs recorded during architecture and review.
 
-These are not separate documents the user writes — they are the natural output of moving through the app's guided flow.
+These artifacts are the natural output of moving through the app; they are not separate documents the user has to write in advance.
+
+**AI Product Studio itself is built using this same cycle and this same doc set.** The `docs/` folder in this repository is the proof: every feature, task, and architecture decision that governs this codebase went through Brainstorm → Spec → Plan → Tasks → Code+Tests → Review before a line of code was written. The platform uses the same pattern it teaches.

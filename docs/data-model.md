@@ -13,7 +13,7 @@
 Fields:
 - id: string
 - name: string
-- projectType: ProjectType  ← 'app' | 'website'; set at project creation; influences generated spec and architecture language
+- projectType: ProjectType  ← 'application' | 'website'; set at project creation; influences generated spec and architecture language
 - createdAt: string (ISO)
 - updatedAt: string (ISO)
 - status: ProjectStatus
@@ -252,10 +252,10 @@ Used by: F-007, F-015 — US-012
 ## Enums
 
 ### ProjectType
-- app
+- application
 - website
 
-Maps to F-025. Used by all generation functions to tailor language in SpecPack, ArchitectureDraft, and PromptIterations.
+Maps to F-025, F-027. Used by all generation functions to tailor language in SpecPack, ArchitectureDraft, and PromptIterations.
 Used by: F-025 — US-015
 
 ### ProjectStage

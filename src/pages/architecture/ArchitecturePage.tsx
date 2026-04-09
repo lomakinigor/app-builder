@@ -5,9 +5,12 @@ import { Button } from '../../shared/ui/Button'
 import { Card, CardHeader } from '../../shared/ui/Card'
 import { PageHeader } from '../../shared/ui/PageHeader'
 import { Badge } from '../../shared/ui/Badge'
+import { EmptyState } from '../../shared/ui/EmptyState'
 import { mockSpecService } from '../../mocks/services/specService'
 import { canAdvanceFromArchitecture } from '../../shared/lib/stageGates'
 import { EditableArchitectureDraft } from '../../features/architecture-output/EditableArchitectureDraft'
+import { architectureDraftToMarkdown } from '../../shared/lib/markdown/exportArtifactToMarkdown'
+import { copyMarkdown } from '../../shared/lib/clipboard/copyMarkdown'
 import type { ArchitectureDraft } from '../../shared/types'
 
 // ─── Gate banner ──────────────────────────────────────────────────────────────
@@ -25,17 +28,29 @@ function GateBanner({ reason }: { reason: string }) {
 
 export function ArchitecturePage() {
   const navigate = useNavigate()
-  const { specPack, architectureDraft, setArchitectureDraft, updateArchitectureDraft, setCurrentStage } =
+  const { activeProject, specPack, architectureDraft, setArchitectureDraft, updateArchitectureDraft, setCurrentStage } =
     useProjectStore()
   const [generating, setGenerating] = useState(false)
+  const [archCopied, setArchCopied] = useState(false)
 
   const archGate = canAdvanceFromArchitecture(architectureDraft)
+  const projectType = activeProject?.projectType ?? specPack?.projectType ?? 'application'
+
+  async function handleCopyArchMarkdown() {
+    if (!architectureDraft) return
+    const md = architectureDraftToMarkdown(architectureDraft, activeProject?.name ?? null)
+    const result = await copyMarkdown(md, 'architecture.md')
+    if (result.method !== 'failed') {
+      setArchCopied(true)
+      setTimeout(() => setArchCopied(false), 2000)
+    }
+  }
 
   async function handleGenerate() {
     if (!specPack) return
     setGenerating(true)
     try {
-      const arch = await mockSpecService.generateArchitecture(specPack)
+      const arch = await mockSpecService.generateArchitecture(specPack, projectType)
       setArchitectureDraft(arch)
       setCurrentStage('architecture')
     } finally {
@@ -47,6 +62,20 @@ export function ArchitecturePage() {
     updateArchitectureDraft(updated)
   }
 
+  if (!activeProject) {
+    return (
+      <div className="space-y-6">
+        <PageHeader title="Architecture" icon="🏗️" description="Define your tech stack and roadmap." />
+        <EmptyState
+          icon="📂"
+          title="No project selected"
+          description="Create a project first to reach the architecture stage."
+          action={{ label: 'Create project', onClick: () => navigate('/project/new') }}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -54,9 +83,14 @@ export function ArchitecturePage() {
         icon="🏗️"
         description="Define your recommended tech stack, module architecture, data flow, and phased roadmap."
         badge={
-          architectureDraft
-            ? <Badge variant="success">Generated</Badge>
-            : <Badge variant="muted">Not generated</Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="default">
+              {projectType === 'website' ? '🌐 Website' : '📱 Application'}
+            </Badge>
+            {architectureDraft
+              ? <Badge variant="success">Generated</Badge>
+              : <Badge variant="muted">Not generated</Badge>}
+          </div>
         }
       />
 
@@ -106,7 +140,14 @@ export function ArchitecturePage() {
 
       {/* Editable architecture output */}
       {architectureDraft && (
-        <EditableArchitectureDraft arch={architectureDraft} onSave={handleSaveArch} />
+        <>
+          <div className="flex justify-end">
+            <Button size="sm" variant="ghost" onClick={handleCopyArchMarkdown}>
+              {archCopied ? '✓ Copied' : '↓ Copy as markdown'}
+            </Button>
+          </div>
+          <EditableArchitectureDraft arch={architectureDraft} onSave={handleSaveArch} />
+        </>
       )}
 
       {/* Bottom action bar */}

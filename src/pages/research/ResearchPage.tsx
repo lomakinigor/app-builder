@@ -10,6 +10,8 @@ import { EditableResearchBrief } from '../../features/research-brief/EditableRes
 import { mockResearchService, mockResearchProviders } from '../../mocks/services/researchService'
 import { canAdvanceFromIdea, canAdvanceFromResearch } from '../../shared/lib/stageGates'
 import { generateId } from '../../shared/lib/id'
+import { researchBriefToMarkdown } from '../../shared/lib/markdown/exportArtifactToMarkdown'
+import { copyMarkdown } from '../../shared/lib/clipboard/copyMarkdown'
 import type { ResearchMode, ImportedResearchArtifact, ResearchBrief } from '../../shared/types'
 
 type ResearchTab = 'run' | 'import'
@@ -76,7 +78,7 @@ export function ResearchPage() {
   const [briefArtifactId, setBriefArtifactId] = useState<string | null>(null)
 
   // Stage gates
-  const ideaGate = canAdvanceFromIdea(ideaDraft)
+  const ideaGate = canAdvanceFromIdea(ideaDraft, activeProject?.projectType ?? null)
   const researchGate = canAdvanceFromResearch(researchBrief)
 
   // Find the artifact that produced the current brief
@@ -164,7 +166,35 @@ export function ResearchPage() {
     setResearchBrief(updated)
   }
 
+  // ─── Copy brief as markdown ───────────────────────────────────────────────
+
+  const [briefCopied, setBriefCopied] = useState(false)
+
+  async function handleCopyBriefMarkdown() {
+    if (!researchBrief) return
+    const md = researchBriefToMarkdown(researchBrief, activeProject?.name ?? null)
+    const result = await copyMarkdown(md, 'research-brief.md')
+    if (result.method !== 'failed') {
+      setBriefCopied(true)
+      setTimeout(() => setBriefCopied(false), 2000)
+    }
+  }
+
   // ─── Render ───────────────────────────────────────────────────────────────
+
+  if (!activeProject) {
+    return (
+      <div className="space-y-6">
+        <PageHeader title="Research" icon="🔍" description="Run or import research." />
+        <EmptyState
+          icon="📂"
+          title="No project selected"
+          description="Create a project first to start the research stage."
+          action={{ label: 'Create project', onClick: () => navigate('/project/new') }}
+        />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -429,6 +459,12 @@ Tip: labeled sections like "## Problem" or "## Target Users" improve extraction 
       {/* Research brief — editable */}
       {researchBrief ? (
         <Card>
+          <div className="mb-3 flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Research Brief</span>
+            <Button size="sm" variant="ghost" onClick={handleCopyBriefMarkdown}>
+              {briefCopied ? '✓ Copied' : '↓ Copy as markdown'}
+            </Button>
+          </div>
           <EditableResearchBrief
             brief={researchBrief}
             artifactTitle={briefArtifact?.title}

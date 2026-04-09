@@ -5,6 +5,7 @@ import { Button } from '../../shared/ui/Button'
 import { Card, CardHeader } from '../../shared/ui/Card'
 import { PageHeader } from '../../shared/ui/PageHeader'
 import { Badge } from '../../shared/ui/Badge'
+import { EmptyState } from '../../shared/ui/EmptyState'
 import { generateId } from '../../shared/lib/id'
 import { canAdvanceFromIdea } from '../../shared/lib/stageGates'
 import {
@@ -13,10 +14,64 @@ import {
   IDEA_MIN_LENGTH,
   IDEA_RECOMMENDED_LENGTH,
 } from '../../features/idea-input/validation'
-import type { IdeaDraft } from '../../shared/types'
+import type { IdeaDraft, ProjectType } from '../../shared/types'
 
 const PLACEHOLDER_IDEA =
   'A project management tool where AI helps break down goals into tasks, writes subtask descriptions, and suggests next actions based on what is overdue or blocked.'
+
+// ─── Project type segmented control ───────────────────────────────────────────
+
+function ProjectTypeSelector({
+  value,
+  onChange,
+  showError,
+}: {
+  value: ProjectType | null
+  onChange: (v: ProjectType) => void
+  showError: boolean
+}) {
+  const options: { type: ProjectType; label: string; icon: string }[] = [
+    { type: 'application', label: 'Application', icon: '📱' },
+    { type: 'website', label: 'Website', icon: '🌐' },
+  ]
+
+  return (
+    <div>
+      <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        Project type <span className="text-red-400">*</span>
+      </label>
+      <div
+        className={`flex rounded-xl border p-1 ${
+          showError && !value
+            ? 'border-red-300 bg-red-50 dark:border-red-700 dark:bg-red-950/20'
+            : 'border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800'
+        }`}
+      >
+        {options.map(({ type, label, icon }) => (
+          <button
+            key={type}
+            type="button"
+            onClick={() => onChange(type)}
+            className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+              value === type
+                ? 'bg-white text-violet-700 shadow-sm dark:bg-zinc-700 dark:text-violet-300'
+                : 'text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200'
+            }`}
+          >
+            <span>{icon}</span>
+            <span>{label}</span>
+          </button>
+        ))}
+      </div>
+      {showError && !value && (
+        <p className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-red-600 dark:text-red-400">
+          <span>⚠</span>
+          Select whether you are building an application or a website.
+        </p>
+      )}
+    </div>
+  )
+}
 
 // ─── Field wrapper with error display ─────────────────────────────────────────
 
@@ -70,7 +125,7 @@ function IdeaCharProgress({ length }: { length: number }) {
 
 export function IdeaPage() {
   const navigate = useNavigate()
-  const { activeProject, ideaDraft, setActiveProject, setIdeaDraft, setCurrentStage } = useProjectStore()
+  const { activeProject, ideaDraft, setActiveProject, setIdeaDraft, setCurrentStage, setProjectType: storeSetProjectType } = useProjectStore()
 
   const [form, setForm] = useState<IdeaDraft>({
     title: ideaDraft?.title ?? '',
@@ -81,31 +136,47 @@ export function IdeaPage() {
     notes: ideaDraft?.notes ?? '',
   })
 
+  const [projectType, setProjectTypeLocal] = useState<ProjectType | null>(
+    activeProject?.projectType ?? null,
+  )
+
   // Only show validation errors after user has attempted to submit
   const [submitted, setSubmitted] = useState(false)
   const [saved, setSaved] = useState(false)
 
   const validation = validateIdeaDraft(form)
-  const gate = canAdvanceFromIdea(validation.valid ? form : null)
+  const gate = canAdvanceFromIdea(validation.valid ? form : null, projectType)
 
   function handleChange(field: keyof IdeaDraft, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))
     setSaved(false)
   }
 
+  function handleProjectTypeChange(type: ProjectType) {
+    setProjectTypeLocal(type)
+    setSaved(false)
+    // Immediately persist if a project already exists
+    if (activeProject) {
+      storeSetProjectType(type)
+    }
+  }
+
   function handleSave() {
     setSubmitted(true)
-    if (!validation.valid) return
+    if (!validation.valid || !projectType) return
 
     if (!activeProject) {
       setActiveProject({
         id: generateId('proj'),
         name: form.title.trim() || 'Untitled Project',
+        projectType: projectType,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         status: 'active',
         currentStage: 'idea',
       })
+    } else {
+      storeSetProjectType(projectType)
     }
 
     setIdeaDraft(form)
@@ -115,13 +186,27 @@ export function IdeaPage() {
 
   function handleContinue() {
     setSubmitted(true)
-    if (!validation.valid) return
+    if (!validation.valid || !projectType) return
     handleSave()
     navigate('/research')
   }
 
   const showErrors = submitted
-  const hasErrors = !validation.valid
+  const hasErrors = !validation.valid || !projectType
+
+  if (!activeProject) {
+    return (
+      <div className="space-y-6">
+        <PageHeader title="Idea" icon="💡" description="Describe your product idea." />
+        <EmptyState
+          icon="📂"
+          title="No project selected"
+          description="Create a project first to start entering your idea."
+          action={{ label: 'Create project', onClick: () => navigate('/project/new') }}
+        />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -156,6 +241,12 @@ export function IdeaPage() {
           icon="✏️"
         />
         <div className="space-y-4">
+          <ProjectTypeSelector
+            value={projectType}
+            onChange={handleProjectTypeChange}
+            showError={showErrors}
+          />
+
           <div>
             <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
               Project name <span className="text-zinc-400">(optional)</span>
