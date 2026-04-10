@@ -202,3 +202,17 @@ When AI Product Studio is used to build a target application or website, it mirr
 | Review | Response parser + next prompt generation |
 
 The app does not skip stages for the user any more than a developer should skip them for themselves.
+
+---
+
+## Правила работы с памятью
+
+Единые правила ведения контекста между сессиями зафиксированы в одном месте:
+
+> **CLAUDE.md → раздел `## Память – КРИТИЧЕСКИ ВАЖНО`**
+
+Это правило распространяется на оба уровня применения цикла:
+- при работе над самим AI Product Studio,
+- при работе над любым проектом, создаваемым через студию.
+
+При создании нового репозитория через студию раздел `## Память` копируется из `CLAUDE.template.md` без изменений.
