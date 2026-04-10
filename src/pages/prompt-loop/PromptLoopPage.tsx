@@ -252,6 +252,23 @@ export function PromptLoopPage() {
         </Card>
       )}
 
+      {architectureDraft && !specPack && (
+        <Card className="border-amber-200 bg-amber-50 dark:border-amber-800/40 dark:bg-amber-950/20">
+          <div className="flex items-center gap-3">
+            <span className="text-xl">⚠️</span>
+            <div>
+              <p className="font-medium text-amber-800 dark:text-amber-300">Требуется спецификация</p>
+              <p className="text-sm text-amber-700/80 dark:text-amber-400">
+                Для генерации промпта нужна спецификация.{' '}
+                <button onClick={() => navigate('/spec')} className="underline">
+                  Перейти к спецификации →
+                </button>
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {/* Generate first prompt */}
       {promptIterations.length === 0 && (
         <Card>
@@ -418,6 +435,9 @@ export function PromptLoopPage() {
               {activeIteration.parsedSummary.plan && (
                 <ParsedSection label="План реализации" content={activeIteration.parsedSummary.plan} />
               )}
+              {activeIteration.parsedSummary.implementationSummary && (
+                <ParsedSection label="Резюме реализации" content={activeIteration.parsedSummary.implementationSummary} />
+              )}
               {activeIteration.parsedSummary.changedFiles.length > 0 && (
                 <div>
                   <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Изменённые файлы</p>
@@ -447,7 +467,7 @@ export function PromptLoopPage() {
                   </div>
                 </div>
               )}
-              {activeIteration.parsedSummary.nextStep && (
+              {activeIteration.parsedSummary.nextStep ? (
                 <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-800/40 dark:bg-emerald-950/20">
                   <div className="flex items-center gap-2">
                     <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
@@ -456,22 +476,47 @@ export function PromptLoopPage() {
                     {activeIteration.parsedSummary.nextTaskId && (
                       <Badge variant="warning">{activeIteration.parsedSummary.nextTaskId}</Badge>
                     )}
+                    {activeIteration.parsedSummary.inferredNextPhase && (
+                      <Badge variant={activeIteration.parsedSummary.inferredNextPhase === 'review' ? 'success' : 'info'}>
+                        {CYCLE_PHASE_LABEL[activeIteration.parsedSummary.inferredNextPhase]}
+                      </Badge>
+                    )}
                   </div>
                   <p className="mt-1 text-sm text-emerald-800 dark:text-emerald-300">
                     {activeIteration.parsedSummary.nextStep}
                   </p>
                 </div>
-              )}
-              {activeIteration.parsedSummary.warnings.length > 0 && (
-                <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 dark:border-amber-800/40 dark:bg-amber-950/20">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400">
-                    Предупреждения парсера
+              ) : (
+                <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-800/50">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Следующий шаг</p>
+                  <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                    Следующий шаг не найден в ответе. Убедитесь, что Claude завершил ответ разделом «Следующий шаг».
                   </p>
-                  {activeIteration.parsedSummary.warnings.map((w, i) => (
-                    <p key={i} className="mt-1 text-sm text-amber-700 dark:text-amber-400">⚠️ {w}</p>
-                  ))}
                 </div>
               )}
+              {/* Derived parse warnings — computed from parsed data quality */}
+              {(() => {
+                const derived: string[] = []
+                const ps = activeIteration.parsedSummary
+                if (activeIteration.targetTaskId && !ps.implementedTaskIds.includes(activeIteration.targetTaskId)) {
+                  derived.push(`Задача ${activeIteration.targetTaskId} не упомянута в ответе — проверьте, что Claude работал над нужной задачей.`)
+                }
+                if (ps.inferredNextPhase === null && ps.nextStep) {
+                  derived.push('Фаза не определена автоматически — следующий шаг не содержит явных сигналов о статусе задачи.')
+                }
+                const allWarnings = [...ps.warnings, ...derived]
+                if (allWarnings.length === 0) return null
+                return (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 dark:border-amber-800/40 dark:bg-amber-950/20">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400">
+                      Предупреждения парсера
+                    </p>
+                    {allWarnings.map((w, i) => (
+                      <p key={i} className="mt-1 text-sm text-amber-700 dark:text-amber-400">⚠ {w}</p>
+                    ))}
+                  </div>
+                )
+              })()}
             </div>
           </Card>
 
@@ -481,10 +526,12 @@ export function PromptLoopPage() {
               <p className="font-semibold text-violet-800 dark:text-violet-300">
                 Готово к итерации {promptIterations.length + 1}
               </p>
-              {activeIteration.parsedSummary.inferredNextPhase && (
+              {activeIteration.parsedSummary.inferredNextPhase ? (
                 <Badge variant={activeIteration.parsedSummary.inferredNextPhase === 'review' ? 'success' : activeIteration.parsedSummary.inferredNextPhase === 'tasks' ? 'warning' : 'info'}>
                   Предложено: {CYCLE_PHASE_LABEL[activeIteration.parsedSummary.inferredNextPhase]}
                 </Badge>
+              ) : (
+                <Badge variant="muted">Фаза не определена</Badge>
               )}
             </div>
             {!activeIteration.parsedSummary.hasTests && (

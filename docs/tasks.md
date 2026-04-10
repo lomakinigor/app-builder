@@ -123,12 +123,22 @@ Definition of done:
 Type: impl
 Description: Add clear empty states, validation feedback, and parser warnings across all stages.
 Links: F-012, F-023 — US-006, US-012
-Status: todo
+Status: done
 Owner: AI
 Definition of done:
-- user always understands missing input or invalid state
-- imported research errors have visible guidance
-- parser failures do not block manual continuation
+- user always understands missing input or invalid state ✓
+- imported research errors have visible guidance ✓
+- parser failures do not block manual continuation ✓
+- ResearchPage: fixed 4 English text leaks (gate banner labels, advance button, run status labels, imported badge) ✓
+- ResearchPage: gate-blocked advance shows inline reason text below disabled button ✓
+- PromptLoopPage: added inline warning card when specPack missing but arch present ✓
+- PromptLoopPage: ParsedClaudeResponse.implementationSummary now rendered in parsed result view ✓
+- PromptLoopPage: "Следующий шаг не найден" neutral card when nextStep is empty after parse ✓
+- PromptLoopPage: derived warning when targetTaskId not mentioned in implementedTaskIds ✓
+- PromptLoopPage: derived warning when inferredNextPhase === null and nextStep present ✓
+- PromptLoopPage: "Фаза не определена" muted badge in "Ready for next" card ✓
+- Stage gate tests: canAdvanceFromResearch x5 added to stageGates.test.ts ✓
+- TypeScript build clean; 174 tests passing ✓
 
 ---
 

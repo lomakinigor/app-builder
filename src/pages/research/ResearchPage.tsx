@@ -221,9 +221,9 @@ export function ResearchPage() {
       {/* Stage gate: need idea first */}
       {!ideaGate.canAdvance && (
         <GateBanner
-          reason={ideaGate.reason ?? 'Complete the Idea stage first.'}
+          reason={ideaGate.reason ?? 'Сначала заполните этап Идеи.'}
           action={() => navigate('/idea')}
-          actionLabel="Go to Idea →"
+          actionLabel="Перейти к идее →"
         />
       )}
 
@@ -324,7 +324,10 @@ export function ResearchPage() {
                           : 'muted'
                         }
                       >
-                        {run.status}
+                        {run.status === 'completed' ? 'Завершено'
+                          : run.status === 'failed' ? 'Ошибка'
+                          : run.status === 'running' ? 'Выполняется'
+                          : 'Ожидание'}
                       </Badge>
                     </div>
                   ))}
@@ -434,7 +437,7 @@ export function ResearchPage() {
                     <span className="font-medium text-zinc-700 dark:text-zinc-300">{artifact.title}</span>
                     <span className="ml-2 text-zinc-400">{artifact.sourceLabel}</span>
                   </div>
-                  <Badge variant="info">imported</Badge>
+                  <Badge variant="info">импорт</Badge>
                 </div>
               ))}
             </div>
@@ -476,14 +479,16 @@ export function ResearchPage() {
           <div className="mt-6 border-t border-zinc-100 pt-4 dark:border-zinc-800">
             {researchGate.canAdvance ? (
               <Button onClick={() => navigate('/spec')}>
-                Continue to Spec →
+                Перейти к спецификации →
               </Button>
             ) : (
-              <div className="flex items-center gap-3">
+              <div className="space-y-2">
                 <Button disabled title={researchGate.reason ?? undefined}>
                   Перейти к спецификации →
                 </Button>
-                <p className="text-sm text-zinc-400">{researchGate.reason}</p>
+                {researchGate.reason && (
+                  <p className="text-xs text-zinc-400 dark:text-zinc-500">⚠ {researchGate.reason}</p>
+                )}
               </div>
             )}
           </div>

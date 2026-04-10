@@ -51,7 +51,7 @@ Tasks execute in phase order. An impl task may not begin until its paired test t
 | T-007 | impl | Build Spec + Architecture workflow: editable output, stage gates, store | F-005, F-006, US-007–010 | T-013, T-016 | done |
 | T-008 | impl | Build Prompt Loop MVP: first prompt, paste area, parser, next prompt | F-007, US-011–013 | T-014 | todo |
 | T-009 | impl | Add local persistence: Zustand persist, restore on reload | F-008, US-013 | T-015 | done |
-| T-010 | impl | Polish errors and empty states: validation feedback, parser warnings | F-012, F-023 | T-017 | todo |
+| T-010 | impl | Polish errors and empty states: validation feedback, parser warnings | F-012, F-023 | T-017 | done |
 | T-011 | test | Tests: Idea and Research workflow acceptance | T-005, T-006 | — | todo |
 | T-012 | test | Tests: Import normalizer edge cases | T-006 | — | todo |
 | T-013 | test | Tests: Spec and Architecture workflow acceptance | T-007 | — | todo |

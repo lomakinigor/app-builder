@@ -1,20 +1,33 @@
 // ─── Stage gate unit tests ────────────────────────────────────────────────────
-// Implements T-016 (partial) / T-007 DoD.
+// Implements T-016 (partial) / T-007 DoD / T-010 polish.
 //
-// Tests canAdvanceFromSpec and canAdvanceFromArchitecture — the two gates that
-// guard the Spec → Architecture → PromptLoop progression.
-//
-// canAdvanceFromIdea and canAdvanceFromResearch are simpler helpers tested
-// indirectly through E2E-style acceptance tests in T-011/T-016.
+// Tests all four canAdvanceFrom* gate functions.
 
 import { describe, it, expect } from 'vitest'
 import {
+  canAdvanceFromResearch,
   canAdvanceFromSpec,
   canAdvanceFromArchitecture,
 } from './stageGates'
-import type { SpecPack, ArchitectureDraft } from '../types'
+import type { ResearchBrief, SpecPack, ArchitectureDraft } from '../types'
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
+
+function makeResearchBrief(overrides: Partial<ResearchBrief> = {}): ResearchBrief {
+  return {
+    problemSummary: 'Users struggle to organise projects.',
+    targetUsers: ['Developers'],
+    valueHypothesis: 'Saves time.',
+    competitorNotes: '',
+    risks: [],
+    opportunities: [],
+    recommendedMVP: 'Core CRUD',
+    openQuestions: [],
+    sourcesNote: '',
+    sourceIds: [],
+    ...overrides,
+  }
+}
 
 function makeSpec(overrides: Partial<SpecPack> = {}): SpecPack {
   return {
@@ -40,6 +53,45 @@ function makeArch(overrides: Partial<ArchitectureDraft> = {}): ArchitectureDraft
     ...overrides,
   }
 }
+
+// ─── canAdvanceFromResearch ────────────────────────────────────────────────────
+
+describe('canAdvanceFromResearch', () => {
+  it('blocks when researchBrief is null', () => {
+    const result = canAdvanceFromResearch(null)
+    expect(result.canAdvance).toBe(false)
+    expect(result.reason).toBeTruthy()
+  })
+
+  it('blocks when problemSummary is empty', () => {
+    const result = canAdvanceFromResearch(makeResearchBrief({ problemSummary: '' }))
+    expect(result.canAdvance).toBe(false)
+    expect(result.reason).toMatch(/проблем|неполн/i)
+  })
+
+  it('blocks when problemSummary is only whitespace', () => {
+    const result = canAdvanceFromResearch(makeResearchBrief({ problemSummary: '   ' }))
+    expect(result.canAdvance).toBe(false)
+  })
+
+  it('passes when problemSummary is present', () => {
+    const result = canAdvanceFromResearch(makeResearchBrief())
+    expect(result.canAdvance).toBe(true)
+    expect(result.reason).toBeNull()
+  })
+
+  it('passes even when all optional fields are empty', () => {
+    const result = canAdvanceFromResearch(makeResearchBrief({
+      targetUsers: [],
+      valueHypothesis: '',
+      risks: [],
+      opportunities: [],
+      recommendedMVP: '',
+      openQuestions: [],
+    }))
+    expect(result.canAdvance).toBe(true)
+  })
+})
 
 // ─── canAdvanceFromSpec ────────────────────────────────────────────────────────
 
