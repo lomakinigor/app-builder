@@ -466,3 +466,163 @@ Definition of done:
 - All flow pages (Idea, Research, Spec, Architecture, PromptLoop, History) show a "No project selected" EmptyState with Create project CTA when activeProject is null
 - Two-project switching test: create two projects, switch back and forth, verify artifact isolation
 - TypeScript build passes; all 52 existing tests still pass
+
+## T-204 — Superpowers cycle progress stepper on HomePage
+Type: impl
+Description: (1) cycleProgress.ts — pure functions that compute per-project phase progress (not_started/in_progress/done) for each of the 6 Superpowers phases from artifact presence. (2) CycleProgressStepper UI component — horizontal 6-step stepper with clickable phase circles linking to their pages. (3) HomePage selected-project card replaced with stepper + smart "Continue: <Phase> →" button pointing to the first in-progress/not-started phase.
+Links: F-024, US-014 — pairs with T-204t (todo)
+Status: done
+Owner: AI
+Definition of done:
+- computeCycleProgress(data) returns 6 CyclePhaseProgress entries with correct status per artifact presence
+- CycleProgressStepper renders: ✓ for done phases, icon for in-progress/not-started; clicking navigates to phase path
+- HomePage selected-project card shows the stepper; "Continue" button targets the active phase
+- New project shows all phases not_started; demo project shows all phases done or in-progress
+- TypeScript build passes; all existing tests pass
+
+## T-204t — Tests: computeCycleProgress unit tests
+Type: test
+Description: Unit tests for the computeCycleProgress pure function, locking in the artifact-presence → phase-status mapping for all 6 Superpowers cycle phases.
+Links: F-024 — pairs with T-204
+Status: done
+Owner: AI
+Acceptance criteria:
+- empty ProjectData → all 6 phases are not_started
+- ideaDraft only → brainstorm=done, spec=in_progress, plan/tasks/code_and_tests/review=not_started
+- ideaDraft + researchBrief → brainstorm=done, spec=done, plan=in_progress, rest=not_started
+- specPack + architectureDraft with roadmapPhases → plan=done, tasks=done
+- architectureDraft with empty roadmapPhases → tasks=in_progress
+- one iteration, no parsedSummary → code_and_tests=in_progress, review=not_started
+- one iteration, parsedSummary without tests → code_and_tests=in_progress, review=in_progress
+- one iteration, parsedSummary.hasTests=true → code_and_tests=done
+- one iteration, cyclePhase=review → review=done
+- ideaDraft.rawIdea whitespace-only → brainstorm=not_started
+- all 6 phases have a path starting with /
+
+## T-205 — Specialize Spec and Architecture generation by projectType
+Type: impl
+Description: Make generateSpec and generateArchitecture in specService produce meaningfully different output for application vs website. Application: app-centric feature list (onboarding, CRUD, dashboard, navigation, settings), SPA stack (React/Vite/Zustand/React Router), 5-phase app roadmap. Website: page-centric feature list and SSR stack (already implemented in T-105). Add a one-line type hint on SpecPage and ArchitecturePage above each generated artifact.
+Links: F-005, F-006, F-025
+Status: done
+Owner: AI
+Definition of done:
+- Application spec featureList reflects app-centric concerns (flows, CRUD, dashboard, navigation), not website patterns
+- Website spec featureList reflects website concerns (pages, SEO, blog, contact) — unchanged from T-105
+- Application architecture stack includes React SPA, Zustand, React Router; roadmap has 5 phases targeting app flows
+- Website architecture stack includes Next.js/SSR; roadmap targets content pipeline — unchanged from T-105
+- SpecPage shows "This spec is tailored for an Application/Website." above the editable output
+- ArchitecturePage shows "This architecture is tailored for an Application/Website." above the editable output
+- TypeScript build passes; all tests pass
+
+## T-206 — Task-centric Prompt Loop aligned with Superpowers cycle
+Type: impl
+Description: (1) Expand CyclePhase type to full 6-stage Superpowers vocabulary. (2) Add task ID input to generate-first card; generateFirstPrompt now accepts taskId and produces an explicit tests-first task section when provided. (3) generateNextPrompt accepts targetPhase ('code_and_tests' | 'review'); Review phase prompt checks DoD + tests rather than implementing new code. (4) Iteration switcher expanded to card list showing cyclePhase badge + targetTaskId badge + parsed analysis snippet per iteration. (5) "Ready for next" panel offers two options when tests pass: Code+Tests (next task) or Review (current task).
+Links: F-007, F-024
+Status: done
+Owner: AI
+Definition of done:
+- CyclePhase type includes all 6 stages: brainstorm, spec, plan, tasks, code_and_tests, review
+- Generate-first card has a task ID input (T-xxx); when entered the prompt explicitly references it with tests-first wording
+- generateFirstPrompt returns targetTaskId matching the input
+- generateNextPrompt accepts targetPhase param; review-phase prompt references DoD check, not new code
+- "Ready for next" panel shows Review button only when hasTests=true and a targetTaskId is set
+- Iteration switcher shows cyclePhase badge + task badge + summary snippet per entry
+- TypeScript build passes; all existing tests pass
+
+## T-207 — HistoryPage: Task progress dashboard (Review phase)
+Type: impl
+Description: Turn HistoryPage into a per-project Review dashboard that aggregates prompt iterations by T-xxx task ID and shows which Superpowers cycle phases each task has touched. (1) Pure aggregation helper buildTaskReviewModel in src/shared/lib/review/taskReviewModel.ts — groups PromptIteration[] by targetTaskId, derives phasesVisited, hasTests, hasReview, lastAnalysisSnippet, warnings. (2) filterTaskRows helper for phase + test filters. (3) TaskProgressPanel component on HistoryPage — one row per task with phase badges, test badge, snippet, "Open in Prompt Loop" link, phase and test filters.
+Links: F-024, F-007
+Status: done
+Owner: AI
+Definition of done:
+- buildTaskReviewModel([]) returns []
+- buildTaskReviewModel with two iterations for T-001 returns one row with both phases aggregated
+- filterTaskRows by phase and test status filters rows correctly
+- HistoryPage shows "Task progress" card above "Prompt iterations"
+- Each task row displays: taskId, phasesVisited badges, test badge, last analysis snippet
+- Phase filter dropdown and test filter dropdown work
+- "Open in Prompt Loop →" link navigates to /prompt-loop
+- TypeScript build passes; all existing tests pass
+
+## T-208 — Type-aware, task-centric Prompt Loop (application vs website vocabulary)
+Type: impl
+Description: Extend the Prompt Loop so that generated prompts use explicitly different vocabulary and guidance for application vs website projects. (1) typeAwareGuidance() helper in promptService — SPA/components/state wording for application; pages/SSR/SEO wording for website; injected into both generateFirstPrompt and generateNextPrompt. (2) taskDescription: string | null added as 7th param to generateFirstPrompt — included in the task section when provided. (3) inferNextPhase() heuristic in parseClaudeResponse — returns CyclePhase based on DoD-met/test/new-task signals; result surfaced in ParsedClaudeResponse.inferredNextPhase. (4) PromptLoopPage: CycleContextBar uses full CyclePhase type; displayCyclePhase reads cyclePhase field directly; task description textarea shown when task ID is set; inferredNextPhase shown as a badge in the "Ready for next" panel.
+Links: F-007, F-024, F-025
+Status: done
+Owner: AI
+Definition of done:
+- generateFirstPrompt for application project includes SPA/routing/state/testing guidance
+- generateFirstPrompt for website project includes pages/SSR/SEO/content-indexability guidance
+- generateNextPrompt repeats type-specific guidance in both Code+Tests and Review prompts
+- generateFirstPrompt taskDescription param injects description into task section when provided
+- parseClaudeResponse returns inferredNextPhase: 'review' when DoD-met signals present, 'code_and_tests' otherwise, 'tasks' when response says to pick from backlog
+- CycleContextBar renders correct label and variant for all 6 CyclePhase values
+- displayCyclePhase in PromptLoopPage reads activeIteration.cyclePhase, not iteration.status
+- Task description textarea appears in generate-first card when task ID is filled
+- inferredNextPhase badge shown in "Ready for next" panel after parsing
+- TypeScript build passes; all existing tests pass
+
+## T-208t — Tests: inferNextPhase and typeAwareGuidance unit tests
+Type: test
+Description: Unit tests for the two pure functions introduced in T-208 — inferNextPhase and typeAwareGuidance. Both functions exported for direct testing; no runtime behavior changed.
+Links: F-007, F-024, F-025 — pairs with T-208
+Status: done
+Owner: AI
+Acceptance criteria:
+- inferNextPhase returns 'review' for all DoD-met/ready-for-review keyword variants
+- inferNextPhase returns 'review' when hasTests=true and nextTaskId is null or equal to prevTaskId
+- inferNextPhase returns 'tasks' when text contains "check docs/tasks" or "pick the next task"
+- inferNextPhase returns 'code_and_tests' when hasTests=false and no special signal (default)
+- inferNextPhase returns 'code_and_tests' when nextTaskId differs from prevTaskId (new task → keep building)
+- keyword matching is case-insensitive
+- typeAwareGuidance('application') output contains: SPA, React Router, Zustand, state, component
+- typeAwareGuidance('website') output contains: website, pages/routes, SSG/SSR, SEO, semantic HTML, layout/navigation
+- application guidance does not contain SEO; website guidance does not contain Zustand or React Router
+- the two guidance strings are not equal
+
+## T-209 — Next Action Engine: подсказка следующего шага по проекту
+Type: impl
+Description: Pure function computeNextAction(cyclePhases, iterations) → NextAction that derives the single most useful next step from cycle phase progress and prompt iteration signals. NextActionCard UI component. Integration on HomePage (inside selected-project card) and HistoryPage (above project overview).
+Links: F-024, US-014 — pairs with T-209t
+Status: done
+Owner: AI
+Definition of done:
+- computeNextAction pure function in src/shared/lib/superpowers/nextActionEngine.ts
+- NextAction discriminated union: { kind:'phase'|'task'|'none', phaseId, taskId?, path, label, reason }
+- Decision priority: brainstorm → spec → plan → tasks → code_and_tests (with inferredNextPhase branching) → review → none
+- NextActionCard component in src/shared/ui/NextActionCard.tsx; renders reason + CTA button; uses violet tone for phase/task, emerald for none
+- HomePage selected-project card shows NextActionCard between stepper and Continue button
+- HistoryPage shows NextActionCard above project overview card
+- TypeScript build passes; all existing tests pass
+
+## T-210 — Inline recommendation highlight in stepper and task UI
+Type: impl
+Description: Surface the NextAction recommendation (from T-209) directly inside the cycle stepper and task-progress panels, so the user can immediately see "what to do next" without reading a separate card. (1) CycleProgressStepper gains optional recommendedPhaseId prop — matching phase shows amber ring + "Рекомендуется" badge. (2) CycleTimeline on HistoryPage gains same prop — matching stage shows amber ring + "Рекомендуется" badge. (3) TaskProgressPanel gains optional recommendedTaskId prop — matching task row shows amber border, "Следующая задача" badge, prominent "Открыть в Prompt Loop" button. (4) Two presentation helper exports added to nextActionEngine.ts: getRecommendedPhaseId and getRecommendedTaskId.
+Links: F-024, US-014 — pairs with T-210t
+Status: done
+Owner: AI
+Definition of done:
+- getRecommendedPhaseId(action): CyclePhaseId | null — null for kind='none', phaseId otherwise
+- getRecommendedTaskId(action): string | null — taskId for kind='task', null otherwise
+- CycleProgressStepper renders amber ring + "Рекомендуется" badge on matching phase when recommendedPhaseId set
+- isRecommended is false when phase is done (completed phases are never highlighted as recommended)
+- CycleTimeline (HistoryPage) renders amber ring + "Рекомендуется" badge on matching stage
+- TaskProgressPanel: recommended task row has amber border/bg + "Следующая задача" badge + "Открыть в Prompt Loop" CTA
+- kind='none' → no recommendation highlight anywhere
+- TypeScript build passes; all existing tests pass
+
+## T-210t — Tests: getRecommendedPhaseId and getRecommendedTaskId helpers
+Type: test
+Description: Unit tests for the two presentation helpers added in T-210.
+Links: F-024 — pairs with T-210
+Status: done
+Owner: AI
+Acceptance criteria:
+- getRecommendedPhaseId returns null for kind='none'
+- getRecommendedPhaseId returns phaseId for kind='phase' (multiple phase values checked)
+- getRecommendedPhaseId returns 'code_and_tests' for kind='task' with phaseId=code_and_tests
+- getRecommendedPhaseId returns 'review' for kind='task' with phaseId=review
+- getRecommendedTaskId returns null for kind='none'
+- getRecommendedTaskId returns null for kind='phase'
+- getRecommendedTaskId returns taskId for kind='task' (code_and_tests and review both checked)

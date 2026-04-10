@@ -48,7 +48,7 @@ function ProjectSwitcher() {
             <span className="max-w-[140px] truncate">{selectedProject.name}</span>
           </>
         ) : (
-          <span className="italic text-zinc-400 dark:text-zinc-500">No project</span>
+          <span className="italic text-zinc-400 dark:text-zinc-500">Нет проекта</span>
         )}
         <svg
           className={`size-3 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
@@ -96,7 +96,7 @@ function ProjectSwitcher() {
               })}
             </ul>
           ) : (
-            <p className="px-3 py-3 text-sm text-zinc-400 dark:text-zinc-500">No projects yet</p>
+            <p className="px-3 py-3 text-sm text-zinc-400 dark:text-zinc-500">Проектов пока нет</p>
           )}
 
           {/* New project action */}
@@ -109,7 +109,7 @@ function ProjectSwitcher() {
               className="flex w-full items-center gap-2 px-3 py-2 text-sm text-violet-600 transition-colors hover:bg-violet-50 dark:text-violet-400 dark:hover:bg-violet-950/30"
             >
               <span>+</span>
-              <span>New project</span>
+              <span>Новый проект</span>
             </button>
           </div>
         </div>
@@ -142,7 +142,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
           <StageIndicator currentStage={activeProject.currentStage} />
         ) : (
           <span className="text-sm text-zinc-400 dark:text-zinc-500">
-            Start a project to see your build pipeline
+            Создайте проект, чтобы увидеть конвейер сборки
           </span>
         )}
       </div>

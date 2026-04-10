@@ -17,11 +17,11 @@ import type { ResearchMode, ImportedResearchArtifact, ResearchBrief } from '../.
 type ResearchTab = 'run' | 'import'
 
 const MODE_LABELS: Record<ResearchMode, { short: string; desc: string }> = {
-  quick: { short: 'Quick', desc: 'Fast summary, broad coverage' },
-  pro: { short: 'Pro', desc: 'Deeper search, more sources' },
-  deep: { short: 'Deep', desc: 'Comprehensive report' },
-  manual: { short: 'Manual', desc: 'Write the brief yourself' },
-  imported: { short: 'Import', desc: 'Use existing research' },
+  quick: { short: 'Быстрый', desc: 'Краткое резюме, широкий охват' },
+  pro: { short: 'Про', desc: 'Глубокий поиск, больше источников' },
+  deep: { short: 'Глубокий', desc: 'Полноценный отчёт' },
+  manual: { short: 'Вручную', desc: 'Напишите бриф самостоятельно' },
+  imported: { short: 'Импорт', desc: 'Использовать готовое исследование' },
 }
 
 // ─── Blocked progression banner ───────────────────────────────────────────────
@@ -185,12 +185,12 @@ export function ResearchPage() {
   if (!activeProject) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Research" icon="🔍" description="Run or import research." />
+        <PageHeader title="Исследование" icon="🔍" description="Запустите или импортируйте исследование." />
         <EmptyState
           icon="📂"
-          title="No project selected"
-          description="Create a project first to start the research stage."
-          action={{ label: 'Create project', onClick: () => navigate('/project/new') }}
+          title="Проект не выбран"
+          description="Сначала создайте проект, чтобы начать этап исследования."
+          action={{ label: 'Создать проект', onClick: () => navigate('/project/new') }}
         />
       </div>
     )
@@ -199,20 +199,20 @@ export function ResearchPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Research"
+        title="Исследование"
         icon="🔍"
-        description="Run research with a provider, or import previously completed research. All inputs normalize into one Research Brief."
+        description="Запустите исследование через провайдера или импортируйте готовое. Все источники нормализуются в единый исследовательский бриф."
         badge={
           researchBrief ? (
-            <Badge variant="success">Brief ready</Badge>
+            <Badge variant="success">Бриф готов</Badge>
           ) : (
-            <Badge variant="muted">No brief yet</Badge>
+            <Badge variant="muted">Бриф отсутствует</Badge>
           )
         }
         action={
           researchGate.canAdvance ? (
             <Button size="sm" onClick={() => navigate('/spec')}>
-              Continue to Spec →
+              Перейти к спецификации →
             </Button>
           ) : undefined
         }
@@ -233,13 +233,13 @@ export function ResearchPage() {
           onClick={() => setActiveTab('run')}
           className={tabCls(activeTab === 'run')}
         >
-          🔬 Run New Research
+          🔬 Новое исследование
         </button>
         <button
           onClick={() => setActiveTab('import')}
           className={tabCls(activeTab === 'import')}
         >
-          📥 Import Existing Research
+          📥 Импорт исследования
         </button>
       </div>
 
@@ -247,15 +247,15 @@ export function ResearchPage() {
       {activeTab === 'run' && (
         <Card>
           <CardHeader
-            title="Research provider"
-            description="Select a provider and mode. In MVP, all providers route through the mock adapter."
+            title="Провайдер исследования"
+            description="Выберите провайдера и режим. В MVP все провайдеры работают через mock-адаптер."
             icon="🔬"
           />
           <div className="space-y-4">
             {/* Provider selector */}
             <div>
               <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                Provider
+                Провайдер
               </label>
               <div className="grid gap-2 sm:grid-cols-2">
                 {mockResearchProviders.map((provider) => (
@@ -268,7 +268,7 @@ export function ResearchPage() {
                     className={providerBtnCls(selectedProvider === provider.id, provider.status === 'available')}
                   >
                     <span className="font-medium">{provider.name}</span>
-                    {provider.status === 'coming_soon' && <Badge variant="muted">Soon</Badge>}
+                    {provider.status === 'coming_soon' && <Badge variant="muted">Скоро</Badge>}
                     {provider.status === 'available' && selectedProvider === provider.id && (
                       <span className="text-violet-500">✓</span>
                     )}
@@ -280,7 +280,7 @@ export function ResearchPage() {
             {/* Mode selector */}
             <div>
               <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                Mode
+                Режим
               </label>
               <div className="grid gap-2 sm:grid-cols-2">
                 {(['quick', 'pro', 'deep', 'manual'] as ResearchMode[]).map((mode) => (
@@ -303,13 +303,13 @@ export function ResearchPage() {
               fullWidth
               title={!ideaGate.canAdvance ? (ideaGate.reason ?? undefined) : undefined}
             >
-              {running ? 'Running research…' : 'Run Research'}
+              {running ? 'Выполняется исследование…' : 'Запустить исследование'}
             </Button>
 
             {/* Run history */}
             {researchRuns.length > 0 && (
               <div className="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-800/50">
-                <p className="mb-2 text-xs font-medium text-zinc-500">Research runs</p>
+                <p className="mb-2 text-xs font-medium text-zinc-500">Запуски исследований</p>
                 <div className="space-y-1">
                   {researchRuns.map((run) => (
                     <div key={run.id} className="flex items-center justify-between text-xs">
@@ -339,75 +339,75 @@ export function ResearchPage() {
       {activeTab === 'import' && (
         <Card>
           <CardHeader
-            title="Import existing research"
-            description="Paste previously completed research — notes, reports, exported AI chats, or structured summaries. The normalizer will extract key sections into the Research Brief format."
+            title="Импорт готового исследования"
+            description="Вставьте готовое исследование — заметки, отчёты, экспорт AI-чатов или структурированные резюме. Нормализатор извлечёт ключевые разделы в формат Research Brief."
             icon="📥"
           />
 
           {/* What the normalizer looks for */}
           <div className="mb-4 rounded-xl bg-zinc-50 p-3 dark:bg-zinc-800/50">
             <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">
-              What gets extracted
+              Что извлекается
             </p>
             <div className="grid gap-x-6 gap-y-0.5 text-xs text-zinc-500 dark:text-zinc-400 sm:grid-cols-2">
               {[
-                'Problem / challenge',
-                'Target users / audience',
-                'Value proposition',
-                'Competitor notes',
-                'Risks and challenges',
-                'Opportunities',
-                'Recommended MVP / scope',
-                'Open questions',
+                'Проблема / вызов',
+                'Целевая аудитория',
+                'Ценностное предложение',
+                'Заметки о конкурентах',
+                'Риски и сложности',
+                'Возможности',
+                'Рекомендованный MVP / скоуп',
+                'Открытые вопросы',
               ].map((item) => (
                 <span key={item}>• {item}</span>
               ))}
             </div>
             <p className="mt-2 text-xs text-zinc-400">
-              Labeled headings are preferred. Unlabeled text is matched by keywords. You can always edit the result.
+              Заголовки с метками предпочтительны. Текст без меток сопоставляется по ключевым словам. Результат всегда можно отредактировать.
             </p>
           </div>
 
           <div className="space-y-4">
             <div>
               <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                Title
+                Название
               </label>
               <input
                 type="text"
                 value={importTitle}
                 onChange={(e) => setImportTitle(e.target.value)}
-                placeholder="e.g. Competitor analysis notes, Perplexity deep research export"
+                placeholder="напр. Анализ конкурентов, Экспорт Perplexity deep research"
                 className={inputCls()}
               />
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                Source label
+                Источник
               </label>
               <input
                 type="text"
                 value={importLabel}
                 onChange={(e) => setImportLabel(e.target.value)}
-                placeholder="e.g. Internal notes, Perplexity export, ChatGPT conversation"
+                placeholder="напр. Внутренние заметки, Экспорт Perplexity, Разговор ChatGPT"
                 className={inputCls()}
               />
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                Research content <span className="text-red-400">*</span>
+                Содержимое исследования <span className="text-red-400">*</span>
               </label>
               <textarea
                 value={importContent}
                 onChange={(e) => setImportContent(e.target.value)}
-                placeholder={`Paste your research here — markdown, plain text, bullet points, any format works.
+                placeholder={`Вставьте исследование сюда — markdown, обычный текст, списки, любой формат.
 
-Tip: labeled sections like "## Problem" or "## Target Users" improve extraction accuracy.`}
+Совет: разделы с заголовками типа "## Проблема" или "## Целевая аудитория" улучшают точность извлечения.`}
                 rows={10}
                 className={`${inputCls()} resize-none font-mono text-xs`}
               />
               <p className="mt-1 text-xs text-zinc-400">
-                {importContent.length} characters pasted
+                {importContent.length} символов вставлено
               </p>
             </div>
 
@@ -417,14 +417,14 @@ Tip: labeled sections like "## Problem" or "## Target Users" improve extraction 
               loading={normalizing}
               fullWidth
             >
-              {normalizing ? 'Normalizing…' : 'Import & Normalize to Research Brief'}
+              {normalizing ? 'Нормализация…' : 'Импортировать и нормализовать в Research Brief'}
             </Button>
           </div>
 
           {/* Imported artifacts log */}
           {importedArtifacts.length > 0 && (
             <div className="mt-4 space-y-2">
-              <p className="text-xs font-medium text-zinc-500">Previously imported</p>
+              <p className="text-xs font-medium text-zinc-500">Ранее импортировано</p>
               {importedArtifacts.map((artifact) => (
                 <div
                   key={artifact.id}
@@ -447,11 +447,11 @@ Tip: labeled sections like "## Problem" or "## Target Users" improve extraction 
         <span className="mt-0.5 text-xl">🔀</span>
         <div>
           <p className="font-semibold text-violet-800 dark:text-violet-300">
-            All research → one Research Brief
+            Всё исследование → единый Research Brief
           </p>
           <p className="mt-0.5 text-sm text-violet-700/80 dark:text-violet-400">
-            Whether you run in-app research or import from external sources, the output is always the same
-            Research Brief structure. Spec, Architecture, and Prompts consume the brief — not the raw source.
+            Независимо от источника — встроенное исследование или импорт — результат всегда одинаковый:
+            структура Research Brief. Спецификация, архитектура и промпты потребляют бриф, а не сырой источник.
           </p>
         </div>
       </div>
@@ -460,9 +460,9 @@ Tip: labeled sections like "## Problem" or "## Target Users" improve extraction 
       {researchBrief ? (
         <Card>
           <div className="mb-3 flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Research Brief</span>
+            <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Исследовательский бриф</span>
             <Button size="sm" variant="ghost" onClick={handleCopyBriefMarkdown}>
-              {briefCopied ? '✓ Copied' : '↓ Copy as markdown'}
+              {briefCopied ? '✓ Скопировано' : '↓ Скопировать как markdown'}
             </Button>
           </div>
           <EditableResearchBrief
@@ -481,7 +481,7 @@ Tip: labeled sections like "## Problem" or "## Target Users" improve extraction 
             ) : (
               <div className="flex items-center gap-3">
                 <Button disabled title={researchGate.reason ?? undefined}>
-                  Continue to Spec →
+                  Перейти к спецификации →
                 </Button>
                 <p className="text-sm text-zinc-400">{researchGate.reason}</p>
               </div>
@@ -491,8 +491,8 @@ Tip: labeled sections like "## Problem" or "## Target Users" improve extraction 
       ) : (
         <EmptyState
           icon="📄"
-          title="No research brief yet"
-          description="Run new research or import existing research above. The result will appear here for review and editing."
+          title="Бриф ещё не создан"
+          description="Запустите новое исследование или импортируйте готовое выше. Результат появится здесь для просмотра и редактирования."
         />
       )}
     </div>

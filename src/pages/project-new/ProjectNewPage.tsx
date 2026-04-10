@@ -25,14 +25,14 @@ function ProjectTypeSelector({
   showError: boolean
 }) {
   const options: { type: ProjectType; label: string; icon: string; description: string }[] = [
-    { type: 'application', label: 'Application', icon: '📱', description: 'Web or mobile app with dynamic logic' },
-    { type: 'website', label: 'Website', icon: '🌐', description: 'Content-focused or marketing site' },
+    { type: 'application', label: 'Приложение', icon: '📱', description: 'Веб или мобильное приложение с динамической логикой' },
+    { type: 'website', label: 'Сайт', icon: '🌐', description: 'Контентный или маркетинговый сайт' },
   ]
 
   return (
     <div>
       <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-        Project type <span className="text-red-400">*</span>
+        Тип проекта <span className="text-red-400">*</span>
       </label>
       <div
         className={`flex gap-3 ${
@@ -72,7 +72,7 @@ function ProjectTypeSelector({
       {showError && !value && (
         <p className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-red-600 dark:text-red-400">
           <span>⚠</span>
-          Select whether you are building an application or a website.
+          Выберите, что вы создаёте — приложение или сайт.
         </p>
       )}
     </div>
@@ -89,7 +89,7 @@ export function ProjectNewPage() {
   const [projectType, setProjectType] = useState<ProjectType | null>(null)
   const [showErrors, setShowErrors] = useState(false)
 
-  const nameError = name.trim().length === 0 ? 'Project name is required.' : undefined
+  const nameError = name.trim().length === 0 ? 'Название проекта обязательно.' : undefined
   const isValid = !nameError && projectType !== null
 
   function handleSubmit(e: React.FormEvent) {
@@ -106,12 +106,12 @@ export function ProjectNewPage() {
   return (
     <div className="mx-auto max-w-lg space-y-6">
       <PageHeader
-        title="New project"
-        description="Give your project a name and choose a type to get started."
+        title="Новый проект"
+        description="Дайте проекту название и выберите тип, чтобы начать."
       />
 
       <Card>
-        <CardHeader title="Project details" icon="✨" />
+        <CardHeader title="Детали проекта" icon="✨" />
         <form onSubmit={handleSubmit} noValidate className="space-y-5">
           {/* Project name */}
           <div>
@@ -119,14 +119,14 @@ export function ProjectNewPage() {
               htmlFor="project-name"
               className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
             >
-              Project name <span className="text-red-400">*</span>
+              Название проекта <span className="text-red-400">*</span>
             </label>
             <input
               id="project-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Task Manager, Portfolio Site"
+              placeholder="напр. Менеджер задач, Портфолио"
               autoFocus
               className={`w-full rounded-xl border bg-white px-3 py-2.5 text-sm text-zinc-900 placeholder-zinc-400 transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-1 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500 ${
                 showErrors && nameError
@@ -152,10 +152,10 @@ export function ProjectNewPage() {
           {/* Actions */}
           <div className="flex items-center gap-3 pt-1">
             <Button type="submit" disabled={showErrors && !isValid}>
-              Create project
+              Создать проект
             </Button>
             <Button type="button" variant="ghost" onClick={() => navigate('/')}>
-              Cancel
+              Отмена
             </Button>
           </div>
         </form>

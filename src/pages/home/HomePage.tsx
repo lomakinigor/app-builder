@@ -4,7 +4,10 @@ import { useProjectRegistry, selectSelectedProject } from '../../app/store/proje
 import { Button } from '../../shared/ui/Button'
 import { Card, CardHeader } from '../../shared/ui/Card'
 import { Badge } from '../../shared/ui/Badge'
-import { StageIndicator } from '../../shared/ui/StageIndicator'
+import { CycleProgressStepper } from '../../shared/ui/CycleProgressStepper'
+import { computeCycleProgress } from '../../shared/lib/superpowers/cycleProgress'
+import { computeNextAction, getRecommendedPhaseId } from '../../shared/lib/superpowers/nextActionEngine'
+import { NextActionCard } from '../../shared/ui/NextActionCard'
 import {
   mockProject,
   mockIdeaDraft,
@@ -17,12 +20,12 @@ import {
 } from '../../mocks/project/seedData'
 
 const WORKFLOW_STEPS = [
-  { icon: '💡', label: 'Idea', description: 'Capture your raw product idea with context' },
-  { icon: '🔍', label: 'Research', description: 'Run or import research, build a brief' },
-  { icon: '📋', label: 'Spec', description: 'Generate structured spec and feature list' },
-  { icon: '🏗️', label: 'Architecture', description: 'Define stack, modules, and roadmap' },
-  { icon: '⚡', label: 'First Prompt', description: 'Generate your first Claude Code prompt' },
-  { icon: '🔄', label: 'Build Loop', description: 'Iterate with Claude Code responses' },
+  { icon: '💡', label: 'Идея', description: 'Опишите идею продукта с контекстом' },
+  { icon: '🔍', label: 'Исследование', description: 'Запустите или импортируйте исследование' },
+  { icon: '📋', label: 'Спецификация', description: 'Сгенерируйте структурированную спецификацию' },
+  { icon: '🏗️', label: 'Архитектура', description: 'Определите стек, модули и дорожную карту' },
+  { icon: '⚡', label: 'Первый промпт', description: 'Сгенерируйте первый промпт для Claude Code' },
+  { icon: '🔄', label: 'Цикл сборки', description: 'Итерируйте с ответами Claude Code' },
 ]
 
 export function HomePage() {
@@ -33,8 +36,24 @@ export function HomePage() {
   const selectedProject = useProjectRegistry(selectSelectedProject)
 
   // Project store: stage-level data (ideaDraft, brief, spec, etc.)
-  // activeProject.currentStage stays live-updated as the user progresses.
-  const { activeProject, setIdeaDraft, setResearchBrief, setSpecPack, setArchitectureDraft, addPromptIteration, addImportedArtifact, addResearchRun } = useProjectStore()
+  const { activeProject, ideaDraft, researchBrief, specPack, architectureDraft, promptIterations, setIdeaDraft, setResearchBrief, setSpecPack, setArchitectureDraft, addPromptIteration, addImportedArtifact, addResearchRun } = useProjectStore()
+
+  // Cycle progress for the selected project (uses live hot-slot data when selected === active)
+  const cyclePhases = computeCycleProgress({
+    ideaDraft: activeProject?.id === selectedProject?.id ? ideaDraft : null,
+    researchRuns: [],
+    importedArtifacts: [],
+    researchBrief: activeProject?.id === selectedProject?.id ? researchBrief : null,
+    specPack: activeProject?.id === selectedProject?.id ? specPack : null,
+    architectureDraft: activeProject?.id === selectedProject?.id ? architectureDraft : null,
+    promptIterations: activeProject?.id === selectedProject?.id ? promptIterations : [],
+  })
+  const activePhase = cyclePhases.find((p) => p.status === 'in_progress') ?? cyclePhases.find((p) => p.status === 'not_started')
+  const nextAction = computeNextAction(
+    cyclePhases,
+    activeProject?.id === selectedProject?.id ? promptIterations : [],
+  )
+  const recommendedPhaseId = getRecommendedPhaseId(nextAction)
 
   function loadMockProject() {
     // 1. Select the demo project in the registry (bridges to projectStore.setActiveProject)
@@ -54,12 +73,6 @@ export function HomePage() {
     navigate('/project/new')
   }
 
-  // currentStage is live in projectStore when the selected project is active
-  const currentStage =
-    activeProject?.id === selectedProject?.id
-      ? activeProject?.currentStage
-      : selectedProject?.currentStage
-
   return (
     <div className="space-y-8">
       {/* Hero */}
@@ -70,53 +83,60 @@ export function HomePage() {
             AI Product Studio
           </h1>
           <p className="mb-6 text-zinc-600 dark:text-zinc-400">
-            Go from raw idea to a structured build pipeline with Claude Code.
+            От сырой идеи до структурированного конвейера сборки с Claude Code.
             <br className="hidden sm:block" />
-            Research → Spec → Architecture → Iterative prompts.
+            Исследование → Спецификация → Архитектура → Итеративные промпты.
           </p>
           <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Button size="lg" onClick={startNew}>
-              Start New Project
+              Новый проект
             </Button>
             <Button size="lg" variant="secondary" onClick={loadMockProject}>
-              Load Demo Project
+              Загрузить демо
             </Button>
           </div>
         </div>
       </div>
 
       {/* Selected project card — driven by registry (T-201 / F-027) */}
+      {/* Cycle progress stepper — T-204 / F-024 */}
       {selectedProject ? (
         <Card>
           <CardHeader
-            title="Selected Project"
+            title="Выбранный проект"
             icon="📂"
             action={
-              <Badge variant="success">
-                {selectedProject.status}
+              <Badge variant="muted">
+                {selectedProject.projectType === 'application' ? '📱 Приложение' : '🌐 Сайт'}
               </Badge>
             }
           />
-          <div className="mb-4">
-            <div className="flex items-center gap-2">
-              <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                {selectedProject.name}
-              </p>
-              <Badge variant="muted">
-                {selectedProject.projectType === 'application' ? '📱 Application' : '🌐 Website'}
-              </Badge>
-            </div>
+          <div className="mb-5">
+            <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+              {selectedProject.name}
+            </p>
             <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
-              Created {new Date(selectedProject.createdAt).toLocaleDateString()}
+              Создан {new Date(selectedProject.createdAt).toLocaleDateString('ru-RU')}
             </p>
           </div>
-          {currentStage && <StageIndicator currentStage={currentStage} />}
+
+          {/* Superpowers cycle stepper */}
+          <CycleProgressStepper phases={cyclePhases} recommendedPhaseId={recommendedPhaseId} />
+
+          {/* Next action recommendation — T-209 */}
+          <div className="mt-4">
+            <NextActionCard action={nextAction} />
+          </div>
+
           <div className="mt-4 flex flex-wrap gap-2">
-            <Button size="sm" onClick={() => navigate('/idea')}>
-              Continue →
+            <Button
+              size="sm"
+              onClick={() => navigate(activePhase?.path ?? '/idea')}
+            >
+              {activePhase ? `Продолжить: ${activePhase.label} →` : 'Открыть проект →'}
             </Button>
             <Button size="sm" variant="secondary" onClick={() => navigate('/history')}>
-              View History
+              Обзор
             </Button>
           </div>
         </Card>
@@ -124,7 +144,7 @@ export function HomePage() {
         <Card className="border-dashed border-zinc-300 dark:border-zinc-600">
           <div className="flex items-center gap-3 py-1 text-zinc-500 dark:text-zinc-400">
             <span className="text-xl">📂</span>
-            <p className="text-sm">No project selected. Start a new project or load the demo above.</p>
+            <p className="text-sm">Проект не выбран. Создайте новый проект или загрузите демо.</p>
           </div>
         </Card>
       )}
@@ -132,7 +152,7 @@ export function HomePage() {
       {/* How it works */}
       <div>
         <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-          How it works
+          Как это работает
         </h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {WORKFLOW_STEPS.map((step, index) => (
@@ -161,11 +181,11 @@ export function HomePage() {
           <span className="text-2xl">💬</span>
           <div>
             <p className="font-semibold text-violet-800 dark:text-violet-300">
-              One prompt = one task
+              Один промпт = одна задача
             </p>
             <p className="mt-1 text-sm text-violet-700/80 dark:text-violet-400">
-              AI Product Studio orchestrates the loop: each Claude Code response becomes the input for the next precise prompt.
-              Never write from scratch, never lose context.
+              AI Product Studio управляет циклом: каждый ответ Claude Code становится входом для следующего точного промпта.
+              Никогда не начинай с нуля, никогда не теряй контекст.
             </p>
           </div>
         </div>

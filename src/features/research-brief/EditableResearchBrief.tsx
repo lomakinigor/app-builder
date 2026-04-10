@@ -72,12 +72,12 @@ function SourceBanner({ brief, artifactTitle }: SourceBannerProps) {
       <div className="flex items-start gap-2.5 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 dark:border-sky-800/40 dark:bg-sky-950/20">
         <span className="mt-0.5 shrink-0 text-base">📥</span>
         <div className="text-sm">
-          <span className="font-semibold text-sky-800 dark:text-sky-300">Imported research</span>
+          <span className="font-semibold text-sky-800 dark:text-sky-300">Импортированное исследование</span>
           {artifactTitle && (
-            <span className="text-sky-700 dark:text-sky-400"> — normalized from "{artifactTitle}"</span>
+            <span className="text-sky-700 dark:text-sky-400"> — нормализовано из «{artifactTitle}»</span>
           )}
           <p className="mt-0.5 text-xs text-sky-600 dark:text-sky-500">
-            This brief was extracted from your imported text. Review and edit any sections that need correction.
+            Этот бриф извлечён из вашего импортированного текста. Проверьте и отредактируйте разделы при необходимости.
           </p>
         </div>
       </div>
@@ -88,8 +88,8 @@ function SourceBanner({ brief, artifactTitle }: SourceBannerProps) {
     return (
       <div className="flex items-center gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 dark:border-amber-800/40 dark:bg-amber-950/20">
         <span className="text-base">✍️</span>
-        <span className="text-sm font-medium text-amber-800 dark:text-amber-300">Manual research</span>
-        <span className="text-sm text-amber-700 dark:text-amber-400">— entered directly</span>
+        <span className="text-sm font-medium text-amber-800 dark:text-amber-300">Ручное исследование</span>
+        <span className="text-sm text-amber-700 dark:text-amber-400">— введено вручную</span>
       </div>
     )
   }
@@ -98,8 +98,8 @@ function SourceBanner({ brief, artifactTitle }: SourceBannerProps) {
   return (
     <div className="flex items-center gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 dark:border-emerald-800/40 dark:bg-emerald-950/20">
       <span className="text-base">🔬</span>
-      <span className="text-sm font-medium text-emerald-800 dark:text-emerald-300">Generated research</span>
-      <span className="text-sm text-emerald-700 dark:text-emerald-400">— produced by mock provider</span>
+      <span className="text-sm font-medium text-emerald-800 dark:text-emerald-300">Сгенерированное исследование</span>
+      <span className="text-sm text-emerald-700 dark:text-emerald-400">— создано mock-провайдером</span>
     </div>
   )
 }
@@ -149,7 +149,7 @@ export function EditableResearchBrief({
       {normalizationWarnings.length > 0 && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800/40 dark:bg-amber-950/20">
           <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400">
-            Normalization notes
+            Заметки нормализации
           </p>
           {normalizationWarnings.map((w, i) => (
             <p key={i} className="text-sm text-amber-700 dark:text-amber-400">
@@ -162,21 +162,21 @@ export function EditableResearchBrief({
       {/* Header with edit toggle */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">Research Brief</h3>
-          <Badge variant="success">Ready</Badge>
-          {saved && <Badge variant="info">Saved</Badge>}
+          <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">Бриф исследования</h3>
+          <Badge variant="success">Готово</Badge>
+          {saved && <Badge variant="info">Сохранено</Badge>}
         </div>
         {!editing ? (
           <Button size="sm" variant="secondary" onClick={() => setEditing(true)}>
-            ✏️ Edit brief
+            ✏️ Редактировать бриф
           </Button>
         ) : (
           <div className="flex gap-2">
             <Button size="sm" variant="ghost" onClick={handleDiscard}>
-              Discard
+              Отменить
             </Button>
             <Button size="sm" onClick={handleSave}>
-              Save changes
+              Сохранить
             </Button>
           </div>
         )}
@@ -186,91 +186,91 @@ export function EditableResearchBrief({
         // ─── Edit mode ────────────────────────────────────────────────────────
         <div className="space-y-4">
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Edit any section below. For list fields, put one item per line.
+            Редактируйте любой раздел ниже. Для полей-списков — один элемент на строку.
           </p>
 
           <EditTextField
-            label="Problem summary"
+            label="Описание проблемы"
             value={state.problemSummary}
             onChange={(v) => handleChange('problemSummary', v)}
             rows={4}
           />
           <EditTextField
-            label="Value hypothesis"
+            label="Ценностная гипотеза"
             value={state.valueHypothesis}
             onChange={(v) => handleChange('valueHypothesis', v)}
             rows={3}
           />
           <EditTextField
-            label="Recommended MVP"
+            label="Рекомендуемый MVP"
             value={state.recommendedMVP}
             onChange={(v) => handleChange('recommendedMVP', v)}
             rows={3}
           />
           <EditTextField
-            label="Competitor notes"
+            label="Заметки о конкурентах"
             value={state.competitorNotes}
             onChange={(v) => handleChange('competitorNotes', v)}
             rows={3}
           />
           <EditListField
-            label="Target users"
-            hint="One user type per line"
+            label="Целевые пользователи"
+            hint="Один тип пользователей на строку"
             value={state.targetUsers}
             onChange={(v) => handleChange('targetUsers', v)}
           />
           <EditListField
-            label="Risks"
-            hint="One risk per line"
+            label="Риски"
+            hint="Один риск на строку"
             value={state.risks}
             onChange={(v) => handleChange('risks', v)}
           />
           <EditListField
-            label="Opportunities"
-            hint="One opportunity per line"
+            label="Возможности"
+            hint="Одна возможность на строку"
             value={state.opportunities}
             onChange={(v) => handleChange('opportunities', v)}
           />
           <EditListField
-            label="Open questions"
-            hint="One question per line"
+            label="Открытые вопросы"
+            hint="Один вопрос на строку"
             value={state.openQuestions}
             onChange={(v) => handleChange('openQuestions', v)}
           />
           <EditTextField
-            label="Sources note"
+            label="Заметка об источниках"
             value={state.sourcesNote}
             onChange={(v) => handleChange('sourcesNote', v)}
             rows={2}
           />
 
           <div className="flex gap-2 pt-2">
-            <Button onClick={handleSave}>Save changes</Button>
-            <Button variant="secondary" onClick={handleDiscard}>Discard</Button>
+            <Button onClick={handleSave}>Сохранить</Button>
+            <Button variant="secondary" onClick={handleDiscard}>Отменить</Button>
           </div>
         </div>
       ) : (
         // ─── View mode ────────────────────────────────────────────────────────
         <div className="space-y-4">
-          <ViewSection label="Problem summary" content={brief.problemSummary} />
-          <ViewSection label="Value hypothesis" content={brief.valueHypothesis} />
-          <ViewSection label="Recommended MVP" content={brief.recommendedMVP} />
+          <ViewSection label="Описание проблемы" content={brief.problemSummary} />
+          <ViewSection label="Ценностная гипотеза" content={brief.valueHypothesis} />
+          <ViewSection label="Рекомендуемый MVP" content={brief.recommendedMVP} />
 
           {brief.competitorNotes && (
-            <ViewSection label="Competitor notes" content={brief.competitorNotes} />
+            <ViewSection label="Заметки о конкурентах" content={brief.competitorNotes} />
           )}
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <ViewListSection label="Target users" items={brief.targetUsers} />
-            <ViewListSection label="Opportunities" items={brief.opportunities} />
+            <ViewListSection label="Целевые пользователи" items={brief.targetUsers} />
+            <ViewListSection label="Возможности" items={brief.opportunities} />
           </div>
 
           {brief.risks.length > 0 && (
-            <ViewListSection label="Risks" items={brief.risks} prefix="⚠️ " />
+            <ViewListSection label="Риски" items={brief.risks} prefix="⚠️ " />
           )}
 
           {brief.openQuestions.length > 0 && (
-            <ViewListSection label="Open questions" items={brief.openQuestions} prefix="? " />
+            <ViewListSection label="Открытые вопросы" items={brief.openQuestions} prefix="? " />
           )}
 
           <p className="rounded-lg bg-zinc-100 px-3 py-2 text-xs text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
@@ -368,7 +368,7 @@ function EditListField({
         onChange={(e) => onChange(e.target.value)}
         rows={4}
         className={`${fieldCls} resize-none font-mono text-xs`}
-        placeholder={`One item per line…`}
+        placeholder={`Один элемент на строку…`}
       />
     </div>
   )

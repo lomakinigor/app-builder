@@ -65,12 +65,12 @@ export function ArchitecturePage() {
   if (!activeProject) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Architecture" icon="🏗️" description="Define your tech stack and roadmap." />
+        <PageHeader title="Архитектура" icon="🏗️" description="Определите технологический стек и дорожную карту." />
         <EmptyState
           icon="📂"
-          title="No project selected"
-          description="Create a project first to reach the architecture stage."
-          action={{ label: 'Create project', onClick: () => navigate('/project/new') }}
+          title="Проект не выбран"
+          description="Сначала создайте проект, чтобы перейти к этапу архитектуры."
+          action={{ label: 'Создать проект', onClick: () => navigate('/project/new') }}
         />
       </div>
     )
@@ -79,17 +79,17 @@ export function ArchitecturePage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Architecture"
+        title="Архитектура"
         icon="🏗️"
-        description="Define your recommended tech stack, module architecture, data flow, and phased roadmap."
+        description="Определите рекомендуемый стек технологий, модульную архитектуру, поток данных и поэтапную дорожную карту."
         badge={
           <div className="flex items-center gap-2">
             <Badge variant="default">
-              {projectType === 'website' ? '🌐 Website' : '📱 Application'}
+              {projectType === 'website' ? '🌐 Сайт' : '📱 Приложение'}
             </Badge>
             {architectureDraft
-              ? <Badge variant="success">Generated</Badge>
-              : <Badge variant="muted">Not generated</Badge>}
+              ? <Badge variant="success">Сгенерировано</Badge>
+              : <Badge variant="muted">Не сгенерировано</Badge>}
           </div>
         }
       />
@@ -100,11 +100,11 @@ export function ArchitecturePage() {
           <div className="flex items-center gap-3">
             <span className="text-xl">⚠️</span>
             <div>
-              <p className="font-medium text-amber-800 dark:text-amber-300">Specification required</p>
+              <p className="font-medium text-amber-800 dark:text-amber-300">Требуется спецификация</p>
               <p className="text-sm text-amber-700/80 dark:text-amber-400">
-                Complete the Spec stage first.{' '}
+                Сначала завершите этап спецификации.{' '}
                 <button onClick={() => navigate('/spec')} className="underline">
-                  Go to Spec →
+                  Перейти к спецификации →
                 </button>
               </p>
             </div>
@@ -116,23 +116,23 @@ export function ArchitecturePage() {
       {specPack && !architectureDraft && (
         <Card>
           <CardHeader
-            title="Generate architecture"
-            description="Produces stack recommendation, module structure, data flow, and phased roadmap."
+            title="Генерация архитектуры"
+            description="Создаёт рекомендацию стека, структуру модулей, поток данных и поэтапную дорожную карту."
             icon="⚙️"
           />
           <div className="space-y-3">
             <div className="rounded-xl bg-zinc-50 p-4 dark:bg-zinc-800/50">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">What will be generated</p>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">Что будет сгенерировано</p>
               <ul className="space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
-                <li>• Recommended tech stack with rationale</li>
-                <li>• Module architecture overview</li>
-                <li>• Data flow description</li>
-                <li>• Phased implementation roadmap</li>
-                <li>• Technical risks</li>
+                <li>• Рекомендуемый стек с обоснованием</li>
+                <li>• Обзор модульной архитектуры</li>
+                <li>• Описание потока данных</li>
+                <li>• Поэтапная дорожная карта</li>
+                <li>• Технические риски</li>
               </ul>
             </div>
             <Button onClick={handleGenerate} loading={generating} fullWidth>
-              {generating ? 'Generating architecture…' : 'Generate Architecture'}
+              {generating ? 'Генерация архитектуры…' : 'Сгенерировать архитектуру'}
             </Button>
           </div>
         </Card>
@@ -141,9 +141,14 @@ export function ArchitecturePage() {
       {/* Editable architecture output */}
       {architectureDraft && (
         <>
-          <div className="flex justify-end">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              {architectureDraft.projectType === 'website'
+                ? 'Эта архитектура адаптирована для Сайта — SSR/SSG, контентный конвейер и CDN-деплой.'
+                : 'Эта архитектура адаптирована для Приложения — SPA, клиентский роутинг и управление состоянием.'}
+            </p>
             <Button size="sm" variant="ghost" onClick={handleCopyArchMarkdown}>
-              {archCopied ? '✓ Copied' : '↓ Copy as markdown'}
+              {archCopied ? '✓ Скопировано' : '↓ Скопировать как markdown'}
             </Button>
           </div>
           <EditableArchitectureDraft arch={architectureDraft} onSave={handleSaveArch} />
@@ -158,14 +163,14 @@ export function ArchitecturePage() {
           )}
           <div className="flex gap-3">
             <Button variant="secondary" onClick={handleGenerate} loading={generating} disabled={!specPack}>
-              Regenerate
+              Перегенерировать
             </Button>
             <Button
               onClick={() => navigate('/prompt-loop')}
               disabled={!archGate.canAdvance}
               title={archGate.reason ?? undefined}
             >
-              Continue to Prompt Loop →
+              Перейти к циклу промптов →
             </Button>
           </div>
         </div>

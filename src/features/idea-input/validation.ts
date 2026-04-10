@@ -25,19 +25,19 @@ export function validateIdeaDraft(draft: Partial<IdeaDraft>): IdeaValidationResu
   const rawIdea = draft.rawIdea?.trim() ?? ''
 
   if (!rawIdea) {
-    errors.rawIdea = 'Please describe your product idea to continue.'
+    errors.rawIdea = 'Пожалуйста, опишите идею продукта, чтобы продолжить.'
   } else if (rawIdea.length < IDEA_MIN_LENGTH) {
-    errors.rawIdea = `Keep going — describe your idea in at least ${IDEA_MIN_LENGTH} characters (${rawIdea.length}/${IDEA_MIN_LENGTH}).`
+    errors.rawIdea = `Продолжайте — опишите идею минимум в ${IDEA_MIN_LENGTH} символах (${rawIdea.length}/${IDEA_MIN_LENGTH}).`
   }
 
   if (rawIdea.length > 0 && rawIdea.length < IDEA_RECOMMENDED_LENGTH) {
     warnings.push(
-      'A longer idea description leads to better research and a more accurate spec. Aim for at least a few sentences.'
+      'Более подробное описание идеи улучшает качество исследования и спецификации. Стремитесь хотя бы к нескольким предложениям.'
     )
   }
 
   if (!draft.targetUser?.trim()) {
-    warnings.push('Adding a target user helps the research stage produce more relevant results.')
+    warnings.push('Указание целевой аудитории помогает получить более релевантные результаты исследования.')
   }
 
   return {

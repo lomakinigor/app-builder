@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import type { CyclePhase } from '../../entities/prompt-iteration/types'
 import { useProjectStore } from '../../app/store/projectStore'
 import { Button } from '../../shared/ui/Button'
 import { Card, CardHeader } from '../../shared/ui/Card'
@@ -14,6 +15,24 @@ import { copyMarkdown } from '../../shared/lib/clipboard/copyMarkdown'
 // ─── Cycle context bar ────────────────────────────────────────────────────────
 // Shows project type, cycle phase, and current target task in a subtle strip.
 
+const CYCLE_PHASE_LABEL: Record<CyclePhase, string> = {
+  brainstorm: '💡 Идея',
+  spec: '📋 Спец',
+  plan: '🗺️ План',
+  tasks: '✅ Задачи',
+  code_and_tests: '🔄 Код + Тесты',
+  review: '✅ Обзор',
+}
+
+const CYCLE_PHASE_VARIANT: Record<CyclePhase, 'muted' | 'info' | 'warning' | 'success'> = {
+  brainstorm: 'muted',
+  spec: 'muted',
+  plan: 'muted',
+  tasks: 'warning',
+  code_and_tests: 'info',
+  review: 'success',
+}
+
 function CycleContextBar({
   projectType,
   cyclePhase,
@@ -21,7 +40,7 @@ function CycleContextBar({
   phaseNumber,
 }: {
   projectType: 'application' | 'website' | null
-  cyclePhase: 'code_and_tests' | 'review' | null
+  cyclePhase: CyclePhase | null
   targetTaskId: string | null
   phaseNumber: number | null
 }) {
@@ -29,23 +48,23 @@ function CycleContextBar({
 
   return (
     <div className="flex flex-wrap items-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-400">
-      <span className="font-medium text-zinc-400 dark:text-zinc-500">Cycle context</span>
+      <span className="font-medium text-zinc-400 dark:text-zinc-500">Контекст цикла</span>
       <span className="text-zinc-300 dark:text-zinc-600">·</span>
       {projectType && (
         <Badge variant="default">
-          {projectType === 'website' ? '🌐 Website' : '📱 Application'}
+          {projectType === 'website' ? '🌐 Сайт' : '📱 Приложение'}
         </Badge>
       )}
       {cyclePhase && (
-        <Badge variant={cyclePhase === 'review' ? 'success' : 'info'}>
-          {cyclePhase === 'review' ? '✅ Review' : '🔄 Code + Tests'}
+        <Badge variant={CYCLE_PHASE_VARIANT[cyclePhase]}>
+          {CYCLE_PHASE_LABEL[cyclePhase]}
         </Badge>
       )}
       {targetTaskId && (
         <Badge variant="warning">{targetTaskId}</Badge>
       )}
       {phaseNumber !== null && phaseNumber !== undefined && (
-        <span className="text-zinc-400 dark:text-zinc-500">Phase {phaseNumber}</span>
+        <span className="text-zinc-400 dark:text-zinc-500">Фаза {phaseNumber}</span>
       )}
     </div>
   )
@@ -73,6 +92,8 @@ export function PromptLoopPage() {
   const [parsing, setParsing] = useState(false)
   const [copied, setCopied] = useState(false)
   const [iterCopied, setIterCopied] = useState(false)
+  const [taskIdInput, setTaskIdInput] = useState('')
+  const [taskDescriptionInput, setTaskDescriptionInput] = useState('')
 
   const activeIteration = promptIterations.find((p) => p.id === activeIterationId) ?? null
   const latestIteration = promptIterations.length > 0
@@ -81,10 +102,9 @@ export function PromptLoopPage() {
 
   const projectType = activeProject?.projectType ?? specPack?.projectType ?? null
 
-  // Derive the current cycle phase for the context bar
-  const displayCyclePhase = activeIteration?.status === 'parsed' ? 'review' as const
-    : activeIteration ? 'code_and_tests' as const
-    : null
+  // Use the cyclePhase field from the active iteration directly.
+  // Falls back to null (no bar) when there is no active iteration.
+  const displayCyclePhase: CyclePhase | null = activeIteration?.cyclePhase ?? null
 
   async function handleGenerateFirst() {
     if (!specPack || !architectureDraft || !activeProject || !projectType) return
@@ -96,6 +116,8 @@ export function PromptLoopPage() {
         projectType,
         activeProject.id,
         generateId('prompt'),
+        taskIdInput.trim() || null,
+        taskDescriptionInput.trim() || null,
       )
       addPromptIteration(iteration)
       setActiveIterationId(iteration.id)
@@ -122,7 +144,7 @@ export function PromptLoopPage() {
     }
   }
 
-  async function handleGenerateNext() {
+  async function handleGenerateNext(targetPhase: 'code_and_tests' | 'review' = 'code_and_tests') {
     if (!activeProject || !latestIteration?.parsedSummary || !projectType) return
     setGenerating(true)
     try {
@@ -133,6 +155,7 @@ export function PromptLoopPage() {
         activeProject.id,
         generateId('prompt'),
         promptIterations.length + 1,
+        targetPhase,
       )
       addPromptIteration(next)
       setActiveIterationId(next.id)
@@ -164,12 +187,12 @@ export function PromptLoopPage() {
   if (!activeProject) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Prompt Loop" icon="⚡" description="Iterate with Claude Code." />
+        <PageHeader title="Цикл промптов" icon="⚡" description="Итерируйте с Claude Code." />
         <EmptyState
           icon="📂"
-          title="No project selected"
-          description="Create a project first to start the prompt loop."
-          action={{ label: 'Create project', onClick: () => navigate('/project/new') }}
+          title="Проект не выбран"
+          description="Сначала создайте проект, чтобы запустить цикл промптов."
+          action={{ label: 'Создать проект', onClick: () => navigate('/project/new') }}
         />
       </div>
     )
@@ -178,25 +201,25 @@ export function PromptLoopPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Prompt Loop"
+        title="Цикл промптов"
         icon="⚡"
-        description="Generate Claude Code prompts, paste responses, parse results, generate next prompt. One task at a time."
+        description="Генерируйте промпты для Claude Code, вставляйте ответы, парсите результаты, генерируйте следующий промпт. Одна задача за раз."
         badge={
           <div className="flex items-center gap-2">
             {projectType && (
               <Badge variant="default">
-                {projectType === 'website' ? '🌐 Website' : '📱 Application'}
+                {projectType === 'website' ? '🌐 Сайт' : '📱 Приложение'}
               </Badge>
             )}
             {promptIterations.length > 0
-              ? <Badge variant="info">Iteration {promptIterations.length}</Badge>
-              : <Badge variant="muted">Not started</Badge>}
+              ? <Badge variant="info">Итерация {promptIterations.length}</Badge>
+              : <Badge variant="muted">Не начато</Badge>}
           </div>
         }
         action={
           hasReadyIteration ? (
             <Button size="sm" variant="secondary" onClick={() => navigate('/history')}>
-              View History
+              История
             </Button>
           ) : undefined
         }
@@ -217,11 +240,11 @@ export function PromptLoopPage() {
           <div className="flex items-center gap-3">
             <span className="text-xl">⚠️</span>
             <div>
-              <p className="font-medium text-amber-800 dark:text-amber-300">Architecture required</p>
+              <p className="font-medium text-amber-800 dark:text-amber-300">Требуется архитектура</p>
               <p className="text-sm text-amber-700/80 dark:text-amber-400">
-                Complete the Architecture stage first.{' '}
+                Сначала завершите этап архитектуры.{' '}
                 <button onClick={() => navigate('/architecture')} className="underline">
-                  Go to Architecture →
+                  Перейти к архитектуре →
                 </button>
               </p>
             </div>
@@ -233,21 +256,54 @@ export function PromptLoopPage() {
       {promptIterations.length === 0 && (
         <Card>
           <CardHeader
-            title="Generate first Claude Code prompt"
-            description="Creates a structured, cycle-aligned prompt from your spec and architecture."
+            title="Сгенерировать первый промпт для Claude Code"
+            description="Создаёт структурированный промпт из вашей спецификации и архитектуры."
             icon="⚡"
           />
           <div className="space-y-3">
+            {/* Task ID input */}
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                ID стартовой задачи <span className="normal-case font-normal text-zinc-400">(напр. T-001 — необязательно)</span>
+              </label>
+              <input
+                type="text"
+                value={taskIdInput}
+                onChange={(e) => setTaskIdInput(e.target.value)}
+                placeholder="T-001"
+                className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-700 placeholder:text-zinc-400 focus:border-violet-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-violet-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-violet-500 dark:focus:bg-zinc-900"
+              />
+              <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
+                Если указан, промпт явно сошлётся на эту задачу и потребует подход tests-first.
+              </p>
+            </div>
+            {/* Task description — optional, injected into the task section */}
+            {taskIdInput.trim() && (
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                  Описание задачи <span className="normal-case font-normal text-zinc-400">(необязательно — из docs/tasks.md)</span>
+                </label>
+                <textarea
+                  value={taskDescriptionInput}
+                  onChange={(e) => setTaskDescriptionInput(e.target.value)}
+                  placeholder="Вставьте или введите Definition of Done или описание задачи…"
+                  rows={3}
+                  className="w-full resize-none rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-700 placeholder:text-zinc-400 focus:border-violet-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-violet-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-violet-500 dark:focus:bg-zinc-900"
+                />
+              </div>
+            )}
             <div className="rounded-xl bg-zinc-50 p-4 dark:bg-zinc-800/50">
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
-                What the prompt will contain
+                Что будет в промпте
               </p>
               <ul className="space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
-                <li>• Project type ({projectType ?? 'not set'}) and cycle stage (Code + Tests)</li>
-                <li>• Required docs to read (PRD, features, tech-spec, data-model, tasks)</li>
-                <li>• Stack, Phase 0 goals, must-have features, constraints</li>
-                <li>• TDD rule — tests required in the same response</li>
-                <li>• Structured 5-section response format</li>
+                <li>• Тип проекта ({projectType === 'website' ? 'Сайт' : projectType === 'application' ? 'Приложение' : 'не задан'}) и этап цикла (Код + Тесты)</li>
+                <li>• Документы для прочтения (PRD, features, tech-spec, data-model, tasks)</li>
+                <li>• Стек, цели Phase 0, обязательные фичи, ограничения</li>
+                {taskIdInput.trim()
+                  ? <li className="font-medium text-violet-600 dark:text-violet-400">• Задача {taskIdInput.trim()}: подход tests-first с Definition of Done</li>
+                  : <li>• Правило TDD — тесты обязательны в том же ответе</li>}
+                <li>• Структурированный формат ответа из 5 разделов</li>
               </ul>
             </div>
             <Button
@@ -256,7 +312,7 @@ export function PromptLoopPage() {
               disabled={!specPack || !architectureDraft}
               fullWidth
             >
-              {generating ? 'Generating…' : 'Generate First Prompt'}
+              {generating ? 'Генерация…' : 'Сгенерировать первый промпт'}
             </Button>
           </div>
         </Card>
@@ -266,7 +322,7 @@ export function PromptLoopPage() {
       {activeIteration && (
         <Card>
           <CardHeader
-            title={`Iteration ${activeIteration.iterationNumber}`}
+            title={`Итерация ${activeIteration.iterationNumber}`}
             icon="📝"
             action={
               <div className="flex items-center gap-2">
@@ -277,21 +333,21 @@ export function PromptLoopPage() {
                     : 'muted'
                   }
                 >
-                  {activeIteration.status}
+                  {activeIteration.status === 'parsed' ? 'Распарсено' : activeIteration.status === 'sent' ? 'Отправлено' : 'Ожидание'}
                 </Badge>
                 <Button
                   size="sm"
                   variant="secondary"
                   onClick={() => handleCopy(activeIteration.promptText)}
                 >
-                  {copied ? '✓ Copied' : 'Copy prompt'}
+                  {copied ? '✓ Скопировано' : 'Скопировать промпт'}
                 </Button>
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={handleCopyIterationMarkdown}
                 >
-                  {iterCopied ? '✓ Copied' : '↓ Copy step as markdown'}
+                  {iterCopied ? '✓ Скопировано' : '↓ Скопировать как markdown'}
                 </Button>
               </div>
             }
@@ -305,8 +361,8 @@ export function PromptLoopPage() {
           </div>
 
           <div className="rounded-xl bg-violet-50 p-3 text-sm text-violet-800 dark:bg-violet-950/30 dark:text-violet-300">
-            <span className="font-medium">Next:</span> Copy the prompt above and paste it into Claude Code.
-            Then paste Claude's response below to parse it.
+            <span className="font-medium">Далее:</span> Скопируйте промпт выше и вставьте его в Claude Code.
+            Затем вставьте ответ Claude ниже для парсинга.
           </div>
         </Card>
       )}
@@ -315,15 +371,15 @@ export function PromptLoopPage() {
       {activeIteration && activeIteration.status !== 'parsed' && (
         <Card>
           <CardHeader
-            title="Paste Claude's response"
-            description="Paste the full response from Claude Code. The parser extracts analysis, plan, files, implementation summary, next step, and checks for test files."
+            title="Вставьте ответ Claude"
+            description="Вставьте полный ответ из Claude Code. Парсер извлечёт анализ, план, файлы, резюме реализации, следующий шаг и проверит наличие тестов."
             icon="📋"
           />
           <div className="space-y-3">
             <textarea
               value={responseInput}
               onChange={(e) => setResponseInput(e.target.value)}
-              placeholder="Paste Claude's full response here…"
+              placeholder="Вставьте полный ответ Claude здесь…"
               rows={8}
               className="w-full resize-none rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-700 placeholder:text-zinc-400 focus:border-violet-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-violet-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-violet-500 dark:focus:bg-zinc-900 font-mono"
             />
@@ -333,7 +389,7 @@ export function PromptLoopPage() {
               disabled={!responseInput.trim()}
               fullWidth
             >
-              {parsing ? 'Parsing…' : 'Parse Response'}
+              {parsing ? 'Парсинг…' : 'Распарсить ответ'}
             </Button>
           </div>
         </Card>
@@ -344,27 +400,27 @@ export function PromptLoopPage() {
         <div className="space-y-4">
           <Card>
             <CardHeader
-              title="Parsed response"
+              title="Распарсенный ответ"
               icon="🔍"
               action={
                 <div className="flex items-center gap-2">
-                  <Badge variant="success">Parsed</Badge>
+                  <Badge variant="success">Распарсено</Badge>
                   {activeIteration.parsedSummary.hasTests
-                    ? <Badge variant="success">✓ Tests found</Badge>
-                    : <Badge variant="warning">⚠️ No tests</Badge>}
+                    ? <Badge variant="success">✓ Тесты найдены</Badge>
+                    : <Badge variant="warning">⚠️ Нет тестов</Badge>}
                 </div>
               }
             />
             <div className="space-y-4">
               {activeIteration.parsedSummary.analysis && (
-                <ParsedSection label="Brief analysis" content={activeIteration.parsedSummary.analysis} />
+                <ParsedSection label="Краткий анализ" content={activeIteration.parsedSummary.analysis} />
               )}
               {activeIteration.parsedSummary.plan && (
-                <ParsedSection label="Implementation plan" content={activeIteration.parsedSummary.plan} />
+                <ParsedSection label="План реализации" content={activeIteration.parsedSummary.plan} />
               )}
               {activeIteration.parsedSummary.changedFiles.length > 0 && (
                 <div>
-                  <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Files changed</p>
+                  <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Изменённые файлы</p>
                   <div className="flex flex-wrap gap-1.5">
                     {activeIteration.parsedSummary.changedFiles.map((f) => (
                       <span
@@ -383,7 +439,7 @@ export function PromptLoopPage() {
               )}
               {activeIteration.parsedSummary.implementedTaskIds.length > 0 && (
                 <div>
-                  <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Task IDs referenced</p>
+                  <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Упомянутые задачи</p>
                   <div className="flex flex-wrap gap-1.5">
                     {activeIteration.parsedSummary.implementedTaskIds.map((id) => (
                       <Badge key={id} variant="warning">{id}</Badge>
@@ -395,7 +451,7 @@ export function PromptLoopPage() {
                 <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-800/40 dark:bg-emerald-950/20">
                   <div className="flex items-center gap-2">
                     <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
-                      Recommended next step
+                      Рекомендуемый следующий шаг
                     </p>
                     {activeIteration.parsedSummary.nextTaskId && (
                       <Badge variant="warning">{activeIteration.parsedSummary.nextTaskId}</Badge>
@@ -409,7 +465,7 @@ export function PromptLoopPage() {
               {activeIteration.parsedSummary.warnings.length > 0 && (
                 <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 dark:border-amber-800/40 dark:bg-amber-950/20">
                   <p className="text-xs font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400">
-                    Parse warnings
+                    Предупреждения парсера
                   </p>
                   {activeIteration.parsedSummary.warnings.map((w, i) => (
                     <p key={i} className="mt-1 text-sm text-amber-700 dark:text-amber-400">⚠️ {w}</p>
@@ -421,26 +477,40 @@ export function PromptLoopPage() {
 
           {/* Generate next */}
           <Card className="border-violet-200 bg-violet-50/50 dark:border-violet-800/40 dark:bg-violet-950/20">
-            <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="font-semibold text-violet-800 dark:text-violet-300">
-                  Ready for iteration {promptIterations.length + 1}
-                </p>
-                <p className="mt-0.5 text-sm text-violet-700/80 dark:text-violet-400">
-                  {activeIteration.parsedSummary.nextTaskId
-                    ? `Next task: ${activeIteration.parsedSummary.nextTaskId} — generate a cycle-aligned prompt.`
-                    : 'Generate the next prompt based on what was implemented and the recommended next step.'}
-                  {!activeIteration.parsedSummary.hasTests && (
-                    <span className="ml-1 font-medium text-amber-600 dark:text-amber-400">
-                      Missing tests will be requested first.
-                    </span>
-                  )}
-                </p>
-              </div>
-              <Button onClick={handleGenerateNext} loading={generating}>
-                Generate Next Prompt →
-              </Button>
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              <p className="font-semibold text-violet-800 dark:text-violet-300">
+                Готово к итерации {promptIterations.length + 1}
+              </p>
+              {activeIteration.parsedSummary.inferredNextPhase && (
+                <Badge variant={activeIteration.parsedSummary.inferredNextPhase === 'review' ? 'success' : activeIteration.parsedSummary.inferredNextPhase === 'tasks' ? 'warning' : 'info'}>
+                  Предложено: {CYCLE_PHASE_LABEL[activeIteration.parsedSummary.inferredNextPhase]}
+                </Badge>
+              )}
             </div>
+            {!activeIteration.parsedSummary.hasTests && (
+              <p className="mb-3 text-sm font-medium text-amber-600 dark:text-amber-400">
+                ⚠️ Тесты отсутствуют — следующий промпт Код+Тесты запросит их перед продолжением.
+              </p>
+            )}
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={() => handleGenerateNext('code_and_tests')} loading={generating}>
+                {activeIteration.parsedSummary.nextTaskId
+                  ? `Код+Тесты: ${activeIteration.parsedSummary.nextTaskId} →`
+                  : 'Следующий промпт Код+Тесты →'}
+              </Button>
+              {activeIteration.parsedSummary.hasTests && activeIteration.targetTaskId && (
+                <Button
+                  variant="secondary"
+                  onClick={() => handleGenerateNext('review')}
+                  loading={generating}
+                >
+                  Ревью: {activeIteration.targetTaskId} →
+                </Button>
+              )}
+            </div>
+            <p className="mt-2 text-xs text-violet-600/70 dark:text-violet-400/70">
+              Код+Тесты переходит к следующей задаче. Ревью проверяет текущую задачу по её Definition of Done.
+            </p>
           </Card>
         </div>
       )}
@@ -448,24 +518,42 @@ export function PromptLoopPage() {
       {/* Iteration switcher */}
       {promptIterations.length > 1 && (
         <Card>
-          <CardHeader title="All iterations" icon="🔄" />
-          <div className="flex flex-wrap gap-2">
-            {promptIterations.map((iter) => (
-              <button
-                key={iter.id}
-                onClick={() => setActiveIterationId(iter.id)}
-                className={[
-                  'rounded-xl px-3 py-1.5 text-sm font-medium transition-colors',
-                  activeIterationId === iter.id
-                    ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300'
-                    : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700',
-                ].join(' ')}
-              >
-                #{iter.iterationNumber}
-                {iter.status === 'parsed' && ' ✓'}
-                {iter.targetTaskId && ` · ${iter.targetTaskId}`}
-              </button>
-            ))}
+          <CardHeader title="Все итерации" icon="🔄" />
+          <div className="space-y-2">
+            {promptIterations.map((iter) => {
+              const isActive = activeIterationId === iter.id
+              const summary = iter.parsedSummary?.analysis
+                ? iter.parsedSummary.analysis.replace(/\n/g, ' ').slice(0, 100) + (iter.parsedSummary.analysis.length > 100 ? '…' : '')
+                : null
+              return (
+                <button
+                  key={iter.id}
+                  onClick={() => setActiveIterationId(iter.id)}
+                  className={[
+                    'w-full rounded-xl px-3 py-2.5 text-left transition-colors',
+                    isActive
+                      ? 'bg-violet-100 dark:bg-violet-900/40'
+                      : 'bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800/50 dark:hover:bg-zinc-700/50',
+                  ].join(' ')}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className={`text-sm font-semibold ${isActive ? 'text-violet-700 dark:text-violet-300' : 'text-zinc-700 dark:text-zinc-300'}`}>
+                      #{iter.iterationNumber}
+                      {iter.status === 'parsed' && ' ✓'}
+                    </span>
+                    <Badge variant={iter.cyclePhase === 'review' ? 'success' : 'info'}>
+                      {iter.cyclePhase === 'review' ? '✅ Ревью' : '🔄 Код+Тесты'}
+                    </Badge>
+                    {iter.targetTaskId && (
+                      <Badge variant="warning">{iter.targetTaskId}</Badge>
+                    )}
+                  </div>
+                  {summary && (
+                    <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 leading-snug">{summary}</p>
+                  )}
+                </button>
+              )
+            })}
           </div>
         </Card>
       )}
@@ -473,9 +561,9 @@ export function PromptLoopPage() {
       {promptIterations.length === 0 && !architectureDraft && (
         <EmptyState
           icon="⚡"
-          title="Complete architecture first"
-          description="The prompt loop requires a completed spec and architecture draft."
-          action={{ label: 'Go to Architecture', onClick: () => navigate('/architecture') }}
+          title="Сначала завершите архитектуру"
+          description="Для цикла промптов требуется готовая спецификация и черновик архитектуры."
+          action={{ label: 'Перейти к архитектуре', onClick: () => navigate('/architecture') }}
         />
       )}
     </div>

@@ -1,3 +1,4 @@
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useProjectStore } from '../../app/store/projectStore'
 import { Card, CardHeader } from '../../shared/ui/Card'
@@ -6,6 +7,17 @@ import { Badge } from '../../shared/ui/Badge'
 import { Button } from '../../shared/ui/Button'
 import { EmptyState } from '../../shared/ui/EmptyState'
 import type { PromptIteration } from '../../shared/types'
+import {
+  buildTaskReviewModel,
+  filterTaskRows,
+  type PhaseFilter,
+  type TestFilter,
+} from '../../shared/lib/review/taskReviewModel'
+import type { CyclePhase } from '../../entities/prompt-iteration/types'
+import { computeCycleProgress } from '../../shared/lib/superpowers/cycleProgress'
+import { computeNextAction, getRecommendedPhaseId, getRecommendedTaskId } from '../../shared/lib/superpowers/nextActionEngine'
+import { NextActionCard } from '../../shared/ui/NextActionCard'
+import type { CyclePhaseId } from '../../shared/lib/superpowers/cycleProgress'
 
 // ─── Static review data ───────────────────────────────────────────────────────
 // implements F-024 / T-109
@@ -21,63 +33,262 @@ interface Decision {
 const KEY_DECISIONS: Decision[] = [
   {
     id: 'D-001',
-    title: 'Frontend-first architecture for MVP',
-    summary: 'Zustand + localStorage with mock services. No backend until Phase 5. Real adapters replace mock files without changing UI.',
+    title: 'Архитектура «frontend-first» для MVP',
+    summary: 'Zustand + localStorage с mock-сервисами. Без бэкенда до Phase 5. Реальные адаптеры заменят mock-файлы без изменения UI.',
     linkedTasks: ['T-001', 'T-009'],
     linkedFeatures: ['F-008'],
   },
   {
     id: 'D-002',
-    title: 'Zustand over Redux or Context',
-    summary: 'Single store with persist middleware. Simple actions, low ceremony, easy localStorage persistence.',
+    title: 'Zustand вместо Redux или Context',
+    summary: 'Единый стор с persist middleware. Простые действия, минимум шаблонного кода, удобное сохранение в localStorage.',
     linkedTasks: ['T-001', 'T-009'],
     linkedFeatures: [],
   },
   {
     id: 'D-003',
-    title: 'Deterministic heuristic normalizer for research import',
-    summary: 'No LLM for import — heading-alias matching + paragraph scoring. Works offline, fully testable, degrades gracefully.',
+    title: 'Детерминированный эвристический нормализатор для импорта исследований',
+    summary: 'Без LLM для импорта — сопоставление заголовков-псевдонимов и оценка абзацев. Работает офлайн, полностью тестируемо, деградирует корректно.',
     linkedTasks: ['T-006', 'T-012'],
     linkedFeatures: ['F-003'],
   },
   {
     id: 'D-004',
-    title: 'Test runner deferred to T-018',
-    summary: 'Vitest + Testing Library wired as a dedicated ops task before any test task can be marked done.',
+    title: 'Запуск тестов отложен до T-018',
+    summary: 'Vitest + Testing Library подключены как отдельная ops-задача, которую нужно выполнить до пометки любой тестовой задачи как выполненной.',
     linkedTasks: ['T-018'],
     linkedFeatures: [],
   },
   {
     id: 'D-005',
-    title: 'Provider-agnostic ResearchBrief as normalization target',
-    summary: 'All research sources normalize to ResearchBrief. Downstream modules (spec, arch, prompts) are provider-independent.',
+    title: 'Provider-agnostic ResearchBrief как цель нормализации',
+    summary: 'Все источники исследований нормализуются к ResearchBrief. Нижележащие модули (spec, arch, prompts) не зависят от конкретного провайдера.',
     linkedTasks: ['T-004', 'T-005', 'T-006'],
     linkedFeatures: ['F-003', 'F-004', 'F-005'],
   },
 ]
 
 const REVIEW_CHECKLIST = [
-  { doc: 'docs/PRD.md', criteria: 'Does the current build satisfy the stated goals and success criteria?' },
-  { doc: 'docs/features.md', criteria: 'Are all must-have F-xxx features implemented or explicitly deferred with a reason?' },
-  { doc: 'docs/tech-spec.md', criteria: 'Does the implementation follow the module architecture and data-flow rules?' },
-  { doc: 'docs/data-model.md', criteria: 'Do all entity shapes in the codebase match the typed definitions?' },
-  { doc: 'docs/tasks.md', criteria: 'Is the Definition of Done met for every T-xxx task marked done?' },
-  { doc: 'docs/user-stories.md', criteria: 'Can a user complete each US-xxx acceptance scenario end-to-end?' },
-  { doc: 'docs/decisions.md', criteria: 'Does no impl task accidentally work around a recorded decision constraint?' },
+  { doc: 'docs/PRD.md', criteria: 'Удовлетворяет ли текущая сборка заявленным целям и критериям успеха?' },
+  { doc: 'docs/features.md', criteria: 'Все ли обязательные фичи F-xxx реализованы или явно отложены с указанием причины?' },
+  { doc: 'docs/tech-spec.md', criteria: 'Следует ли реализация модульной архитектуре и правилам потока данных?' },
+  { doc: 'docs/data-model.md', criteria: 'Совпадают ли все формы сущностей в кодовой базе с типизированными определениями?' },
+  { doc: 'docs/tasks.md', criteria: 'Выполнено ли Definition of Done для каждой задачи T-xxx, помеченной как выполненная?' },
+  { doc: 'docs/user-stories.md', criteria: 'Может ли пользователь пройти каждый сценарий приёмки US-xxx от начала до конца?' },
+  { doc: 'docs/decisions.md', criteria: 'Нет ли задачи реализации, которая случайно обходит ограничение зафиксированного решения?' },
 ]
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function cyclePhaseLabel(iter: PromptIteration): string {
-  if (iter.status === 'parsed') return 'Review'
-  return 'Code + Tests'
+  if (iter.status === 'parsed') return 'Ревью'
+  return 'Код + Тесты'
 }
 
 function cyclePhaseVariant(iter: PromptIteration): 'success' | 'info' {
   return iter.status === 'parsed' ? 'success' : 'info'
 }
 
+const PHASE_LABELS: Record<CyclePhase, string> = {
+  brainstorm: 'Идея',
+  spec: 'Спец',
+  plan: 'План',
+  tasks: 'Задачи',
+  code_and_tests: 'Код+Тесты',
+  review: 'Ревью',
+}
+
+const PHASE_VARIANTS: Record<CyclePhase, 'muted' | 'info' | 'warning' | 'success'> = {
+  brainstorm: 'muted',
+  spec: 'muted',
+  plan: 'muted',
+  tasks: 'warning',
+  code_and_tests: 'info',
+  review: 'success',
+}
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
+
+// implements F-024 / T-207, T-210
+function TaskProgressPanel({
+  iterations,
+  onOpenPromptLoop,
+  recommendedTaskId,
+}: {
+  iterations: PromptIteration[]
+  onOpenPromptLoop: () => void
+  recommendedTaskId?: string | null
+}) {
+  const [phaseFilter, setPhaseFilter] = useState<PhaseFilter>('all')
+  const [testFilter, setTestFilter] = useState<TestFilter>('all')
+
+  const allRows = useMemo(() => buildTaskReviewModel(iterations), [iterations])
+  const rows = useMemo(
+    () => filterTaskRows(allRows, phaseFilter, testFilter),
+    [allRows, phaseFilter, testFilter],
+  )
+
+  if (iterations.length === 0) {
+    return (
+      <p className="text-sm text-zinc-500 dark:text-zinc-400">
+        Промпт-итераций пока нет.{' '}
+        <button
+          onClick={onOpenPromptLoop}
+          className="text-violet-600 underline dark:text-violet-400"
+        >
+          Перейти к Циклу промптов
+        </button>{' '}
+        чтобы начать этап Код+Тесты.
+      </p>
+    )
+  }
+
+  const cyclePhaseOptions: CyclePhase[] = [
+    'brainstorm', 'spec', 'plan', 'tasks', 'code_and_tests', 'review',
+  ]
+
+  return (
+    <div className="space-y-4">
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Фаза</span>
+          <select
+            value={phaseFilter}
+            onChange={(e) => setPhaseFilter(e.target.value as PhaseFilter)}
+            className="rounded-lg border border-zinc-200 bg-white px-2 py-1 text-xs text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
+          >
+            <option value="all">Все</option>
+            {cyclePhaseOptions.map((p) => (
+              <option key={p} value={p}>{PHASE_LABELS[p]}</option>
+            ))}
+          </select>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Тесты</span>
+          <select
+            value={testFilter}
+            onChange={(e) => setTestFilter(e.target.value as TestFilter)}
+            className="rounded-lg border border-zinc-200 bg-white px-2 py-1 text-xs text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
+          >
+            <option value="all">Все</option>
+            <option value="has_tests">Есть тесты</option>
+            <option value="missing_tests">Нет тестов</option>
+          </select>
+        </div>
+        <span className="ml-auto text-xs text-zinc-400">
+          {rows.length} / {allRows.length} задач
+        </span>
+      </div>
+
+      {/* Task rows */}
+      {rows.length === 0 ? (
+        <p className="text-sm text-zinc-400 dark:text-zinc-500">Нет задач, соответствующих текущим фильтрам.</p>
+      ) : (
+        <div className="space-y-2">
+          {rows.map((row) => {
+            const isRecommended = row.taskId === recommendedTaskId
+            return (
+              <div
+                key={row.taskId}
+                className={[
+                  'rounded-xl border p-3 transition-colors',
+                  isRecommended
+                    ? 'border-amber-300 bg-amber-50/30 dark:border-amber-700/60 dark:bg-amber-950/10'
+                    : 'border-zinc-100 dark:border-zinc-800',
+                ].join(' ')}
+              >
+                {/* Row header */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-mono text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+                    {row.taskId}
+                  </span>
+
+                  {/* Recommended badge */}
+                  {isRecommended && (
+                    <Badge variant="warning">Следующая задача</Badge>
+                  )}
+
+                  {/* Phase badges */}
+                  {row.phasesVisited.map((phase) => (
+                    <Badge key={phase} variant={PHASE_VARIANTS[phase]}>
+                      {PHASE_LABELS[phase]}
+                    </Badge>
+                  ))}
+
+                  {/* Test presence */}
+                  {row.hasTests ? (
+                    <Badge variant="success">✓ тесты</Badge>
+                  ) : (
+                    <Badge variant="error">⚠ нет тестов</Badge>
+                  )}
+
+                  {/* Iteration count */}
+                  <span className="ml-auto text-xs text-zinc-400 dark:text-zinc-500">
+                    {row.iterationCount} итер. · последняя #{row.lastIterationNumber}
+                  </span>
+                </div>
+
+                {/* Analysis snippet */}
+                {row.lastAnalysisSnippet && (
+                  <p className="mt-1.5 text-xs leading-snug text-zinc-500 dark:text-zinc-400">
+                    {row.lastAnalysisSnippet}
+                  </p>
+                )}
+
+                {/* Warnings */}
+                {row.warnings.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {row.warnings.slice(0, 2).map((w, i) => (
+                      <p
+                        key={i}
+                        className="rounded-md bg-amber-50 px-2 py-1 text-xs text-amber-700 dark:bg-amber-950/30 dark:text-amber-400"
+                      >
+                        ⚠ {w}
+                      </p>
+                    ))}
+                    {row.warnings.length > 2 && (
+                      <p className="text-xs text-zinc-400">+{row.warnings.length - 2} ещё предупреждений</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Action */}
+                <div className="mt-2">
+                  {isRecommended ? (
+                    <button
+                      onClick={onOpenPromptLoop}
+                      className="rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-700 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/50"
+                    >
+                      Открыть в Prompt Loop →
+                    </button>
+                  ) : (
+                    <button
+                      onClick={onOpenPromptLoop}
+                      className="text-xs text-violet-600 hover:underline dark:text-violet-400"
+                    >
+                      Открыть в Цикле промптов →
+                    </button>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Maps CyclePhaseId to the local stage key used in CycleTimeline
+const PHASE_ID_TO_STAGE_KEY: Record<CyclePhaseId, string> = {
+  brainstorm: 'brainstorm',
+  spec: 'spec',
+  plan: 'plan',
+  tasks: 'tasks',
+  code_and_tests: 'code',
+  review: 'review',
+}
 
 function CycleTimeline({
   hasIdea,
@@ -85,104 +296,116 @@ function CycleTimeline({
   hasArch,
   hasIterations,
   hasParsedIteration,
+  recommendedPhaseId,
 }: {
   hasIdea: boolean
   hasSpec: boolean
   hasArch: boolean
   hasIterations: boolean
   hasParsedIteration: boolean
+  recommendedPhaseId?: CyclePhaseId | null
 }) {
+  const recommendedStageKey = recommendedPhaseId ? PHASE_ID_TO_STAGE_KEY[recommendedPhaseId] : null
+
   const stages = [
     {
       key: 'brainstorm',
-      label: 'Brainstorm',
+      label: 'Идея',
       icon: '💡',
       complete: hasIdea,
-      detail: hasIdea ? 'Idea captured' : 'No idea yet',
+      detail: hasIdea ? 'Идея зафиксирована' : 'Идеи пока нет',
     },
     {
       key: 'spec',
-      label: 'Spec',
+      label: 'Спецификация',
       icon: '📋',
       complete: hasSpec,
-      detail: hasSpec ? 'Spec pack generated' : 'No spec yet',
+      detail: hasSpec ? 'Спек-пакет сгенерирован' : 'Спецификации пока нет',
     },
     {
       key: 'plan',
-      label: 'Plan',
+      label: 'План',
       icon: '🗺️',
       complete: hasArch,
-      detail: hasArch ? 'Architecture and roadmap ready' : 'No plan yet',
+      detail: hasArch ? 'Архитектура и роадмап готовы' : 'Плана пока нет',
     },
     {
       key: 'tasks',
-      label: 'Tasks',
+      label: 'Задачи',
       icon: '✅',
       complete: hasArch,
-      detail: hasArch ? 'Roadmap phases define task scope' : 'No tasks yet',
+      detail: hasArch ? 'Фазы роадмапа определяют объём задач' : 'Задач пока нет',
     },
     {
       key: 'code',
-      label: 'Code + Tests',
+      label: 'Код + Тесты',
       icon: '⚡',
       complete: hasIterations,
-      detail: hasIterations ? 'Prompt loop active' : 'Not started',
+      detail: hasIterations ? 'Цикл промптов активен' : 'Не начато',
     },
     {
       key: 'review',
-      label: 'Review',
+      label: 'Обзор',
       icon: '🔍',
       complete: hasParsedIteration,
       isCurrentStage: true,
-      detail: 'Compare build reality vs PRD, spec, decisions',
+      detail: 'Сравните реальность сборки с PRD, спецификацией, решениями',
     },
   ]
 
   return (
     <div className="space-y-0">
-      {stages.map((stage, index) => (
-        <div key={stage.key} className="flex items-start gap-3">
-          {/* Spine */}
-          <div className="flex flex-col items-center">
-            <div
-              className={[
-                'flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-medium',
-                stage.isCurrentStage
-                  ? 'bg-violet-100 text-violet-700 ring-2 ring-violet-400 dark:bg-violet-900/40 dark:text-violet-300 dark:ring-violet-600'
-                  : stage.complete
-                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
-                  : 'bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-500',
-              ].join(' ')}
-            >
-              {stage.complete && !stage.isCurrentStage ? '✓' : stage.icon}
-            </div>
-            {index < stages.length - 1 && (
+      {stages.map((stage, index) => {
+        const isRecommended = !stage.complete && stage.key === recommendedStageKey
+        return (
+          <div key={stage.key} className="flex items-start gap-3">
+            {/* Spine */}
+            <div className="flex flex-col items-center">
               <div
-                className={`mt-1 w-px pb-1 ${
-                  stage.complete && !stage.isCurrentStage
-                    ? 'bg-emerald-200 dark:bg-emerald-800'
-                    : 'bg-zinc-200 dark:bg-zinc-700'
-                }`}
-                style={{ minHeight: 16 }}
-              />
-            )}
-          </div>
-
-          {/* Content */}
-          <div className="pb-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-medium text-zinc-800 dark:text-zinc-200">{stage.label}</span>
-              {stage.isCurrentStage && (
-                <Badge variant="warning">← you are here</Badge>
-              )}
-              {stage.complete && !stage.isCurrentStage && (
-                <Badge variant="success">Done</Badge>
+                className={[
+                  'flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-medium',
+                  isRecommended
+                    ? 'bg-amber-100 text-amber-700 ring-2 ring-amber-400 dark:bg-amber-900/40 dark:text-amber-300 dark:ring-amber-600'
+                    : stage.isCurrentStage
+                    ? 'bg-violet-100 text-violet-700 ring-2 ring-violet-400 dark:bg-violet-900/40 dark:text-violet-300 dark:ring-violet-600'
+                    : stage.complete
+                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
+                    : 'bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-500',
+                ].join(' ')}
+              >
+                {stage.complete && !stage.isCurrentStage ? '✓' : stage.icon}
+              </div>
+              {index < stages.length - 1 && (
+                <div
+                  className={`mt-1 w-px pb-1 ${
+                    stage.complete && !stage.isCurrentStage
+                      ? 'bg-emerald-200 dark:bg-emerald-800'
+                      : 'bg-zinc-200 dark:bg-zinc-700'
+                  }`}
+                  style={{ minHeight: 16 }}
+                />
               )}
             </div>
-            <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">{stage.detail}</p>
+
+            {/* Content */}
+            <div className="pb-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-medium text-zinc-800 dark:text-zinc-200">{stage.label}</span>
+                {isRecommended && (
+                  <Badge variant="warning">Рекомендуется</Badge>
+                )}
+                {stage.isCurrentStage && (
+                  <Badge variant="warning">← вы здесь</Badge>
+                )}
+                {stage.complete && !stage.isCurrentStage && (
+                  <Badge variant="success">Готово</Badge>
+                )}
+              </div>
+              <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">{stage.detail}</p>
+            </div>
           </div>
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }
@@ -194,7 +417,7 @@ function IterationReviewCard({ iter }: { iter: PromptIteration }) {
       {/* Header row */}
       <div className="mb-2 flex flex-wrap items-center gap-2">
         <span className="font-medium text-zinc-800 dark:text-zinc-200">
-          Iteration #{iter.iterationNumber}
+          Итерация #{iter.iterationNumber}
         </span>
         <Badge variant={cyclePhaseVariant(iter)}>{cyclePhaseLabel(iter)}</Badge>
         {iter.targetTaskId && (
@@ -202,11 +425,11 @@ function IterationReviewCard({ iter }: { iter: PromptIteration }) {
         )}
         {iter.roadmapPhaseNumber !== null && (
           <span className="text-xs text-zinc-400 dark:text-zinc-500">
-            Phase {iter.roadmapPhaseNumber}
+            Фаза {iter.roadmapPhaseNumber}
           </span>
         )}
         <Badge variant={iter.status === 'parsed' ? 'success' : iter.status === 'sent' ? 'info' : 'muted'}>
-          {iter.status}
+          {iter.status === 'parsed' ? 'Распарсено' : iter.status === 'sent' ? 'Отправлено' : 'Ожидание'}
         </Badge>
       </div>
 
@@ -218,9 +441,9 @@ function IterationReviewCard({ iter }: { iter: PromptIteration }) {
       {parsed && (
         <div className="mb-2">
           {parsed.hasTests ? (
-            <Badge variant="success">✓ Tests detected</Badge>
+            <Badge variant="success">✓ Тесты обнаружены</Badge>
           ) : (
-            <Badge variant="error">⚠ No test files detected</Badge>
+            <Badge variant="error">⚠ Тестовые файлы не обнаружены</Badge>
           )}
         </div>
       )}
@@ -228,7 +451,7 @@ function IterationReviewCard({ iter }: { iter: PromptIteration }) {
       {/* Implemented task IDs */}
       {parsed && parsed.implementedTaskIds.length > 0 && (
         <div className="mb-2 flex flex-wrap gap-1">
-          <span className="text-xs text-zinc-500 dark:text-zinc-400">Tasks referenced:</span>
+          <span className="text-xs text-zinc-500 dark:text-zinc-400">Упомянутые задачи:</span>
           {parsed.implementedTaskIds.map((id) => (
             <Badge key={id} variant="info">{id}</Badge>
           ))}
@@ -238,7 +461,7 @@ function IterationReviewCard({ iter }: { iter: PromptIteration }) {
       {/* Next task */}
       {parsed?.nextTaskId && (
         <div className="mb-2 flex items-center gap-1">
-          <span className="text-xs text-zinc-500 dark:text-zinc-400">Next:</span>
+          <span className="text-xs text-zinc-500 dark:text-zinc-400">Следующая:</span>
           <Badge variant="warning">{parsed.nextTaskId}</Badge>
         </div>
       )}
@@ -328,12 +551,12 @@ export function HistoryPage() {
   if (!activeProject) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Review" icon="🔍" description="Compare build reality against PRD, tech-spec, and decisions." />
+        <PageHeader title="Обзор" icon="🔍" description="Сравните реальность сборки с PRD, tech-spec и решениями." />
         <EmptyState
           icon="📂"
-          title="No project selected"
-          description="Create a project and complete the build cycle to see the Review view."
-          action={{ label: 'Create project', onClick: () => navigate('/project/new') }}
+          title="Проект не выбран"
+          description="Создайте проект и завершите цикл сборки, чтобы увидеть страницу Обзора."
+          action={{ label: 'Создать проект', onClick: () => navigate('/project/new') }}
         />
       </div>
     )
@@ -344,43 +567,60 @@ export function HistoryPage() {
   const hasArch = !!architectureDraft
   const hasIterations = promptIterations.length > 0
   const hasParsedIteration = promptIterations.some((i) => i.status === 'parsed')
+  const taskRows = buildTaskReviewModel(promptIterations)
+
+  const cyclePhases = computeCycleProgress({
+    ideaDraft,
+    researchRuns,
+    importedArtifacts,
+    researchBrief,
+    specPack,
+    architectureDraft,
+    promptIterations,
+  })
+  const nextAction = computeNextAction(cyclePhases, promptIterations)
+  const recommendedPhaseId = getRecommendedPhaseId(nextAction)
+  const recommendedTaskId = getRecommendedTaskId(nextAction)
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Review"
+        title="Обзор"
         icon="🔍"
-        description="Superpowers cycle — Stage 6 of 6. Compare build reality against PRD, tech-spec, user stories, and decisions."
+        description="Цикл Superpowers — Этап 6 из 6. Сравните реальность сборки с PRD, tech-spec, пользовательскими историями и решениями."
       />
 
       {/* Review label bar */}
       <div className="flex flex-wrap items-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-4 py-3 dark:border-violet-900/40 dark:bg-violet-950/20">
-        <Badge variant="default">Review phase</Badge>
+        <Badge variant="default">Фаза обзора</Badge>
         <span className="text-sm text-violet-700 dark:text-violet-300">
-          You are at the end of the cycle. Check the criteria below, then decide: iterate or ship.
+          Вы в конце цикла. Проверьте критерии ниже, затем решите: итерировать или выпустить.
         </span>
       </div>
+
+      {/* Next action recommendation — T-209 */}
+      <NextActionCard action={nextAction} />
 
       {/* Project overview */}
       <Card>
         <CardHeader title={activeProject.name} icon="📂" action={<Badge variant="success">{activeProject.status}</Badge>} />
         <div className="grid gap-3 text-sm sm:grid-cols-3">
           <div>
-            <p className="text-xs font-medium text-zinc-500">Started</p>
+            <p className="text-xs font-medium text-zinc-500">Начат</p>
             <p className="text-zinc-800 dark:text-zinc-200">
               {new Date(activeProject.createdAt).toLocaleDateString()}
             </p>
           </div>
           <div>
-            <p className="text-xs font-medium text-zinc-500">Last updated</p>
+            <p className="text-xs font-medium text-zinc-500">Обновлён</p>
             <p className="text-zinc-800 dark:text-zinc-200">
               {new Date(activeProject.updatedAt).toLocaleDateString()}
             </p>
           </div>
           <div>
-            <p className="text-xs font-medium text-zinc-500">Type</p>
+            <p className="text-xs font-medium text-zinc-500">Тип</p>
             <p className="text-zinc-800 dark:text-zinc-200 capitalize">
-              {activeProject.projectType === 'website' ? '🌐 Website' : '📱 Application'}
+              {activeProject.projectType === 'website' ? '🌐 Сайт' : '📱 Приложение'}
             </p>
           </div>
         </div>
@@ -388,13 +628,31 @@ export function HistoryPage() {
 
       {/* Superpowers cycle timeline */}
       <Card>
-        <CardHeader title="Superpowers cycle" icon="🔄" />
+        <CardHeader title="Цикл Superpowers" icon="🔄" />
         <CycleTimeline
           hasIdea={hasIdea}
           hasSpec={hasSpec}
           hasArch={hasArch}
           hasIterations={hasIterations}
           hasParsedIteration={hasParsedIteration}
+          recommendedPhaseId={recommendedPhaseId}
+        />
+      </Card>
+
+      {/* Task progress dashboard */}
+      <Card>
+        <CardHeader
+          title="Прогресс задач"
+          icon="📊"
+          action={<Badge variant="info">{taskRows.length} задач</Badge>}
+        />
+        <p className="mb-3 text-xs text-zinc-500 dark:text-zinc-400">
+          Каждая строка — одна задача T-xxx. Бейджи показывают, каких фаз цикла она касалась.
+        </p>
+        <TaskProgressPanel
+          iterations={promptIterations}
+          onOpenPromptLoop={() => navigate('/prompt-loop')}
+          recommendedTaskId={recommendedTaskId}
         />
       </Card>
 
@@ -402,9 +660,9 @@ export function HistoryPage() {
       {promptIterations.length > 0 ? (
         <Card>
           <CardHeader
-            title="Prompt iterations"
+            title="Промпт-итерации"
             icon="⚡"
-            action={<Badge variant="info">{promptIterations.length} total</Badge>}
+            action={<Badge variant="info">{promptIterations.length} всего</Badge>}
           />
           <div className="space-y-3">
             {promptIterations.map((iter) => (
@@ -414,9 +672,9 @@ export function HistoryPage() {
         </Card>
       ) : (
         <Card>
-          <CardHeader title="Prompt iterations" icon="⚡" />
+          <CardHeader title="Промпт-итерации" icon="⚡" />
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            No prompt iterations yet. Go to the Prompt Loop to start building.
+            Промпт-итераций пока нет. Перейдите в Цикл промптов, чтобы начать сборку.
           </p>
         </Card>
       )}
@@ -424,20 +682,20 @@ export function HistoryPage() {
       {/* Research inputs */}
       {(researchRuns.length > 0 || importedArtifacts.length > 0) && (
         <Card>
-          <CardHeader title="Research inputs" icon="🔬" />
+          <CardHeader title="Источники исследований" icon="🔬" />
           <div className="space-y-2">
             {researchRuns.map((run) => (
               <div key={run.id} className="flex items-center justify-between rounded-xl border border-zinc-100 p-3 dark:border-zinc-800">
                 <div>
                   <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Research run — {run.mode} mode
+                    Исследование — режим {run.mode}
                   </p>
                   <p className="text-xs text-zinc-400">
-                    {run.startedAt ? new Date(run.startedAt).toLocaleString() : 'Not started'}
+                    {run.startedAt ? new Date(run.startedAt).toLocaleString('ru-RU') : 'Не начато'}
                   </p>
                 </div>
                 <Badge variant={run.status === 'completed' ? 'success' : run.status === 'failed' ? 'error' : 'info'}>
-                  {run.status}
+                  {run.status === 'completed' ? 'Завершено' : run.status === 'failed' ? 'Ошибка' : 'В процессе'}
                 </Badge>
               </div>
             ))}
@@ -446,10 +704,10 @@ export function HistoryPage() {
                 <div>
                   <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{artifact.title}</p>
                   <p className="text-xs text-zinc-400">
-                    Imported {new Date(artifact.importedAt).toLocaleString()} · {artifact.sourceLabel}
+                    Импортировано {new Date(artifact.importedAt).toLocaleString('ru-RU')} · {artifact.sourceLabel}
                   </p>
                 </div>
-                <Badge variant="info">imported</Badge>
+                <Badge variant="info">импорт</Badge>
               </div>
             ))}
           </div>
@@ -460,9 +718,9 @@ export function HistoryPage() {
       {specPack && (
         <Card>
           <CardHeader
-            title="Spec summary"
+            title="Краткое резюме спека"
             icon="📋"
-            action={<Badge variant={specPack.projectType === 'website' ? 'info' : 'default'}>{specPack.projectType === 'website' ? '🌐 Website' : '📱 Application'}</Badge>}
+            action={<Badge variant={specPack.projectType === 'website' ? 'info' : 'default'}>{specPack.projectType === 'website' ? '🌐 Сайт' : '📱 Приложение'}</Badge>}
           />
           <div className="space-y-2 text-sm text-zinc-700 dark:text-zinc-300">
             <p>{specPack.productSummary}</p>
@@ -474,9 +732,9 @@ export function HistoryPage() {
                 ))}
             </div>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              {specPack.featureList.filter((f) => f.priority === 'must').length} must-have ·{' '}
-              {specPack.featureList.filter((f) => f.priority === 'should').length} should-have ·{' '}
-              {researchBrief ? 'Research brief available' : 'No research brief'}
+              {specPack.featureList.filter((f) => f.priority === 'must').length} обязательных ·{' '}
+              {specPack.featureList.filter((f) => f.priority === 'should').length} желательных ·{' '}
+              {researchBrief ? 'Бриф исследования доступен' : 'Нет брифа исследования'}
             </p>
           </div>
         </Card>
@@ -485,12 +743,12 @@ export function HistoryPage() {
       {/* Review checklist */}
       <Card>
         <CardHeader
-          title="Review checklist"
+          title="Чеклист обзора"
           icon="✅"
-          action={<Badge variant="warning">manual review</Badge>}
+          action={<Badge variant="warning">ручной обзор</Badge>}
         />
         <p className="mb-3 text-xs text-zinc-500 dark:text-zinc-400">
-          Work through each criterion against the linked doc before closing this cycle.
+          Проверьте каждый критерий по связанному документу перед закрытием этого цикла.
         </p>
         <ReviewChecklist />
       </Card>
@@ -498,23 +756,23 @@ export function HistoryPage() {
       {/* Key decisions */}
       <Card>
         <CardHeader
-          title="Key decisions"
+          title="Ключевые решения"
           icon="📐"
-          action={<Badge variant="muted">{KEY_DECISIONS.length} recorded</Badge>}
+          action={<Badge variant="muted">{KEY_DECISIONS.length} зафиксировано</Badge>}
         />
         <p className="mb-3 text-xs text-zinc-500 dark:text-zinc-400">
-          Constraints every reviewer must not unknowingly work around. See{' '}
-          <span className="font-mono text-violet-600 dark:text-violet-400">docs/decisions.md</span> for full context.
+          Ограничения, которые ни один ревьюер не должен случайно обойти. Полный контекст — в{' '}
+          <span className="font-mono text-violet-600 dark:text-violet-400">docs/decisions.md</span>.
         </p>
         <DecisionsPanel />
       </Card>
 
       <div className="flex flex-wrap gap-2">
         <Button variant="secondary" onClick={() => navigate('/prompt-loop')}>
-          Go to Prompt Loop
+          Перейти к Циклу промптов
         </Button>
         <Button variant="ghost" onClick={() => navigate('/')}>
-          ← Home
+          ← Главная
         </Button>
       </div>
     </div>

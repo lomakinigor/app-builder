@@ -79,14 +79,14 @@ function StackRow({ item, index, onChange, onRemove }: StackRowProps) {
           type="text"
           value={item.name}
           onChange={(e) => onChange(index, { name: e.target.value })}
-          placeholder="Technology name"
+          placeholder="Название технологии"
           className={inputCls}
         />
         <input
           type="text"
           value={item.role}
           onChange={(e) => onChange(index, { role: e.target.value })}
-          placeholder="Role (e.g. UI framework)"
+          placeholder="Роль (напр. UI-фреймворк)"
           className={inputCls}
         />
       </div>
@@ -95,14 +95,14 @@ function StackRow({ item, index, onChange, onRemove }: StackRowProps) {
           type="text"
           value={item.rationale}
           onChange={(e) => onChange(index, { rationale: e.target.value })}
-          placeholder="Why this choice?"
+          placeholder="Почему именно это?"
           className={`${inputCls} flex-1`}
         />
         <button
           onClick={() => onRemove(index)}
           className="shrink-0 text-xs text-zinc-400 hover:text-red-500 dark:hover:text-red-400"
         >
-          Remove
+          Удалить
         </button>
       </div>
     </div>
@@ -131,7 +131,7 @@ function PhaseRow({ phase, index, onChange, onRemove }: PhaseRowProps) {
           type="text"
           value={phase.title}
           onChange={(e) => onChange(index, { title: e.target.value })}
-          placeholder="Phase title"
+          placeholder="Название фазы"
           className={`${inputCls} flex-1`}
         />
         <select
@@ -142,14 +142,14 @@ function PhaseRow({ phase, index, onChange, onRemove }: PhaseRowProps) {
           className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1.5 text-xs font-medium text-zinc-700 focus:border-violet-400 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
         >
           {COMPLEXITIES.map((c) => (
-            <option key={c} value={c}>{c}</option>
+            <option key={c} value={c}>{c === 'low' ? 'низкая' : c === 'medium' ? 'средняя' : 'высокая'}</option>
           ))}
         </select>
         <button
           onClick={() => onRemove(index)}
           className="shrink-0 text-xs text-zinc-400 hover:text-red-500 dark:hover:text-red-400"
         >
-          Remove
+          Удалить
         </button>
       </div>
       <textarea
@@ -158,7 +158,7 @@ function PhaseRow({ phase, index, onChange, onRemove }: PhaseRowProps) {
           onChange(index, { goals: e.target.value.split('\n').map((s) => s.trim()).filter(Boolean) })
         }
         rows={3}
-        placeholder="Goals — one per line"
+        placeholder="Цели — одна на строку"
         className={`${textareaCls} mt-2 font-mono text-xs`}
       />
     </div>
@@ -192,7 +192,7 @@ function PhaseViewRow({ phase, isLast }: { phase: RoadmapPhase; isLast: boolean 
         <div className="flex items-center gap-2">
           <p className="font-semibold text-zinc-800 dark:text-zinc-200">{phase.title}</p>
           <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${COMPLEXITY_COLORS[phase.estimatedComplexity]}`}>
-            {phase.estimatedComplexity}
+            {phase.estimatedComplexity === 'low' ? 'низкая' : phase.estimatedComplexity === 'medium' ? 'средняя' : 'высокая'}
           </span>
         </div>
         <ul className="mt-1 space-y-0.5">
@@ -283,69 +283,69 @@ export function EditableArchitectureDraft({ arch, onSave }: EditableArchitecture
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between rounded-xl border border-violet-200 bg-violet-50 px-4 py-2.5 dark:border-violet-800/40 dark:bg-violet-950/20">
-          <p className="text-sm font-medium text-violet-700 dark:text-violet-300">Editing architecture</p>
+          <p className="text-sm font-medium text-violet-700 dark:text-violet-300">Редактирование архитектуры</p>
           <div className="flex gap-2">
-            <Button size="sm" variant="secondary" onClick={handleCancel}>Cancel</Button>
-            <Button size="sm" onClick={handleSave}>Save changes</Button>
+            <Button size="sm" variant="secondary" onClick={handleCancel}>Отменить</Button>
+            <Button size="sm" onClick={handleSave}>Сохранить</Button>
           </div>
         </div>
 
         <Card>
-          <CardHeader title="Recommended stack" description="One technology per row" icon="🛠️" />
+          <CardHeader title="Рекомендуемый стек" description="Одна технология на строку" icon="🛠️" />
           <div className="space-y-2">
             {editState.recommendedStack.map((item, i) => (
               <StackRow key={generateId('si')} item={item} index={i} onChange={updateStackItem} onRemove={removeStackItem} />
             ))}
-            <Button size="sm" variant="secondary" onClick={addStackItem}>+ Add stack item</Button>
+            <Button size="sm" variant="secondary" onClick={addStackItem}>+ Добавить технологию</Button>
           </div>
         </Card>
 
         <Card>
-          <CardHeader title="Module architecture" icon="🧩" />
+          <CardHeader title="Модульная архитектура" icon="🧩" />
           <textarea
             value={editState.moduleArchitecture}
             onChange={(e) => setEditState((p) => ({ ...p, moduleArchitecture: e.target.value }))}
             rows={4}
             className={textareaCls}
-            placeholder="Describe the module structure…"
+            placeholder="Опишите структуру модулей…"
           />
         </Card>
 
         <Card>
-          <CardHeader title="Data flow" icon="🔄" />
+          <CardHeader title="Поток данных" icon="🔄" />
           <textarea
             value={editState.dataFlow}
             onChange={(e) => setEditState((p) => ({ ...p, dataFlow: e.target.value }))}
             rows={4}
             className={textareaCls}
-            placeholder="Describe how data moves through the system…"
+            placeholder="Опишите, как данные движутся через систему…"
           />
         </Card>
 
         <Card>
-          <CardHeader title="Phased roadmap" description="One phase per row" icon="🗺️" />
+          <CardHeader title="Поэтапный роадмап" description="Одна фаза на строку" icon="🗺️" />
           <div className="space-y-2">
             {editState.roadmapPhases.map((phase, i) => (
               <PhaseRow key={phase.phase} phase={phase} index={i} onChange={updatePhase} onRemove={removePhase} />
             ))}
-            <Button size="sm" variant="secondary" onClick={addPhase}>+ Add phase</Button>
+            <Button size="sm" variant="secondary" onClick={addPhase}>+ Добавить фазу</Button>
           </div>
         </Card>
 
         <Card>
-          <CardHeader title="Technical risks" description="One per line" icon="⚠️" />
+          <CardHeader title="Технические риски" description="Один на строку" icon="⚠️" />
           <textarea
             value={editState.technicalRisks}
             onChange={(e) => setEditState((p) => ({ ...p, technicalRisks: e.target.value }))}
             rows={5}
             className={`${textareaCls} font-mono text-xs`}
-            placeholder="One risk per line…"
+            placeholder="Один риск на строку…"
           />
         </Card>
 
         <div className="flex gap-3">
-          <Button variant="secondary" onClick={handleCancel}>Cancel</Button>
-          <Button onClick={handleSave}>Save changes</Button>
+          <Button variant="secondary" onClick={handleCancel}>Отменить</Button>
+          <Button onClick={handleSave}>Сохранить</Button>
         </div>
       </div>
     )
@@ -355,11 +355,11 @@ export function EditableArchitectureDraft({ arch, onSave }: EditableArchitecture
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button size="sm" variant="secondary" onClick={handleEdit}>Edit architecture</Button>
+        <Button size="sm" variant="secondary" onClick={handleEdit}>Редактировать архитектуру</Button>
       </div>
 
       <Card>
-        <CardHeader title="Recommended stack" icon="🛠️" />
+        <CardHeader title="Рекомендуемый стек" icon="🛠️" />
         <div className="grid gap-2 sm:grid-cols-2">
           {arch.recommendedStack.map((item, i) => (
             <StackViewRow key={i} item={item} />
@@ -368,17 +368,17 @@ export function EditableArchitectureDraft({ arch, onSave }: EditableArchitecture
       </Card>
 
       <Card>
-        <CardHeader title="Module architecture" icon="🧩" />
+        <CardHeader title="Модульная архитектура" icon="🧩" />
         <p className="text-sm text-zinc-700 dark:text-zinc-300">{arch.moduleArchitecture}</p>
       </Card>
 
       <Card>
-        <CardHeader title="Data flow" icon="🔄" />
+        <CardHeader title="Поток данных" icon="🔄" />
         <p className="text-sm text-zinc-700 dark:text-zinc-300">{arch.dataFlow}</p>
       </Card>
 
       <Card>
-        <CardHeader title="Phased roadmap" icon="🗺️" />
+        <CardHeader title="Поэтапный роадмап" icon="🗺️" />
         <div className="space-y-3">
           {arch.roadmapPhases.map((phase, i) => (
             <PhaseViewRow key={phase.phase} phase={phase} isLast={i === arch.roadmapPhases.length - 1} />
@@ -387,7 +387,7 @@ export function EditableArchitectureDraft({ arch, onSave }: EditableArchitecture
       </Card>
 
       <Card>
-        <CardHeader title="Technical risks" icon="⚠️" />
+        <CardHeader title="Технические риски" icon="⚠️" />
         <ul className="space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
           {arch.technicalRisks.map((risk, i) => (
             <li key={i} className="flex items-start gap-2">

@@ -11,13 +11,13 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Home', path: '/', icon: '🏠', end: true },
-  { label: 'Idea', path: '/idea', icon: '💡' },
-  { label: 'Research', path: '/research', icon: '🔍' },
-  { label: 'Specification', path: '/spec', icon: '📋' },
-  { label: 'Architecture', path: '/architecture', icon: '🏗️' },
-  { label: 'Prompt Loop', path: '/prompt-loop', icon: '⚡' },
-  { label: 'History', path: '/history', icon: '📜' },
+  { label: 'Главная', path: '/', icon: '🏠', end: true },
+  { label: 'Идея', path: '/idea', icon: '💡' },
+  { label: 'Исследование', path: '/research', icon: '🔍' },
+  { label: 'Спецификация', path: '/spec', icon: '📋' },
+  { label: 'Архитектура', path: '/architecture', icon: '🏗️' },
+  { label: 'Цикл промптов', path: '/prompt-loop', icon: '⚡' },
+  { label: 'История', path: '/history', icon: '📜' },
 ]
 
 export function Sidebar({ onClose }: { onClose?: () => void }) {
@@ -54,7 +54,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
       {activeProject && (
         <div className="border-b border-zinc-200 px-4 py-3 dark:border-zinc-700/60">
           <p className="mb-1 text-xs font-medium uppercase tracking-wide text-zinc-400 dark:text-zinc-500">
-            Active Project
+            Активный проект
           </p>
           <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 line-clamp-1">
             {activeProject.name}
@@ -85,8 +85,8 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
               >
                 <span className="text-base">{item.icon}</span>
                 {item.label}
-                {item.label === 'Prompt Loop' && activeProject?.currentStage === 'iterative_loop' && (
-                  <Badge variant="success" className="ml-auto">Active</Badge>
+                {item.label === 'Цикл промптов' && activeProject?.currentStage === 'iterative_loop' && (
+                  <Badge variant="success" className="ml-auto">Активен</Badge>
                 )}
               </NavLink>
             </li>
@@ -97,7 +97,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
       {/* Footer */}
       <div className="border-t border-zinc-200 px-4 py-3 dark:border-zinc-700/60">
         <p className="text-xs text-zinc-400 dark:text-zinc-500">
-          MVP · Local mode · No backend
+          MVP · Локальный режим · Без бэкенда
         </p>
       </div>
     </aside>

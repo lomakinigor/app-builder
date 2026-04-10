@@ -64,12 +64,12 @@ export function SpecPage() {
   if (!activeProject) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Specification" icon="📋" description="Generate a structured product spec." />
+        <PageHeader title="Спецификация" icon="📋" description="Сгенерируйте структурированную спецификацию продукта." />
         <EmptyState
           icon="📂"
-          title="No project selected"
-          description="Create a project first to reach the specification stage."
-          action={{ label: 'Create project', onClick: () => navigate('/project/new') }}
+          title="Проект не выбран"
+          description="Сначала создайте проект, чтобы перейти к этапу спецификации."
+          action={{ label: 'Создать проект', onClick: () => navigate('/project/new') }}
         />
       </div>
     )
@@ -78,15 +78,15 @@ export function SpecPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Specification"
+        title="Спецификация"
         icon="📋"
-        description="Generate a structured product spec from your research brief. Defines MVP scope, feature list, assumptions, and constraints."
+        description="Сгенерируйте структурированную спецификацию из исследовательского брифа. Определяет скоуп MVP, список фич, допущения и ограничения."
         badge={
           <div className="flex items-center gap-2">
             <Badge variant="default">
-              {projectType === 'website' ? '🌐 Website' : '📱 Application'}
+              {projectType === 'website' ? '🌐 Сайт' : '📱 Приложение'}
             </Badge>
-            {specPack ? <Badge variant="success">Generated</Badge> : <Badge variant="muted">Not generated</Badge>}
+            {specPack ? <Badge variant="success">Сгенерировано</Badge> : <Badge variant="muted">Не сгенерировано</Badge>}
           </div>
         }
       />
@@ -97,11 +97,11 @@ export function SpecPage() {
           <div className="flex items-center gap-3">
             <span className="text-xl">⚠️</span>
             <div>
-              <p className="font-medium text-amber-800 dark:text-amber-300">Research brief required</p>
+              <p className="font-medium text-amber-800 dark:text-amber-300">Требуется исследовательский бриф</p>
               <p className="text-sm text-amber-700/80 dark:text-amber-400">
-                Complete the Research stage first.{' '}
+                Сначала завершите этап исследования.{' '}
                 <button onClick={() => navigate('/research')} className="underline">
-                  Go to Research →
+                  Перейти к исследованию →
                 </button>
               </p>
             </div>
@@ -113,23 +113,23 @@ export function SpecPage() {
       {researchBrief && !specPack && (
         <Card>
           <CardHeader
-            title="Generate specification"
-            description="Uses your normalized Research Brief to produce a structured spec pack."
+            title="Генерация спецификации"
+            description="Использует нормализованный Research Brief для создания структурированного spec pack."
             icon="⚙️"
           />
           <div className="space-y-3">
             <div className="rounded-xl bg-zinc-50 p-4 dark:bg-zinc-800/50">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">What will be generated</p>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">Что будет сгенерировано</p>
               <ul className="space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
-                <li>• Product summary</li>
-                <li>• MVP scope definition</li>
-                <li>• Feature list with MoSCoW priorities</li>
-                <li>• Assumptions and constraints</li>
-                <li>• Acceptance notes</li>
+                <li>• Резюме продукта</li>
+                <li>• Определение скоупа MVP</li>
+                <li>• Список фич с приоритетами MoSCoW</li>
+                <li>• Допущения и ограничения</li>
+                <li>• Критерии приёмки</li>
               </ul>
             </div>
             <Button onClick={handleGenerate} loading={generating} fullWidth>
-              {generating ? 'Generating spec…' : 'Generate Specification'}
+              {generating ? 'Генерация спецификации…' : 'Сгенерировать спецификацию'}
             </Button>
           </div>
         </Card>
@@ -138,9 +138,14 @@ export function SpecPage() {
       {/* Editable spec output */}
       {specPack && (
         <>
-          <div className="flex justify-end">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              {specPack.projectType === 'website'
+                ? 'Эта спецификация адаптирована для Сайта — страницы, контент, SEO и конверсия.'
+                : 'Эта спецификация адаптирована для Приложения — флоу, состояние и навигация.'}
+            </p>
             <Button size="sm" variant="ghost" onClick={handleCopySpecMarkdown}>
-              {specCopied ? '✓ Copied' : '↓ Copy as markdown'}
+              {specCopied ? '✓ Скопировано' : '↓ Скопировать как markdown'}
             </Button>
           </div>
           <EditableSpecPack spec={specPack} onSave={handleSaveSpec} />
@@ -155,14 +160,14 @@ export function SpecPage() {
           )}
           <div className="flex gap-3">
             <Button variant="secondary" onClick={handleGenerate} loading={generating} disabled={!researchBrief}>
-              Regenerate
+              Перегенерировать
             </Button>
             <Button
               onClick={() => navigate('/architecture')}
               disabled={!specGate.canAdvance}
               title={specGate.reason ?? undefined}
             >
-              Continue to Architecture →
+              Перейти к архитектуре →
             </Button>
           </div>
         </div>

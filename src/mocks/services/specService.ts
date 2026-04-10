@@ -1,10 +1,66 @@
 import type { ResearchBrief, SpecPack, ArchitectureDraft, ProjectType } from '../../shared/types'
-import { mockSpecPack, mockArchitectureDraft } from '../project/seedData'
 
 // ─── Mock spec generation service ────────────────────────────────────────────
 // Generates spec and architecture drafts from a research brief and project type.
 // Replace with real AI-powered generation in Phase 3.
-// implements F-005, F-006, F-025 / T-105
+// implements F-005, F-006, F-025 / T-105, T-205
+
+// ─── Application mock fixtures ────────────────────────────────────────────────
+
+const applicationSpecFeatures: SpecPack['featureList'] = [
+  { id: 'f-001', name: 'User onboarding', description: 'Sign-up / sign-in flow with clear first-use guidance and an empty-state dashboard.', priority: 'must' },
+  { id: 'f-002', name: 'Core data management', description: 'Create, view, edit, and delete the primary entities of the application.', priority: 'must' },
+  { id: 'f-003', name: 'Dashboard / overview', description: 'Summary view of the user\'s current state, key metrics, and pending actions.', priority: 'must' },
+  { id: 'f-004', name: 'In-app navigation', description: 'Sidebar or bottom-nav routing between major sections; breadcrumb context for nested flows.', priority: 'must' },
+  { id: 'f-005', name: 'User settings', description: 'Profile and preferences screen; ability to update account details.', priority: 'should' },
+  { id: 'f-006', name: 'Notifications / alerts', description: 'In-app feedback (toasts, banners) for async actions, errors, and important state changes.', priority: 'should' },
+  { id: 'f-007', name: 'Search and filtering', description: 'Filter or search the primary entity list by name, status, or date.', priority: 'should' },
+  { id: 'f-008', name: 'Export / share', description: 'Export key data as CSV, JSON, or markdown; optional shareable read-only link.', priority: 'could' },
+  { id: 'f-009', name: 'Keyboard shortcuts', description: 'Power-user shortcuts for common create/navigate/submit actions.', priority: 'could' },
+  { id: 'f-010', name: 'Multi-user collaboration', description: 'Invite team members, share workspaces, role-based permissions.', priority: 'wont' },
+]
+
+const applicationArchStack: ArchitectureDraft['recommendedStack'] = [
+  { name: 'React', role: 'UI layer', rationale: 'Component-based SPA with strong ecosystem; ideal for stateful, interactive application UIs' },
+  { name: 'TypeScript', role: 'Type safety', rationale: 'Prevents runtime errors, self-documenting domain models and props contracts' },
+  { name: 'Vite', role: 'Build tool', rationale: 'Fast HMR, lean bundle, zero-config for React + TypeScript' },
+  { name: 'Zustand', role: 'State management', rationale: 'Lightweight store with built-in persistence; avoids boilerplate of Redux for MVP scope' },
+  { name: 'React Router', role: 'Client routing', rationale: 'Declarative SPA routing with nested layouts and protected route support' },
+  { name: 'Tailwind CSS', role: 'Styling', rationale: 'Utility-first, responsive, consistent design system without runtime CSS overhead' },
+]
+
+const applicationRoadmap: ArchitectureDraft['roadmapPhases'] = [
+  {
+    phase: 0,
+    title: 'Foundation',
+    goals: ['App shell', 'Routing', 'Layout and navigation', 'State store', 'Typed domain models', 'Mock data'],
+    estimatedComplexity: 'low',
+  },
+  {
+    phase: 1,
+    title: 'Core flow',
+    goals: ['Onboarding screen', 'Primary entity list', 'Create/edit form', 'Delete with confirmation'],
+    estimatedComplexity: 'medium',
+  },
+  {
+    phase: 2,
+    title: 'Dashboard and navigation',
+    goals: ['Summary dashboard', 'In-app navigation', 'Breadcrumbs', 'Empty states'],
+    estimatedComplexity: 'medium',
+  },
+  {
+    phase: 3,
+    title: 'Search, filters, and settings',
+    goals: ['Entity filtering', 'Search bar', 'User settings page', 'Notification toasts'],
+    estimatedComplexity: 'medium',
+  },
+  {
+    phase: 4,
+    title: 'Polish and export',
+    goals: ['Export to CSV/JSON', 'Keyboard shortcuts', 'Error boundaries', 'Performance audit'],
+    estimatedComplexity: 'high',
+  },
+]
 
 // ─── Website mock fixtures ────────────────────────────────────────────────────
 
@@ -97,10 +153,28 @@ export const mockSpecService = {
 
     // application
     return {
-      ...mockSpecPack,
       projectType: 'application',
-      productSummary: brief.valueHypothesis || mockSpecPack.productSummary,
-      MVPScope: brief.recommendedMVP || mockSpecPack.MVPScope,
+      productSummary: brief.valueHypothesis
+        ? `An application: ${brief.valueHypothesis}`
+        : 'A stateful web application with user onboarding, core entity management, and a dashboard.',
+      MVPScope:
+        brief.recommendedMVP ||
+        'Single-user mode. Onboarding flow, core entity CRUD, dashboard overview. No collaboration, no billing, no export in V1.',
+      featureList: applicationSpecFeatures,
+      assumptions: [
+        'Users interact primarily through a desktop or tablet browser',
+        'No real-time collaboration required in V1',
+        'Local state persistence is sufficient for single-user MVP',
+        ...(brief.targetUsers?.slice(0, 2).map((u) => `Primary audience: ${u}`) ?? []),
+      ],
+      constraints: [
+        'No backend server in MVP — client-only with local storage',
+        'No authentication in V1',
+        'No billing',
+        'Must be usable on mobile (responsive layout)',
+      ],
+      acceptanceNotes:
+        'A user can complete the onboarding flow, create and manage the core entities, see a dashboard summary, and return to their data after a page refresh.',
     }
   },
 
@@ -125,10 +199,21 @@ export const mockSpecService = {
       }
     }
 
-    // application — use mock plus carry spec context
+    // application
     return {
-      ...mockArchitectureDraft,
       projectType: 'application',
+      recommendedStack: applicationArchStack,
+      moduleArchitecture:
+        'Feature-sliced architecture: app shell → route-level pages → feature modules → domain entities → shared utilities. State managed in Zustand stores; components are pure and receive data via props or store selectors.',
+      dataFlow:
+        'User action → store action → state update → UI re-render. Async operations (future API calls) go through service adapters that return typed results into the store. No direct API calls from components.',
+      roadmapPhases: applicationRoadmap,
+      technicalRisks: [
+        'Local storage (~5 MB) may be hit with large entity lists — plan for IndexedDB if data grows',
+        'Client-only persistence means data is lost when browser storage is cleared — warn users',
+        'No auth in V1 limits sharing; adding it later requires refactoring routing and store shape',
+        'SPA routing requires a server fallback rule (e.g. 404 → index.html) for production deploys',
+      ],
     }
   },
 }

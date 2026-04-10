@@ -57,10 +57,10 @@ const textareaCls = `${inputCls} resize-none`
 // ─── Priority config ──────────────────────────────────────────────────────────
 
 const PRIORITY_LABELS: Record<SpecFeature['priority'], string> = {
-  must: 'Must',
-  should: 'Should',
-  could: 'Could',
-  wont: "Won't",
+  must: 'Обязательно',
+  should: 'Желательно',
+  could: 'По возможности',
+  wont: 'Не сейчас',
 }
 
 const PRIORITY_COLORS: Record<SpecFeature['priority'], string> = {
@@ -90,14 +90,14 @@ function FeatureRow({ feature, index, onChange, onRemove }: FeatureRowProps) {
             type="text"
             value={feature.name}
             onChange={(e) => onChange(index, { name: e.target.value })}
-            placeholder="Feature name"
+            placeholder="Название фичи"
             className={inputCls}
           />
           <input
             type="text"
             value={feature.description}
             onChange={(e) => onChange(index, { description: e.target.value })}
-            placeholder="Short description (optional)"
+            placeholder="Краткое описание (необязательно)"
             className={inputCls}
           />
         </div>
@@ -114,9 +114,9 @@ function FeatureRow({ feature, index, onChange, onRemove }: FeatureRowProps) {
           <button
             onClick={() => onRemove(index)}
             className="text-xs text-zinc-400 hover:text-red-500 dark:hover:text-red-400"
-            title="Remove feature"
+            title="Удалить фичу"
           >
-            Remove
+            Удалить
           </button>
         </div>
       </div>
@@ -199,39 +199,39 @@ export function EditableSpecPack({ spec, onSave }: EditableSpecPackProps) {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between rounded-xl border border-violet-200 bg-violet-50 px-4 py-2.5 dark:border-violet-800/40 dark:bg-violet-950/20">
-          <p className="text-sm font-medium text-violet-700 dark:text-violet-300">Editing specification</p>
+          <p className="text-sm font-medium text-violet-700 dark:text-violet-300">Редактирование спецификации</p>
           <div className="flex gap-2">
-            <Button size="sm" variant="secondary" onClick={handleCancel}>Cancel</Button>
-            <Button size="sm" onClick={handleSave}>Save changes</Button>
+            <Button size="sm" variant="secondary" onClick={handleCancel}>Отменить</Button>
+            <Button size="sm" onClick={handleSave}>Сохранить</Button>
           </div>
         </div>
 
         <Card>
-          <CardHeader title="Product summary" icon="📌" />
+          <CardHeader title="Резюме продукта" icon="📌" />
           <textarea
             value={editState.productSummary}
             onChange={(e) => setEditState((p) => ({ ...p, productSummary: e.target.value }))}
             rows={3}
             className={textareaCls}
-            placeholder="What this product does and who it serves…"
+            placeholder="Что делает этот продукт и для кого…"
           />
         </Card>
 
         <Card>
-          <CardHeader title="MVP scope" icon="🎯" />
+          <CardHeader title="Объём MVP" icon="🎯" />
           <textarea
             value={editState.MVPScope}
             onChange={(e) => setEditState((p) => ({ ...p, MVPScope: e.target.value }))}
             rows={3}
             className={textareaCls}
-            placeholder="What is and isn't included in the first release…"
+            placeholder="Что входит и что не входит в первый релиз…"
           />
         </Card>
 
         <Card>
           <CardHeader
-            title="Feature list"
-            description="Each feature has a name, optional description, and MoSCoW priority."
+            title="Список фич"
+            description="Каждая фича имеет название, необязательное описание и приоритет MoSCoW."
             icon="✅"
           />
           <div className="space-y-2">
@@ -245,48 +245,48 @@ export function EditableSpecPack({ spec, onSave }: EditableSpecPackProps) {
               />
             ))}
             <Button size="sm" variant="secondary" onClick={addFeature}>
-              + Add feature
+              + Добавить фичу
             </Button>
           </div>
         </Card>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Card>
-            <CardHeader title="Assumptions" description="One per line" icon="💭" />
+            <CardHeader title="Допущения" description="Одно на строку" icon="💭" />
             <textarea
               value={editState.assumptions}
               onChange={(e) => setEditState((p) => ({ ...p, assumptions: e.target.value }))}
               rows={5}
               className={`${textareaCls} font-mono text-xs`}
-              placeholder="One assumption per line…"
+              placeholder="Одно допущение на строку…"
             />
           </Card>
           <Card>
-            <CardHeader title="Constraints" description="One per line" icon="🚧" />
+            <CardHeader title="Ограничения" description="Одно на строку" icon="🚧" />
             <textarea
               value={editState.constraints}
               onChange={(e) => setEditState((p) => ({ ...p, constraints: e.target.value }))}
               rows={5}
               className={`${textareaCls} font-mono text-xs`}
-              placeholder="One constraint per line…"
+              placeholder="Одно ограничение на строку…"
             />
           </Card>
         </div>
 
         <Card>
-          <CardHeader title="Acceptance notes" icon="📝" />
+          <CardHeader title="Критерии приёмки" icon="📝" />
           <textarea
             value={editState.acceptanceNotes}
             onChange={(e) => setEditState((p) => ({ ...p, acceptanceNotes: e.target.value }))}
             rows={3}
             className={textareaCls}
-            placeholder="How will you know the MVP is done?…"
+            placeholder="Как понять, что MVP готов?…"
           />
         </Card>
 
         <div className="flex gap-3">
-          <Button variant="secondary" onClick={handleCancel}>Cancel</Button>
-          <Button onClick={handleSave}>Save changes</Button>
+          <Button variant="secondary" onClick={handleCancel}>Отменить</Button>
+          <Button onClick={handleSave}>Сохранить</Button>
         </div>
       </div>
     )
@@ -296,21 +296,21 @@ export function EditableSpecPack({ spec, onSave }: EditableSpecPackProps) {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button size="sm" variant="secondary" onClick={handleEdit}>Edit spec</Button>
+        <Button size="sm" variant="secondary" onClick={handleEdit}>Редактировать спек</Button>
       </div>
 
       <Card>
-        <CardHeader title="Product summary" icon="📌" />
+        <CardHeader title="Резюме продукта" icon="📌" />
         <p className="text-sm text-zinc-700 dark:text-zinc-300">{spec.productSummary}</p>
       </Card>
 
       <Card>
-        <CardHeader title="MVP scope" icon="🎯" />
+        <CardHeader title="Объём MVP" icon="🎯" />
         <p className="text-sm text-zinc-700 dark:text-zinc-300">{spec.MVPScope}</p>
       </Card>
 
       <Card>
-        <CardHeader title="Feature list" description="MoSCoW priority breakdown" icon="✅" />
+        <CardHeader title="Список фич" description="Разбивка по приоритетам MoSCoW" icon="✅" />
         <div className="space-y-2">
           {spec.featureList.map((feature) => (
             <FeatureViewRow key={feature.id} feature={feature} />
@@ -320,13 +320,13 @@ export function EditableSpecPack({ spec, onSave }: EditableSpecPackProps) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Card>
-          <CardHeader title="Assumptions" icon="💭" />
+          <CardHeader title="Допущения" icon="💭" />
           <ul className="space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
             {spec.assumptions.map((a, i) => <li key={i}>• {a}</li>)}
           </ul>
         </Card>
         <Card>
-          <CardHeader title="Constraints" icon="🚧" />
+          <CardHeader title="Ограничения" icon="🚧" />
           <ul className="space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
             {spec.constraints.map((c, i) => <li key={i}>• {c}</li>)}
           </ul>
@@ -335,7 +335,7 @@ export function EditableSpecPack({ spec, onSave }: EditableSpecPackProps) {
 
       {spec.acceptanceNotes && (
         <Card>
-          <CardHeader title="Acceptance notes" icon="📝" />
+          <CardHeader title="Критерии приёмки" icon="📝" />
           <p className="text-sm text-zinc-700 dark:text-zinc-300">{spec.acceptanceNotes}</p>
         </Card>
       )}

@@ -16,24 +16,24 @@ export function canAdvanceFromIdea(
   projectType: ProjectType | null,
 ): StageGateResult {
   if (!ideaDraft) {
-    return { canAdvance: false, reason: 'No idea saved yet. Fill in your product idea first.' }
+    return { canAdvance: false, reason: 'Идея ещё не сохранена. Сначала заполните поле идеи продукта.' }
   }
 
   const rawIdea = ideaDraft.rawIdea.trim()
 
   if (!rawIdea) {
-    return { canAdvance: false, reason: 'Your product idea is empty. Describe what you want to build.' }
+    return { canAdvance: false, reason: 'Идея продукта пуста. Опишите, что вы хотите создать.' }
   }
 
   if (rawIdea.length < IDEA_MIN_LENGTH) {
     return {
       canAdvance: false,
-      reason: `Your idea is too short (${rawIdea.length}/${IDEA_MIN_LENGTH} chars). Add more detail before continuing.`,
+      reason: `Идея слишком короткая (${rawIdea.length}/${IDEA_MIN_LENGTH} символов). Добавьте больше деталей перед продолжением.`,
     }
   }
 
   if (!projectType) {
-    return { canAdvance: false, reason: 'Select whether you are building an application or a website.' }
+    return { canAdvance: false, reason: 'Выберите, что вы создаёте — приложение или сайт.' }
   }
 
   return { canAdvance: true, reason: null }
@@ -45,14 +45,14 @@ export function canAdvanceFromResearch(researchBrief: ResearchBrief | null): Sta
   if (!researchBrief) {
     return {
       canAdvance: false,
-      reason: 'No research brief yet. Run research or import existing research first.',
+      reason: 'Бриф исследования ещё не готов. Запустите исследование или импортируйте готовое.',
     }
   }
 
   if (!researchBrief.problemSummary?.trim()) {
     return {
       canAdvance: false,
-      reason: 'Research brief is incomplete — problem summary is missing. Edit the brief before continuing.',
+      reason: 'Бриф исследования неполный — отсутствует описание проблемы. Отредактируйте бриф перед продолжением.',
     }
   }
 
@@ -65,21 +65,21 @@ export function canAdvanceFromSpec(specPack: SpecPack | null): StageGateResult {
   if (!specPack) {
     return {
       canAdvance: false,
-      reason: 'No specification yet. Generate or edit the spec before continuing.',
+      reason: 'Спецификации ещё нет. Сгенерируйте или отредактируйте спек перед продолжением.',
     }
   }
 
   if (!specPack.productSummary?.trim() && !specPack.MVPScope?.trim()) {
     return {
       canAdvance: false,
-      reason: 'Spec is incomplete — product summary and MVP scope are both empty. Edit the spec before continuing.',
+      reason: 'Спецификация неполная — резюме продукта и объём MVP оба пусты. Отредактируйте спек перед продолжением.',
     }
   }
 
   if (!specPack.projectType) {
     return {
       canAdvance: false,
-      reason: 'Spec is missing a project type. Regenerate the specification.',
+      reason: 'В спецификации отсутствует тип проекта. Пересгенерируйте спецификацию.',
     }
   }
 
@@ -92,28 +92,28 @@ export function canAdvanceFromArchitecture(architectureDraft: ArchitectureDraft 
   if (!architectureDraft) {
     return {
       canAdvance: false,
-      reason: 'No architecture draft yet. Generate or edit the architecture before continuing.',
+      reason: 'Черновика архитектуры ещё нет. Сгенерируйте или отредактируйте архитектуру перед продолжением.',
     }
   }
 
   if (!architectureDraft.recommendedStack?.length) {
     return {
       canAdvance: false,
-      reason: 'Architecture is incomplete — no stack items defined. Edit the architecture before continuing.',
+      reason: 'Архитектура неполная — не определены элементы стека. Отредактируйте архитектуру перед продолжением.',
     }
   }
 
   if (!architectureDraft.roadmapPhases?.length) {
     return {
       canAdvance: false,
-      reason: 'Architecture is incomplete — no roadmap phases defined. Edit the architecture before continuing.',
+      reason: 'Архитектура неполная — не определены фазы роадмапа. Отредактируйте архитектуру перед продолжением.',
     }
   }
 
   if (!architectureDraft.projectType) {
     return {
       canAdvance: false,
-      reason: 'Architecture is missing a project type. Regenerate the architecture.',
+      reason: 'В архитектуре отсутствует тип проекта. Пересгенерируйте архитектуру.',
     }
   }
 

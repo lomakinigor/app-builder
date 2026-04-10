@@ -2,10 +2,17 @@ import type { ProjectType } from '../project/types'
 
 // ─── Cycle phase ──────────────────────────────────────────────────────────────
 // Position in the Superpowers cycle that this prompt iteration targets.
-// Code+Tests: the prompt is asking Claude to implement + write tests.
-// Review: the prompt output is being reviewed against acceptance criteria.
+// Mirrors the full 6-stage vocabulary from superpowers-workflow.md.
+// In practice, Prompt Loop iterations are Code+Tests or Review;
+// the earlier stages are represented here for completeness and future use.
 
-export type CyclePhase = 'code_and_tests' | 'review'
+export type CyclePhase =
+  | 'brainstorm'
+  | 'spec'
+  | 'plan'
+  | 'tasks'
+  | 'code_and_tests'
+  | 'review'
 
 // ─── Prompt loop ──────────────────────────────────────────────────────────────
 
@@ -44,4 +51,12 @@ export interface ParsedClaudeResponse {
   implementedTaskIds: string[]
   /** First T-xxx mentioned in the "next step" section, if any */
   nextTaskId: string | null
+  /**
+   * Phase the parser infers the project should move to next.
+   * 'review'        — DoD-met signals detected; current task ready to be reviewed.
+   * 'code_and_tests' — tests missing or a new T-xxx was suggested; keep building.
+   * 'tasks'         — response explicitly suggests picking a new task from the backlog.
+   * null            — could not infer (e.g. response not parsed).
+   */
+  inferredNextPhase: CyclePhase | null
 }

@@ -76,6 +76,7 @@ const iteration: PromptIteration = {
     hasTests: false,
     implementedTaskIds: ['T-005', 'T-006'],
     nextTaskId: 'T-007',
+    inferredNextPhase: null,
   },
   recommendedNextStep: 'Add spec generation',
   status: 'parsed',

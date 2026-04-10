@@ -39,6 +39,63 @@ function projectTypeLabel(projectType: ProjectType): string {
   return projectType === 'website' ? 'website' : 'application'
 }
 
+// ─── Type-specific implementation guidance ────────────────────────────────────
+// Injected into every prompt so Claude uses the correct vocabulary and patterns
+// for the project type. Application = SPA/components/state; Website = pages/SEO/SSR.
+
+export function typeAwareGuidance(projectType: ProjectType): string {
+  if (projectType === 'website') {
+    return `## Website implementation guidance
+You are building a website (multi-page, content-first). Apply these patterns throughout:
+- Think in **pages and routes** — each route is a discrete, independently renderable content surface.
+- Apply **SSG or SSR** patterns where content is largely static or SEO-critical; prefer static generation unless personalisation requires runtime data.
+- Keep **layout, navigation, and semantic HTML** consistent across all pages; heading hierarchy matters for accessibility and SEO.
+- **SEO**: every page must have a descriptive title, a meta description, and correct Open Graph tags. Content must be indexable (no JS-only render for primary text).
+- **Testing**: assert that pages render key content, navigation links resolve, and that no critical text is gated behind client-only state.`
+  }
+  return `## Application implementation guidance
+You are building a SPA (Single Page Application). Apply these patterns throughout:
+- All routing is **client-side** (React Router); there is no server-side rendering — plan for a fallback route in production.
+- State changes must go through the **Zustand store** — no prop-drilling for cross-component shared data.
+- Keep each **component focused**; extract shared logic into custom hooks or store actions, not into component bodies.
+- **Testing (TDD order)**: write tests for components (props → render), store actions (state transitions), and user flows (simulate interaction → assert outcome) before implementing them.
+- **No premature optimisation**: implement the feature to the Definition of Done, then let review decide if caching or memoisation is needed.`
+}
+
+// ─── Phase inference keywords ─────────────────────────────────────────────────
+
+export function inferNextPhase(
+  analysis: string,
+  nextStep: string,
+  hasTests: boolean,
+  nextTaskId: string | null,
+  prevTaskId: string | null,
+): import('../../entities/prompt-iteration/types').CyclePhase {
+  const combined = (analysis + '\n' + nextStep).toLowerCase()
+
+  // Explicit "done" / "review-ready" signals
+  const reviewKeywords = [
+    'definition of done.*met',
+    'dod.*met',
+    'all.*tests.*pass',
+    'ready.*for.*review',
+    'ready to review',
+    'task.*complete',
+    'mark.*done',
+    'can be marked done',
+  ]
+  if (reviewKeywords.some((kw) => new RegExp(kw).test(combined))) return 'review'
+
+  // If tests are present and there is no new T-xxx to jump to → suggest review
+  if (hasTests && prevTaskId && (!nextTaskId || nextTaskId === prevTaskId)) return 'review'
+
+  // Response suggests picking from the task backlog (no concrete next task)
+  if (combined.includes('check docs/tasks') || combined.includes('pick the next task')) return 'tasks'
+
+  // Default: continue Code+Tests (new task or missing tests)
+  return 'code_and_tests'
+}
+
 function extractTaskIds(text: string): string[] {
   const matches = text.match(/T-\d{3,}/g) ?? []
   return [...new Set(matches)]
@@ -64,6 +121,8 @@ export const mockPromptService = {
     projectType: ProjectType,
     projectId: string,
     promptId: string,
+    taskId: string | null,
+    taskDescription: string | null,
   ): Promise<PromptIteration> {
     await new Promise((resolve) => setTimeout(resolve, 800))
 
@@ -79,6 +138,22 @@ export const mockPromptService = {
     const constraints = spec.constraints.map((c) => `- ${c}`).join('\n')
     const phaseGoals = phase.goals.map((g) => `- ${g}`).join('\n')
 
+    const taskDescLine = taskDescription ? `\nTask description: ${taskDescription}` : ''
+    const taskSection = taskId
+      ? `## Target task: ${taskId}${taskDescLine}
+Read the Definition of Done for **${taskId}** in docs/tasks.md.
+This is your exact scope for this iteration — do not implement other tasks.
+Reference **${taskId}** and its parent F-xxx feature ID in every section of your response.
+
+Approach (in this order):
+1. Outline the tests for ${taskId} first — what will you assert?
+2. Implement ${taskId} to make those tests pass.
+3. Write a brief self-review — does the implementation satisfy the Definition of Done?`
+      : `## Target task
+Find the first incomplete T-xxx entry in docs/tasks.md for Phase ${phase.phase}.
+Read its Definition of Done before writing any code.
+Reference T-xxx and F-xxx IDs in your response wherever applicable.`
+
     const promptText = `You are a senior full-stack engineer building a ${kind}.
 
 ## Build context
@@ -88,6 +163,8 @@ Stage: Code + Tests (Superpowers cycle — Stage 5 of 6)
 
 ${DOCS_SECTION}
 
+${typeAwareGuidance(projectType)}
+
 ## Stack
 ${stack}
 
@@ -96,10 +173,7 @@ Goals:
 ${phaseGoals}
 Estimated complexity: ${phase.estimatedComplexity}
 
-## Target task
-You are implementing Phase ${phase.phase}. Find the relevant T-xxx entries for this phase in docs/tasks.md.
-Read each task's Definition of Done before writing any code.
-Reference T-xxx and F-xxx IDs in your response wherever applicable.
+${taskSection}
 
 ## MVP scope
 ${spec.MVPScope}
@@ -126,7 +200,7 @@ ${RESPONSE_FORMAT}`
       createdAt: new Date().toISOString(),
       projectType,
       cyclePhase: 'code_and_tests',
-      targetTaskId: null,
+      targetTaskId: taskId,
       roadmapPhaseNumber: phase.phase,
     }
   },
@@ -192,6 +266,20 @@ ${RESPONSE_FORMAT}`
     // Extract the first T-xxx mentioned in the "next step" section
     const nextTaskId = extractFirstTaskId(sections.next ?? '')
 
+    // Infer which cycle phase the project should move to next.
+    // prevTaskId is not available here (parser is pure); the caller may refine
+    // this further, but the text-based signal is sufficient for the UI hint.
+    const prevTaskId = extractFirstTaskId(
+      (sections.analysis ?? '') + (sections.plan ?? '')
+    )
+    const inferredNextPhase = inferNextPhase(
+      sections.analysis ?? '',
+      sections.next ?? '',
+      hasTests,
+      nextTaskId,
+      prevTaskId,
+    )
+
     return {
       analysis: sections.analysis?.trim() || raw.slice(0, 500),
       plan: sections.plan?.trim() || '',
@@ -202,6 +290,7 @@ ${RESPONSE_FORMAT}`
       hasTests,
       implementedTaskIds,
       nextTaskId,
+      inferredNextPhase,
     }
   },
 
@@ -212,12 +301,15 @@ ${RESPONSE_FORMAT}`
     projectId: string,
     promptId: string,
     nextIterationNumber: number,
+    targetPhase: 'code_and_tests' | 'review' = 'code_and_tests',
   ): Promise<PromptIteration> {
     await new Promise((resolve) => setTimeout(resolve, 600))
 
     const kind = projectTypeLabel(projectType)
+    const isReviewPhase = targetPhase === 'review'
+    const prevTaskId = previousIteration.targetTaskId
 
-    const missingTestsWarning = !parsedResponse.hasTests
+    const missingTestsWarning = !parsedResponse.hasTests && !isReviewPhase
       ? `\n## ⚠️ Missing tests from iteration #${previousIteration.iterationNumber}
 The previous iteration did not include test files. Before continuing to new features:
 1. Review what was implemented in iteration #${previousIteration.iterationNumber}.
@@ -226,9 +318,28 @@ The previous iteration did not include test files. Before continuing to new feat
 This is the Code (+Tests) rule — tests are not optional.\n`
       : ''
 
-    const taskRef = parsedResponse.nextTaskId
-      ? `## Next target task\nContinue with **${parsedResponse.nextTaskId}** as defined in docs/tasks.md.\nRead its Definition of Done before writing any code.`
-      : `## Next target task\nCheck docs/tasks.md for the next incomplete T-xxx task.\nRead its Definition of Done before writing any code.`
+    const nextTaskId = parsedResponse.nextTaskId ?? prevTaskId
+    const taskRef = isReviewPhase
+      ? `## Review task: ${prevTaskId ?? 'previous task'}
+Check the implementation of **${prevTaskId ?? 'the previous task'}** against:
+- Its Definition of Done in docs/tasks.md
+- The acceptance criteria in docs/user-stories.md
+- The TDD rule — confirm test files exist and cover the non-trivial paths
+
+Report: what passes, what gaps remain, and whether the task can be marked done.`
+      : nextTaskId
+        ? `## Next target task: ${nextTaskId}
+Read the Definition of Done for **${nextTaskId}** in docs/tasks.md.
+This is your exact scope — do not implement other tasks in this prompt.
+Reference **${nextTaskId}** and its parent F-xxx feature ID throughout your response.
+
+Approach (in this order):
+1. Outline the tests for ${nextTaskId} first.
+2. Implement ${nextTaskId} to make those tests pass.
+3. Write a brief self-review — does the implementation satisfy the Definition of Done?`
+        : `## Next target task
+Check docs/tasks.md for the next incomplete T-xxx task.
+Read its Definition of Done before writing any code.`
 
     const implementedIds = parsedResponse.implementedTaskIds.length > 0
       ? `Tasks referenced in iteration #${previousIteration.iterationNumber}: ${parsedResponse.implementedTaskIds.join(', ')}`
@@ -238,13 +349,19 @@ This is the Code (+Tests) rule — tests are not optional.\n`
       ? parsedResponse.changedFiles.map((f) => `- ${f}`).join('\n')
       : 'Not specified'
 
+    const stageLabel = isReviewPhase
+      ? 'Review (Superpowers cycle — Stage 6 of 6)'
+      : 'Code + Tests (Superpowers cycle — Stage 5 of 6)'
+
     const promptText = `You are a senior full-stack engineer continuing the implementation of a ${kind}.
 
 ## Build context
-Stage: Code + Tests (Superpowers cycle — Stage 5 of 6)
+Stage: ${stageLabel}
 Type: ${kind}
 ${implementedIds}
 ${missingTestsWarning}
+${typeAwareGuidance(projectType)}
+
 ## What was implemented — iteration #${previousIteration.iterationNumber}
 ${parsedResponse.implementationSummary || 'See previous response.'}
 
@@ -260,9 +377,7 @@ ${taskRef}
 ## Rule
 One prompt = one task. Do not refactor what already works. Do not build ahead of the current task.
 
-${TDD_RULE}
-
-${RESPONSE_FORMAT}`
+${isReviewPhase ? '' : TDD_RULE + '\n\n'}${RESPONSE_FORMAT}`
 
     return {
       id: promptId,
@@ -275,8 +390,8 @@ ${RESPONSE_FORMAT}`
       status: 'draft',
       createdAt: new Date().toISOString(),
       projectType,
-      cyclePhase: 'code_and_tests',
-      targetTaskId: parsedResponse.nextTaskId,
+      cyclePhase: targetPhase,
+      targetTaskId: isReviewPhase ? prevTaskId : nextTaskId,
       roadmapPhaseNumber: previousIteration.roadmapPhaseNumber,
     }
   },

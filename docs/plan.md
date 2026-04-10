@@ -76,6 +76,16 @@ Tasks execute in phase order. An impl task may not begin until its paired test t
 | T-201 | impl | Project registry store (projects[], selectedProjectId) + bridge to projectStore + HomePage selected-project summary | F-027, data-model | T-202 | done |
 | T-202 | impl | Project creation page: name + type form → createProject + selectProject + navigate /idea; HomePage "Start New Project" → /project/new | F-025, F-027 | T-104 | done |
 | T-203 | impl | Per-project state map in projectStore + TopBar project switcher dropdown + no-project EmptyState guards on all flow pages | F-027, US-014 | T-104 | done |
+| T-204 | impl | Superpowers cycle progress stepper — cycleProgress.ts pure functions + CycleProgressStepper component + HomePage selected-project card | F-024, US-014 | T-204t | done |
+| T-204t | test | Tests: computeCycleProgress — empty data, brainstorm-only, spec+plan, tasks, code+tests, review status derivation | F-024 | — | done |
+| T-205 | impl | Specialize Spec + Architecture generation by projectType — app-centric features/stack/roadmap for application; type hint on SpecPage + ArchitecturePage | F-005, F-006, F-025 | — | done |
+| T-206 | impl | Task-centric Prompt Loop — CyclePhase full vocabulary, task ID input, tests-first prompt section, Review phase option, iteration switcher with phase+task+summary | F-007, F-024 | — | done |
+| T-207 | impl | HistoryPage task progress dashboard — buildTaskReviewModel pure aggregation + filterTaskRows + TaskProgressPanel with phase/test filters | F-024, F-007 | — | done |
+| T-208 | impl | Type-aware Prompt Loop — typeAwareGuidance() SPA vs SSR/SEO sections, taskDescription param, inferredNextPhase in parser, full CyclePhase in CycleContextBar | F-007, F-024, F-025 | T-208t | done |
+| T-208t | test | Tests: inferNextPhase (DoD/review/tasks/default/new-task rules) + typeAwareGuidance (SPA vs pages/SEO vocabulary, distinctness) | F-007, F-024, F-025 | — | done |
+| T-209 | impl | Next Action Engine — computeNextAction() pure fn + NextActionCard component + integration on HomePage + HistoryPage | F-024, US-014 | T-209t | done |
+| T-210 | impl | Inline recommendation highlight — amber ring + "Рекомендуется" on matching stepper phase; "Следующая задача" on matching task row; getRecommendedPhaseId/getRecommendedTaskId helpers | F-024, US-014 | T-210t | done |
+| T-210t | test | Tests: getRecommendedPhaseId (none/phase/task variants) + getRecommendedTaskId (none/phase/task variants) | F-024 | — | done |
 
 ---
 

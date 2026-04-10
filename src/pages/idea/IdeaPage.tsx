@@ -31,14 +31,14 @@ function ProjectTypeSelector({
   showError: boolean
 }) {
   const options: { type: ProjectType; label: string; icon: string }[] = [
-    { type: 'application', label: 'Application', icon: '📱' },
-    { type: 'website', label: 'Website', icon: '🌐' },
+    { type: 'application', label: 'Приложение', icon: '📱' },
+    { type: 'website', label: 'Сайт', icon: '🌐' },
   ]
 
   return (
     <div>
       <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-        Project type <span className="text-red-400">*</span>
+        Тип проекта <span className="text-red-400">*</span>
       </label>
       <div
         className={`flex rounded-xl border p-1 ${
@@ -66,7 +66,7 @@ function ProjectTypeSelector({
       {showError && !value && (
         <p className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-red-600 dark:text-red-400">
           <span>⚠</span>
-          Select whether you are building an application or a website.
+          Выберите, что вы создаёте — приложение или сайт.
         </p>
       )}
     </div>
@@ -98,10 +98,10 @@ function IdeaCharProgress({ length }: { length: number }) {
     : 'bg-emerald-500'
 
   const label =
-    state === 'empty' ? `0 / ${IDEA_MIN_LENGTH}+ chars`
-    : state === 'too_short' ? `${length} / ${IDEA_MIN_LENGTH} chars minimum`
-    : state === 'ok' ? `${length} chars — good, aim for ${IDEA_RECOMMENDED_LENGTH}+`
-    : `${length} chars ✓`
+    state === 'empty' ? `0 / ${IDEA_MIN_LENGTH}+ симв.`
+    : state === 'too_short' ? `${length} / ${IDEA_MIN_LENGTH} симв. минимум`
+    : state === 'ok' ? `${length} симв. — хорошо, стремитесь к ${IDEA_RECOMMENDED_LENGTH}+`
+    : `${length} симв. ✓`
 
   const labelColor =
     state === 'too_short' ? 'text-red-500 dark:text-red-400'
@@ -197,12 +197,12 @@ export function IdeaPage() {
   if (!activeProject) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Idea" icon="💡" description="Describe your product idea." />
+        <PageHeader title="Идея" icon="💡" description="Опишите идею продукта." />
         <EmptyState
           icon="📂"
-          title="No project selected"
-          description="Create a project first to start entering your idea."
-          action={{ label: 'Create project', onClick: () => navigate('/project/new') }}
+          title="Проект не выбран"
+          description="Сначала создайте проект, чтобы начать ввод идеи."
+          action={{ label: 'Создать проект', onClick: () => navigate('/project/new') }}
         />
       </div>
     )
@@ -211,14 +211,14 @@ export function IdeaPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Idea"
+        title="Идея"
         icon="💡"
-        description="Describe your product idea. More context leads to better research, a more accurate spec, and stronger prompts."
+        description="Опишите идею продукта. Больше контекста — лучше исследование, точнее спецификация, сильнее промпты."
         badge={
           activeProject ? (
-            <Badge variant="success">Project active</Badge>
+            <Badge variant="success">Проект активен</Badge>
           ) : (
-            <Badge variant="muted">No project yet</Badge>
+            <Badge variant="muted">Нет проекта</Badge>
           )
         }
         action={
@@ -228,7 +228,7 @@ export function IdeaPage() {
             disabled={showErrors && hasErrors}
             title={gate.reason ?? undefined}
           >
-            Save & Continue to Research →
+            Сохранить и перейти к исследованию →
           </Button>
         }
       />
@@ -236,8 +236,8 @@ export function IdeaPage() {
       {/* Core idea */}
       <Card>
         <CardHeader
-          title="Your product idea"
-          description="Describe it in plain language — what it does, who it's for, what problem it solves."
+          title="Ваша идея продукта"
+          description="Опишите простым языком — что делает, для кого, какую проблему решает."
           icon="✏️"
         />
         <div className="space-y-4">
@@ -249,20 +249,20 @@ export function IdeaPage() {
 
           <div>
             <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              Project name <span className="text-zinc-400">(optional)</span>
+              Название проекта <span className="text-zinc-400">(необязательно)</span>
             </label>
             <input
               type="text"
               value={form.title}
               onChange={(e) => handleChange('title', e.target.value)}
-              placeholder="e.g. TaskFlow — AI-assisted project manager"
+              placeholder="напр. TaskFlow — менеджер задач с ИИ"
               className={inputCls()}
             />
           </div>
 
           <div>
             <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              Raw idea <span className="text-red-400">*</span>
+              Описание идеи <span className="text-red-400">*</span>
             </label>
             <textarea
               value={form.rawIdea}
@@ -286,7 +286,7 @@ export function IdeaPage() {
       {validation.warnings.length > 0 && form.rawIdea.trim().length >= IDEA_MIN_LENGTH && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800/40 dark:bg-amber-950/20">
           <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400">
-            Tips for better results
+            Советы для лучших результатов
           </p>
           {validation.warnings.map((w, i) => (
             <p key={i} className="text-sm text-amber-700 dark:text-amber-400">
@@ -299,35 +299,35 @@ export function IdeaPage() {
       {/* Optional context */}
       <Card>
         <CardHeader
-          title="Optional context"
-          description="Helps generate more targeted research and more relevant spec outputs. Leave blank to skip."
+          title="Дополнительный контекст"
+          description="Помогает получить более точное исследование и спецификацию. Можно оставить пустым."
           icon="🧩"
         />
         <div className="space-y-4">
           <div>
             <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              Target user
+              Целевая аудитория
             </label>
             <input
               type="text"
               value={form.targetUser}
               onChange={(e) => handleChange('targetUser', e.target.value)}
-              placeholder="e.g. Solo developers managing side projects"
+              placeholder="напр. Инди-разработчики, ведущие побочные проекты"
               className={inputCls()}
             />
             <p className="mt-1 text-xs text-zinc-400">
-              Defining your user sharpens research quality significantly.
+              Чёткое описание аудитории значительно повышает качество исследования.
             </p>
           </div>
 
           <div>
             <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              Core problem
+              Основная проблема
             </label>
             <textarea
               value={form.problem}
               onChange={(e) => handleChange('problem', e.target.value)}
-              placeholder="e.g. Most PM tools require too much manual structure. People skip planning and end up with vague todos."
+              placeholder="напр. Большинство PM-инструментов требуют слишком много ручной структуризации. Люди пропускают планирование."
               rows={3}
               className={inputCls('textarea')}
             />
@@ -335,25 +335,25 @@ export function IdeaPage() {
 
           <div>
             <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              Constraints
+              Ограничения
             </label>
             <input
               type="text"
               value={form.constraints}
               onChange={(e) => handleChange('constraints', e.target.value)}
-              placeholder="e.g. Must work offline. No account required to try it. Mobile-friendly."
+              placeholder="напр. Работает офлайн. Не требует регистрации. Мобильная версия."
               className={inputCls()}
             />
           </div>
 
           <div>
             <label className="mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              Notes / inspiration
+              Заметки / вдохновение
             </label>
             <textarea
               value={form.notes}
               onChange={(e) => handleChange('notes', e.target.value)}
-              placeholder="e.g. Inspired by Linear + Notion but much simpler."
+              placeholder="напр. Вдохновлён Linear + Notion, но намного проще."
               rows={2}
               className={inputCls('textarea')}
             />
@@ -368,10 +368,10 @@ export function IdeaPage() {
           variant="secondary"
           disabled={!form.rawIdea.trim()}
         >
-          {saved ? '✓ Saved' : 'Save Draft'}
+          {saved ? '✓ Сохранено' : 'Сохранить черновик'}
         </Button>
         <Button onClick={handleContinue}>
-          Save & Continue to Research →
+          Сохранить и перейти к исследованию →
         </Button>
       </div>
 
@@ -379,7 +379,7 @@ export function IdeaPage() {
       {showErrors && hasErrors && (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 dark:border-red-800/40 dark:bg-red-950/20">
           <p className="text-sm font-medium text-red-700 dark:text-red-400">
-            ⚠️ Fix the issues above before continuing.
+            ⚠️ Исправьте ошибки выше, прежде чем продолжить.
           </p>
           {gate.reason && (
             <p className="mt-0.5 text-xs text-red-600 dark:text-red-500">{gate.reason}</p>
