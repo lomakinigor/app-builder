@@ -85,13 +85,16 @@ Definition of done:
 Type: impl
 Description: Implement spec and architecture draft generation, display, and editing. Both stages gate progression via canAdvanceFromSpec / canAdvanceFromArchitecture. Store actions updateSpecPack and updateArchitectureDraft persist edits.
 Links: F-005, F-006, F-009, F-010 — US-007, US-008, US-009, US-010
-Status: in-progress
+Status: done
 Owner: AI
 Definition of done:
-- spec screen generates and displays editable SpecPack
-- architecture screen generates and displays editable ArchitectureDraft
-- both stages gate progression with explicit reason when blocked
-- edited values persist through store
+- spec screen generates and displays editable SpecPack ✓
+- architecture screen generates and displays editable ArchitectureDraft ✓
+- both stages gate progression with explicit reason when blocked ✓
+- edited values persist through store (Zustand persist + per-project hot-slot snapshot) ✓
+- fixed: EditableArchitectureDraft StackRow used generateId() as React key causing inputs to remount on every render; fixed to use stable index ✓
+- stage gate unit tests added in stageGates.test.ts (canAdvanceFromSpec x8, canAdvanceFromArchitecture x8) ✓
+- TypeScript build clean; 169 tests passing ✓
 
 ## T-008 — Build Prompt Loop MVP
 Type: impl

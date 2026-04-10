@@ -3,7 +3,6 @@ import type { ArchitectureDraft, StackItem, RoadmapPhase } from '../../shared/ty
 import { Button } from '../../shared/ui/Button'
 import { Card, CardHeader } from '../../shared/ui/Card'
 import { Badge } from '../../shared/ui/Badge'
-import { generateId } from '../../shared/lib/id'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -294,7 +293,7 @@ export function EditableArchitectureDraft({ arch, onSave }: EditableArchitecture
           <CardHeader title="Рекомендуемый стек" description="Одна технология на строку" icon="🛠️" />
           <div className="space-y-2">
             {editState.recommendedStack.map((item, i) => (
-              <StackRow key={generateId('si')} item={item} index={i} onChange={updateStackItem} onRemove={removeStackItem} />
+              <StackRow key={i} item={item} index={i} onChange={updateStackItem} onRemove={removeStackItem} />
             ))}
             <Button size="sm" variant="secondary" onClick={addStackItem}>+ Добавить технологию</Button>
           </div>
