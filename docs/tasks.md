@@ -169,6 +169,24 @@ Acceptance criteria:
 - keyword fallback fires when no headings found
 - warnings are returned when fewer than 3 sections are extracted
 
+## T-012A — Tests: Parser and rule-engine (Prompt Loop)
+Type: test
+Description: Unit tests for parseClaudeResponse (section extraction, changedFiles, hasTests, T-xxx IDs, warning strings, degenerate inputs, regression guards) and the rule-engine / aggregation layer (buildTaskReviewModel, filterTaskRows).
+Links: F-007, F-024 — pairs with T-107, T-207, T-208
+Status: done
+Owner: AI
+Acceptance criteria:
+- all 5 section header variants are parsed (numbered, ## N., **N.**)
+- changedFiles extracted via backtick paths and [TEST] markers; no double-counting
+- hasTests true for .test.ts / .spec.ts / .test.tsx / .spec.tsx in files or raw text
+- T-xxx extraction requires ≥ 3 digits; next step section excluded from implementedTaskIds
+- warning strings for missing analysis, missing next step, and no test files are locked
+- empty / unstructured / whitespace-only input never throws; returns predictable object
+- inferredNextPhase integrates correctly with inferNextPhase outcomes
+- buildTaskReviewModel groups by taskId, aggregates hasTests/hasReview/warnings/phases, sorts lexicographically with (unassigned) last
+- filterTaskRows correctly applies phaseFilter and testFilter in isolation and combined
+Evidence: src/mocks/services/parseClaudeResponse.test.ts (81 tests), src/shared/lib/review/taskReviewModel.test.ts (48 tests)
+
 ## T-013 — Tests: Spec and Architecture workflow
 Type: test
 Description: Acceptance tests for F-005, F-006. Covers generation, editing, save-to-store, and stage gate behavior.
