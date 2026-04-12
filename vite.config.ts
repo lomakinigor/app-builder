@@ -9,5 +9,6 @@ export default defineConfig({
     // Component tests should annotate with: // @vitest-environment jsdom
     environment: 'node',
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
+    setupFiles: ['./src/test-setup.ts'],
   },
 })

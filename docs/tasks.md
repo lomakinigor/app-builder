@@ -187,6 +187,25 @@ Acceptance criteria:
 - filterTaskRows correctly applies phaseFilter and testFilter in isolation and combined
 Evidence: src/mocks/services/parseClaudeResponse.test.ts (81 tests), src/shared/lib/review/taskReviewModel.test.ts (48 tests)
 
+## T-012B — Tests: PromptLoopPage UI (parser outcomes, warnings, empty/validation states)
+Type: test
+Description: Component tests for PromptLoopPage covering all UI states produced by parser outcomes and store state: empty states (no project, no arch, no spec, no iterations), validation (disabled/enabled generate and parse buttons), successful parse display, partial parse (no tests, no nextStep), parser warning box, derived warnings, and the iteration switcher.
+Links: F-007, F-012, F-024 — pairs with T-008, T-012A, T-010
+Status: done
+Owner: AI
+Acceptance criteria:
+- EmptyState "Проект не выбран" shown with CTA when activeProject is null
+- Amber gate cards shown for missing architecture and missing spec with navigation links
+- Generate button disabled when specPack or architectureDraft absent; enabled when both present
+- Parse button disabled when response textarea empty; enabled after input
+- "✓ Тесты найдены" badge shown when hasTests=true; "⚠️ Нет тестов" badge when false
+- "Рекомендуемый следующий шаг" (green box) shown when nextStep present; grey fallback when absent
+- "Предупреждения парсера" amber box rendered for warnings[]; hidden when warnings is empty
+- Derived warning shown when targetTaskId is set but not in implementedTaskIds
+- Iteration switcher with "✓" on parsed rows and task ID badges shown for >1 iteration
+- "История" nav button appears after first parsed iteration
+Evidence: src/pages/prompt-loop/PromptLoopPage.test.tsx (65 tests)
+
 ## T-013 — Tests: Spec and Architecture workflow
 Type: test
 Description: Acceptance tests for F-005, F-006. Covers generation, editing, save-to-store, and stage gate behavior.
