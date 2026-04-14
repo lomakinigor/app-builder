@@ -13,7 +13,6 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import type {
   PromptIteration,
   ParsedClaudeResponse,
-  Project,
   SpecPack,
   ArchitectureDraft,
 } from '../../shared/types'
@@ -35,15 +34,6 @@ function resetStore() {
 
 const PROJECT_ID = 'proj-store-001'
 
-const PROJECT: Project = {
-  id: PROJECT_ID,
-  name: 'Test Project',
-  projectType: 'application',
-  currentStage: 'idea',
-  status: 'active',
-  createdAt: '2026-04-14T00:00:00.000Z',
-  updatedAt: '2026-04-14T00:00:00.000Z',
-}
 
 function makeParsed(overrides: Partial<ParsedClaudeResponse> = {}): ParsedClaudeResponse {
   return {
