@@ -223,14 +223,20 @@ Acceptance criteria:
 Type: test
 Description: Acceptance tests for F-007. Covers first prompt generation, response parsing, next prompt generation, and history.
 Links: F-007 — US-011, US-012, US-013 — pairs with T-008
-Status: todo
-Owner: human
+Status: done
+Owner: AI
 Acceptance criteria:
-- first prompt includes spec summary and architecture context
-- pasted Claude response is parsed into analysis / plan / files / nextStep / warnings
-- malformed response produces parse warnings without crashing
-- prompt history grows by one entry per iteration
-- next prompt references the parsed output from the previous iteration
+- first prompt includes spec summary and architecture context ✓
+- pasted Claude response is parsed into analysis / plan / files / nextStep / warnings ✓
+- malformed response produces parse warnings without crashing ✓
+- prompt history grows by one entry per iteration ✓
+- next prompt references the parsed output from the previous iteration ✓
+- partial parse: engine does not have an error status — parsedSummary always set ✓
+- updatePromptIteration modifies only the target iteration, not siblings ✓
+- full generate→parse→generate cycle results in 2 correctly linked iterations ✓
+Evidence:
+- src/mocks/services/promptService.engine.test.ts (44 tests — scenarios A, B, C)
+- src/app/store/promptIterations.test.ts (21 tests — scenarios D, E, Integration)
 
 ## T-015 — Tests: Local persistence
 Type: test
@@ -245,15 +251,24 @@ Acceptance criteria:
 
 ## T-016 — Tests: Stage gate integration
 Type: test
-Description: Unit tests for all canAdvanceFrom* functions in stageGates.ts. Covers all null, empty, and valid cases.
-Links: F-001, F-004, F-005, F-006 — pairs with T-005, T-007
-Status: todo
+Description: Unit tests for all canAdvanceFrom* functions in stageGates.ts (existing + new Prompt Loop gates). Implements canAdvanceFromPromptLoop and canAdvanceToReview with PromptLoopGateResult and PROMPT_LOOP_DIAG codes.
+Links: F-001, F-004, F-005, F-006, F-007 — pairs with T-005, T-007, T-014
+Status: done
 Owner: AI
 Acceptance criteria:
-- canAdvanceFromIdea: false for null, empty, too-short idea; true for valid idea
-- canAdvanceFromResearch: false for null brief or empty problemSummary; true otherwise
-- canAdvanceFromSpec: false for null spec or both summary+scope empty; true otherwise
-- canAdvanceFromArchitecture: false for null, empty stack, or empty roadmap; true otherwise
+- canAdvanceFromIdea: false for null, empty, too-short idea; true for valid idea ✓ (existing)
+- canAdvanceFromResearch: false for null brief or empty problemSummary; true otherwise ✓ (existing)
+- canAdvanceFromSpec: false for null spec or both summary+scope empty; true otherwise ✓ (existing)
+- canAdvanceFromArchitecture: false for null, empty stack, or empty roadmap; true otherwise ✓ (existing)
+- canAdvanceFromPromptLoop: false for null/no-summary/no-tests/parse-warnings; true for clean parse ✓
+- canAdvanceToReview: additionally requires inferredNextPhase=review + targetTaskId set ✓
+- blockingDiagnostics codes are stable machine-readable identifiers ✓
+- No 'error' PromptStatus used anywhere — contract documented in code and tests ✓
+- PromptLoopPage review button wired to canAdvanceToReview(latestIteration) ✓
+Evidence:
+- src/shared/lib/stageGates.ts (canAdvanceFromPromptLoop, canAdvanceToReview, PROMPT_LOOP_DIAG)
+- src/shared/lib/stageGates.promptLoop.test.ts (45 tests — scenarios A–F + edge cases)
+- src/pages/prompt-loop/PromptLoopPage.tsx (review button guard replaced)
 
 ## T-017 — Tests: Empty states and error display
 Type: test

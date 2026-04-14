@@ -11,6 +11,7 @@ import { mockPromptService } from '../../mocks/services/promptService'
 import { generateId } from '../../shared/lib/id'
 import { promptIterationToMarkdown } from '../../shared/lib/markdown/exportArtifactToMarkdown'
 import { copyMarkdown } from '../../shared/lib/clipboard/copyMarkdown'
+import { canAdvanceToReview } from '../../shared/lib/stageGates'
 
 // ─── Cycle context bar ────────────────────────────────────────────────────────
 // Shows project type, cycle phase, and current target task in a subtle strip.
@@ -545,13 +546,13 @@ export function PromptLoopPage() {
                   ? `Код+Тесты: ${activeIteration.parsedSummary.nextTaskId} →`
                   : 'Следующий промпт Код+Тесты →'}
               </Button>
-              {activeIteration.parsedSummary.hasTests && activeIteration.targetTaskId && (
+              {canAdvanceToReview(latestIteration).canAdvance && (
                 <Button
                   variant="secondary"
                   onClick={() => handleGenerateNext('review')}
                   loading={generating}
                 >
-                  Ревью: {activeIteration.targetTaskId} →
+                  Ревью: {latestIteration!.targetTaskId} →
                 </Button>
               )}
             </div>
