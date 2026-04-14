@@ -707,3 +707,21 @@ Acceptance criteria:
 - getRecommendedTaskId returns null for kind='none'
 - getRecommendedTaskId returns null for kind='phase'
 - getRecommendedTaskId returns taskId for kind='task' (code_and_tests and review both checked)
+
+## T-301 — Blog development diary module
+Type: impl
+Description: Add per-project development blog module to the app-builder. Includes: (1) Blog entity — types (BlogPost, ChannelPost, PublicationState, ChannelName, PostKind, PostStatus), Zod schema, utils (isWeekday, shouldCreatePost, generatePostId, generateSlug, getFunFallbackTitle/Body, createFunFallbackPost, createEmptyRegularPost), markdown exporter. (2) Scaffold templates — BLOG_RULES.md content and Blog.md header, exposed for copy-to-project. (3) blogStore — Zustand + persist, per-project posts map, upsert/update/delete/markCopied/updatePublicationStatus/ensureTodayPost actions. (4) BlogPage UI — post list with kind icon, channel tab editor (Сайт/Telegram/MAX/VK), copy/publish buttons per channel, "везде сразу" publish, auto-generate today's post, scaffold export panel. (5) Router (/blog) and Sidebar nav item.
+Links: F-028
+Status: done
+Owner: AI
+Definition of done:
+- blog entity types compile cleanly (no TS errors)
+- blogStore creates/updates/deletes posts per project
+- ensureTodayPost: regular on activity, fun_fallback on weekday+no activity, skip on weekend+no activity
+- BlogPage renders EmptyState when no project selected
+- BlogPage shows post list and channel editor when posts exist
+- Copy button calls copyMarkdown with channel body
+- Publish all sets all 4 channels to published status
+- Scaffold panel shows BLOG_RULES.md and Blog.md header content
+- Route /blog reachable; Sidebar shows 📖 Блог
+- Full test suite passes (685 tests unchanged)

@@ -88,6 +88,7 @@ Tasks execute in phase order. An impl task may not begin until its paired test t
 | T-209 | impl | Next Action Engine — computeNextAction() pure fn + NextActionCard component + integration on HomePage + HistoryPage | F-024, US-014 | T-209t | done |
 | T-210 | impl | Inline recommendation highlight — amber ring + "Рекомендуется" on matching stepper phase; "Следующая задача" on matching task row; getRecommendedPhaseId/getRecommendedTaskId helpers | F-024, US-014 | T-210t | done |
 | T-210t | test | Tests: getRecommendedPhaseId (none/phase/task variants) + getRecommendedTaskId (none/phase/task variants) | F-024 | — | done |
+| T-301 | impl | Blog development diary module: entity (types/schema/utils/exporter), scaffold templates, blogStore, BlogPage UI, /blog route + nav | F-028 | T-302 | done |
 
 ---
 
