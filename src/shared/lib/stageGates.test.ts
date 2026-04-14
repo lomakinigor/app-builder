@@ -34,7 +34,7 @@ function makeSpec(overrides: Partial<SpecPack> = {}): SpecPack {
     projectType: 'application',
     productSummary: 'A helpful tool.',
     MVPScope: 'Core CRUD + auth.',
-    featureList: [],
+    featureList: [{ id: 'f-001', name: 'Core feature', description: '', priority: 'must' }],
     assumptions: [],
     constraints: [],
     acceptanceNotes: '',
@@ -103,22 +103,23 @@ describe('canAdvanceFromSpec', () => {
     expect(result.reason).toBeTruthy()
   })
 
-  it('blocks when both productSummary and MVPScope are empty', () => {
+  it('blocks when productSummary is empty (checked before MVPScope)', () => {
     const result = canAdvanceFromSpec(makeSpec({ productSummary: '', MVPScope: '' }))
     expect(result.canAdvance).toBe(false)
-    expect(result.reason).toMatch(/резюме|объём|пусты/i)
+    expect(result.reason).toMatch(/резюме|объём|пусто/i)
   })
 
-  it('passes when productSummary is present even if MVPScope is empty', () => {
-    const result = canAdvanceFromSpec(makeSpec({ productSummary: 'A product.', MVPScope: '' }))
-    expect(result.canAdvance).toBe(true)
-    expect(result.reason).toBeNull()
-  })
-
-  it('passes when MVPScope is present even if productSummary is empty', () => {
+  it('blocks when productSummary is empty (MVPScope present)', () => {
+    // Gate requires both fields independently (strengthened in T-013)
     const result = canAdvanceFromSpec(makeSpec({ productSummary: '', MVPScope: 'Core features only.' }))
-    expect(result.canAdvance).toBe(true)
-    expect(result.reason).toBeNull()
+    expect(result.canAdvance).toBe(false)
+    expect(result.reason).toBeTruthy()
+  })
+
+  it('blocks when MVPScope is empty (productSummary present)', () => {
+    const result = canAdvanceFromSpec(makeSpec({ productSummary: 'A product.', MVPScope: '' }))
+    expect(result.canAdvance).toBe(false)
+    expect(result.reason).toBeTruthy()
   })
 
   it('blocks when projectType is missing (empty string)', () => {

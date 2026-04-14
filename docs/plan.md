@@ -56,7 +56,7 @@ Tasks execute in phase order. An impl task may not begin until its paired test t
 | T-012 | test | Tests: Import normalizer edge cases | T-006 | — | todo |
 | T-012A | test | Tests: parser (parseClaudeResponse) + rule-engine (buildTaskReviewModel, filterTaskRows) — section extraction, hasTests, T-xxx IDs, warnings contract, degenerate inputs, regressions | F-007, F-024 | — | done |
 | T-012B | test | Tests: PromptLoopPage UI — empty states, validation, parse outcomes, warnings, iteration switcher | F-007, F-012, F-024 | — | done |
-| T-013 | test | Tests: Spec and Architecture workflow acceptance | T-007 | — | todo |
+| T-013 | test | Tests: Spec and Architecture workflow acceptance | T-007 | — | done |
 | T-014 | test | Tests: Prompt loop engine acceptance (generateFirst, parse, generateNext, history, integration) | F-007, T-008 | — | done |
 | T-015 | test | Tests: Local persistence correctness | T-009 | — | todo |
 | T-016 | test | Tests: Stage gate unit tests (existing canAdvanceFrom* + new Prompt Loop gates canAdvanceFromPromptLoop / canAdvanceToReview) | F-007, T-005, T-007, T-014 | — | done |

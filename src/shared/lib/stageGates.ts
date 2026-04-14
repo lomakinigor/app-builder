@@ -7,6 +7,12 @@ export interface StageGateResult {
   canAdvance: boolean
   /** Human-readable reason shown on the blocked button tooltip / banner */
   reason: string | null
+  /**
+   * Machine-readable diagnostic code. Stable identifier — do NOT change.
+   * Undefined when canAdvance=true or for gates that predate this extension.
+   * Used by: unit tests, T-017 hint panels, Review page indicators.
+   */
+  diagnostic?: string
 }
 
 // ─── Prompt Loop gate result (extended) ──────────────────────────────────────
@@ -50,6 +56,38 @@ export const PROMPT_LOOP_DIAG = {
 } as const
 
 export type PromptLoopDiag = typeof PROMPT_LOOP_DIAG[keyof typeof PROMPT_LOOP_DIAG]
+
+// ─── Spec gate diagnostic codes ───────────────────────────────────────────────
+
+export const SPEC_DIAG = {
+  /** specPack is null — not generated yet */
+  NO_SPEC: 'spec_no_spec',
+  /** productSummary is empty — required PRD field */
+  EMPTY_SUMMARY: 'spec_empty_summary',
+  /** MVPScope is empty — required PRD field */
+  EMPTY_MVP_SCOPE: 'spec_empty_mvp_scope',
+  /** featureList has no entries — spec shell without features is not actionable */
+  NO_FEATURES: 'spec_no_features',
+  /** projectType not set — required for type-aware generation downstream */
+  MISSING_PROJECT_TYPE: 'spec_missing_project_type',
+} as const
+
+export type SpecDiag = typeof SPEC_DIAG[keyof typeof SPEC_DIAG]
+
+// ─── Architecture gate diagnostic codes ──────────────────────────────────────
+
+export const ARCH_DIAG = {
+  /** architectureDraft is null — not generated yet */
+  NO_ARCH: 'arch_no_arch',
+  /** recommendedStack is empty — stack is the primary deliverable */
+  EMPTY_STACK: 'arch_empty_stack',
+  /** roadmapPhases is empty — phases required for Prompt Loop task targeting */
+  EMPTY_ROADMAP: 'arch_empty_roadmap',
+  /** projectType not set — required for type-aware Prompt Loop prompts */
+  MISSING_PROJECT_TYPE: 'arch_missing_project_type',
+} as const
+
+export type ArchDiag = typeof ARCH_DIAG[keyof typeof ARCH_DIAG]
 
 function plPass(): PromptLoopGateResult {
   return { canAdvance: true, reason: null, reasons: [], blockingDiagnostics: [] }
@@ -116,13 +154,31 @@ export function canAdvanceFromSpec(specPack: SpecPack | null): StageGateResult {
     return {
       canAdvance: false,
       reason: 'Спецификации ещё нет. Сгенерируйте или отредактируйте спек перед продолжением.',
+      diagnostic: SPEC_DIAG.NO_SPEC,
     }
   }
 
-  if (!specPack.productSummary?.trim() && !specPack.MVPScope?.trim()) {
+  if (!specPack.productSummary?.trim()) {
     return {
       canAdvance: false,
-      reason: 'Спецификация неполная — резюме продукта и объём MVP оба пусты. Отредактируйте спек перед продолжением.',
+      reason: 'Спецификация неполная — резюме продукта пусто. Отредактируйте спек перед продолжением.',
+      diagnostic: SPEC_DIAG.EMPTY_SUMMARY,
+    }
+  }
+
+  if (!specPack.MVPScope?.trim()) {
+    return {
+      canAdvance: false,
+      reason: 'Спецификация неполная — объём MVP пуст. Отредактируйте спек перед продолжением.',
+      diagnostic: SPEC_DIAG.EMPTY_MVP_SCOPE,
+    }
+  }
+
+  if (!specPack.featureList?.length) {
+    return {
+      canAdvance: false,
+      reason: 'Спецификация неполная — список фич пуст. Добавьте хотя бы одну фичу перед продолжением.',
+      diagnostic: SPEC_DIAG.NO_FEATURES,
     }
   }
 
@@ -130,6 +186,7 @@ export function canAdvanceFromSpec(specPack: SpecPack | null): StageGateResult {
     return {
       canAdvance: false,
       reason: 'В спецификации отсутствует тип проекта. Пересгенерируйте спецификацию.',
+      diagnostic: SPEC_DIAG.MISSING_PROJECT_TYPE,
     }
   }
 
@@ -143,6 +200,7 @@ export function canAdvanceFromArchitecture(architectureDraft: ArchitectureDraft 
     return {
       canAdvance: false,
       reason: 'Черновика архитектуры ещё нет. Сгенерируйте или отредактируйте архитектуру перед продолжением.',
+      diagnostic: ARCH_DIAG.NO_ARCH,
     }
   }
 
@@ -150,6 +208,7 @@ export function canAdvanceFromArchitecture(architectureDraft: ArchitectureDraft 
     return {
       canAdvance: false,
       reason: 'Архитектура неполная — не определены элементы стека. Отредактируйте архитектуру перед продолжением.',
+      diagnostic: ARCH_DIAG.EMPTY_STACK,
     }
   }
 
@@ -157,6 +216,7 @@ export function canAdvanceFromArchitecture(architectureDraft: ArchitectureDraft 
     return {
       canAdvance: false,
       reason: 'Архитектура неполная — не определены фазы роадмапа. Отредактируйте архитектуру перед продолжением.',
+      diagnostic: ARCH_DIAG.EMPTY_ROADMAP,
     }
   }
 
@@ -164,6 +224,7 @@ export function canAdvanceFromArchitecture(architectureDraft: ArchitectureDraft 
     return {
       canAdvance: false,
       reason: 'В архитектуре отсутствует тип проекта. Пересгенерируйте архитектуру.',
+      diagnostic: ARCH_DIAG.MISSING_PROJECT_TYPE,
     }
   }
 

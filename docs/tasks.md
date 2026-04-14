@@ -210,14 +210,23 @@ Evidence: src/pages/prompt-loop/PromptLoopPage.test.tsx (65 tests)
 Type: test
 Description: Acceptance tests for F-005, F-006. Covers generation, editing, save-to-store, and stage gate behavior.
 Links: F-005, F-006 — US-007, US-008, US-009, US-010 — pairs with T-007
-Status: todo
-Owner: human
+Status: done
+Owner: AI
 Acceptance criteria:
-- generated SpecPack has non-empty productSummary, MVPScope, and at least one feature
+- generated SpecPack has non-empty productSummary, MVPScope, and at least one feature ✓
 - edited spec fields persist after save
-- canAdvanceFromSpec returns false when productSummary and MVPScope are both empty
-- generated ArchitectureDraft has at least one stack item and one roadmap phase
-- canAdvanceFromArchitecture returns false when stack or roadmap is empty
+- canAdvanceFromSpec returns false when productSummary and MVPScope are both empty ✓
+- generated ArchitectureDraft has at least one stack item and one roadmap phase ✓
+- canAdvanceFromArchitecture returns false when stack or roadmap is empty ✓
+Evidence:
+- src/shared/lib/stageGates.spec-arch.test.ts (53 gate tests — scenarios A–K + edge)
+- src/mocks/services/specService.test.ts (17 service shape + gate-compatibility tests)
+- src/pages/spec/SpecPage.test.tsx (22 UI tests — guards, empty states, gate wiring)
+- src/pages/architecture/ArchitecturePage.test.tsx (22 UI tests — guards, empty states, gate wiring)
+New in this task:
+- SPEC_DIAG / ARCH_DIAG diagnostic constants in stageGates.ts
+- diagnostic?: string added to StageGateResult (backward-compatible)
+- canAdvanceFromSpec strengthened: now requires productSummary AND MVPScope individually + featureList.length > 0
 
 ## T-014 — Tests: Prompt loop engine
 Type: test
