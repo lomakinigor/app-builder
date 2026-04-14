@@ -279,17 +279,24 @@ Evidence:
 - src/shared/lib/stageGates.promptLoop.test.ts (45 tests — scenarios A–F + edge cases)
 - src/pages/prompt-loop/PromptLoopPage.tsx (review button guard replaced)
 
-## T-017 — Tests: Empty states and error display
-Type: test
-Description: Acceptance tests for F-023 empty states, blocked stage banners, and validation error display.
-Links: F-023 — US-006, US-012 — pairs with T-010
-Status: todo
-Owner: human
-Acceptance criteria:
-- blocked stage shows banner with human-readable reason
-- empty research page shows correct call-to-action
-- missing spec shows link back to Research stage
-- parser failure shows warning without blocking next action
+## T-017 — Gate hints + empty states + unified diagnostics UI
+Type: impl+test
+Description: UX layer over gate infrastructure. Unified GateDiagnostics component + gateDiagnosticMessages mapping. Integrated into SpecPage, ArchitecturePage, PromptLoopPage (review gate). Tests for component, mapping, and all three pages.
+Links: F-023 — US-006, US-012 — pairs with T-010, T-013, T-016
+Status: done
+Owner: AI
+Definition of done:
+- GateDiagnostics shared component (src/shared/ui/GateDiagnostics.tsx) — renders nothing when reasons=[]
+- gateDiagnosticMessages.ts — single source-of-truth for all SPEC_DIAG, ARCH_DIAG, PROMPT_LOOP_DIAG → label+hint
+- SpecPage: local GateBanner replaced with GateDiagnostics; shows gate.reason on failure
+- ArchitecturePage: same replacement
+- PromptLoopPage: review gate diagnostics shown when canAdvanceToReview fails but base gate passes (mapped labels, no duplication of parser warnings)
+- GateDiagnostics.test.tsx: 18 tests (empty/single/multiple/variants/CTA/testid)
+- gateDiagnosticMessages.test.ts: 46 tests (all 16 known codes × label+hint; unknown fallback; E+F meta-tests)
+- SpecPage.test.tsx: +6 diagnostic tests (testid presence, empty featureList, empty summary, empty MVPScope)
+- ArchitecturePage.test.tsx: +6 diagnostic tests (empty stack, empty roadmap, missing projectType)
+- PromptLoopPage.test.tsx: +6 review gate tests (NOT_REVIEW_PHASE, NO_TARGET_TASK, gate passes, base fails, no iterations)
+- 685 tests passing, no regressions
 
 ## T-018 — Wire test runner (Vitest + Testing Library)
 Type: ops

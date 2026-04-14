@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 // T-013 — ArchitecturePage UI tests: guards, empty states, gate-driven button behavior.
-// Implements F-006 / T-013
+// T-017 — GateDiagnostics integration: hint shown for specific failure modes.
+// Implements F-006 / T-013 / T-017
 //
 // Coverage areas:
 //   1. Guard: no project → EmptyState with CTA
@@ -290,5 +291,42 @@ describe('7. Gate wiring — UI uses canAdvanceFromArchitecture, not inline logi
     })
     const btn = screen.getByRole('button', { name: /Перейти к циклу промптов/ })
     expect(btn).not.toBeDisabled()
+  })
+})
+
+// ─── 8. T-017 — GateDiagnostics integration ──────────────────────────────────
+
+describe('8. GateDiagnostics — diagnostic hints shown on gate failure', () => {
+  it('shows gate-diagnostics panel when arch is incomplete (empty stack)', () => {
+    renderPage({ architectureDraft: makeIncompleteArch() })
+    expect(screen.getByTestId('gate-diagnostics')).toBeInTheDocument()
+  })
+
+  it('gate-diagnostics absent when gate passes', () => {
+    renderPage({ architectureDraft: makeArch() })
+    expect(screen.queryByTestId('gate-diagnostics')).not.toBeInTheDocument()
+  })
+
+  it('shows diagnostic text for empty recommendedStack', () => {
+    renderPage({ architectureDraft: makeArch({ recommendedStack: [] }) })
+    expect(screen.getByTestId('gate-diagnostics')).toBeInTheDocument()
+    expect(screen.getByText(/элементы стека/i)).toBeInTheDocument()
+  })
+
+  it('shows diagnostic text for empty roadmapPhases', () => {
+    renderPage({ architectureDraft: makeArch({ roadmapPhases: [] }) })
+    expect(screen.getByTestId('gate-diagnostics')).toBeInTheDocument()
+    expect(screen.getByText(/фазы роадмапа/i)).toBeInTheDocument()
+  })
+
+  it('shows diagnostic text for missing projectType', () => {
+    renderPage({ architectureDraft: makeArch({ projectType: '' as 'application' }) })
+    expect(screen.getByTestId('gate-diagnostics')).toBeInTheDocument()
+    expect(screen.getByText(/тип проекта/i)).toBeInTheDocument()
+  })
+
+  it('gate-diagnostics absent when no architectureDraft (empty state shown instead)', () => {
+    renderPage({ architectureDraft: null })
+    expect(screen.queryByTestId('gate-diagnostics')).not.toBeInTheDocument()
   })
 })

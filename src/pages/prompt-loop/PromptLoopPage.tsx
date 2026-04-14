@@ -11,7 +11,9 @@ import { mockPromptService } from '../../mocks/services/promptService'
 import { generateId } from '../../shared/lib/id'
 import { promptIterationToMarkdown } from '../../shared/lib/markdown/exportArtifactToMarkdown'
 import { copyMarkdown } from '../../shared/lib/clipboard/copyMarkdown'
-import { canAdvanceToReview } from '../../shared/lib/stageGates'
+import { canAdvanceFromPromptLoop, canAdvanceToReview } from '../../shared/lib/stageGates'
+import { GateDiagnostics } from '../../shared/ui/GateDiagnostics'
+import { resolveGateDiagnostic } from '../../shared/lib/gateDiagnosticMessages'
 
 // ─── Cycle context bar ────────────────────────────────────────────────────────
 // Shows project type, cycle phase, and current target task in a subtle strip.
@@ -522,44 +524,64 @@ export function PromptLoopPage() {
           </Card>
 
           {/* Generate next */}
-          <Card className="border-violet-200 bg-violet-50/50 dark:border-violet-800/40 dark:bg-violet-950/20">
-            <div className="mb-3 flex flex-wrap items-center gap-2">
-              <p className="font-semibold text-violet-800 dark:text-violet-300">
-                Готово к итерации {promptIterations.length + 1}
-              </p>
-              {activeIteration.parsedSummary.inferredNextPhase ? (
-                <Badge variant={activeIteration.parsedSummary.inferredNextPhase === 'review' ? 'success' : activeIteration.parsedSummary.inferredNextPhase === 'tasks' ? 'warning' : 'info'}>
-                  Предложено: {CYCLE_PHASE_LABEL[activeIteration.parsedSummary.inferredNextPhase]}
-                </Badge>
-              ) : (
-                <Badge variant="muted">Фаза не определена</Badge>
-              )}
-            </div>
-            {!activeIteration.parsedSummary.hasTests && (
-              <p className="mb-3 text-sm font-medium text-amber-600 dark:text-amber-400">
-                ⚠️ Тесты отсутствуют — следующий промпт Код+Тесты запросит их перед продолжением.
-              </p>
-            )}
-            <div className="flex flex-wrap gap-2">
-              <Button onClick={() => handleGenerateNext('code_and_tests')} loading={generating}>
-                {activeIteration.parsedSummary.nextTaskId
-                  ? `Код+Тесты: ${activeIteration.parsedSummary.nextTaskId} →`
-                  : 'Следующий промпт Код+Тесты →'}
-              </Button>
-              {canAdvanceToReview(latestIteration).canAdvance && (
-                <Button
-                  variant="secondary"
-                  onClick={() => handleGenerateNext('review')}
-                  loading={generating}
-                >
-                  Ревью: {latestIteration!.targetTaskId} →
-                </Button>
-              )}
-            </div>
-            <p className="mt-2 text-xs text-violet-600/70 dark:text-violet-400/70">
-              Код+Тесты переходит к следующей задаче. Ревью проверяет текущую задачу по её Definition of Done.
-            </p>
-          </Card>
+          {(() => {
+            const advanceGate = canAdvanceFromPromptLoop(latestIteration)
+            const reviewGate = canAdvanceToReview(latestIteration)
+            const reviewBlockedReasons = reviewGate.canAdvance
+              ? []
+              : reviewGate.blockingDiagnostics.map((d) => resolveGateDiagnostic(d).label)
+
+            return (
+              <Card className="border-violet-200 bg-violet-50/50 dark:border-violet-800/40 dark:bg-violet-950/20">
+                <div className="mb-3 flex flex-wrap items-center gap-2">
+                  <p className="font-semibold text-violet-800 dark:text-violet-300">
+                    Готово к итерации {promptIterations.length + 1}
+                  </p>
+                  {activeIteration.parsedSummary.inferredNextPhase ? (
+                    <Badge variant={activeIteration.parsedSummary.inferredNextPhase === 'review' ? 'success' : activeIteration.parsedSummary.inferredNextPhase === 'tasks' ? 'warning' : 'info'}>
+                      Предложено: {CYCLE_PHASE_LABEL[activeIteration.parsedSummary.inferredNextPhase]}
+                    </Badge>
+                  ) : (
+                    <Badge variant="muted">Фаза не определена</Badge>
+                  )}
+                </div>
+                {!activeIteration.parsedSummary.hasTests && (
+                  <p className="mb-3 text-sm font-medium text-amber-600 dark:text-amber-400">
+                    ⚠️ Тесты отсутствуют — следующий промпт Код+Тесты запросит их перед продолжением.
+                  </p>
+                )}
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    onClick={() => handleGenerateNext('code_and_tests')}
+                    loading={generating}
+                    disabled={!advanceGate.canAdvance}
+                  >
+                    {activeIteration.parsedSummary.nextTaskId
+                      ? `Код+Тесты: ${activeIteration.parsedSummary.nextTaskId} →`
+                      : 'Следующий промпт Код+Тесты →'}
+                  </Button>
+                  {reviewGate.canAdvance && (
+                    <Button
+                      variant="secondary"
+                      onClick={() => handleGenerateNext('review')}
+                      loading={generating}
+                    >
+                      Ревью: {latestIteration!.targetTaskId} →
+                    </Button>
+                  )}
+                </div>
+                {/* Review gate diagnostics — shown when review is blocked but base advance is ok */}
+                {!reviewGate.canAdvance && advanceGate.canAdvance && reviewBlockedReasons.length > 0 && (
+                  <div className="mt-3" data-testid="review-gate-diagnostics">
+                    <GateDiagnostics reasons={reviewBlockedReasons} />
+                  </div>
+                )}
+                <p className="mt-2 text-xs text-violet-600/70 dark:text-violet-400/70">
+                  Код+Тесты переходит к следующей задаче. Ревью проверяет текущую задачу по её Definition of Done.
+                </p>
+              </Card>
+            )
+          })()}
         </div>
       )}
 

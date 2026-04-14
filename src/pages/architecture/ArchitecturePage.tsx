@@ -8,21 +8,11 @@ import { Badge } from '../../shared/ui/Badge'
 import { EmptyState } from '../../shared/ui/EmptyState'
 import { mockSpecService } from '../../mocks/services/specService'
 import { canAdvanceFromArchitecture } from '../../shared/lib/stageGates'
+import { GateDiagnostics } from '../../shared/ui/GateDiagnostics'
 import { EditableArchitectureDraft } from '../../features/architecture-output/EditableArchitectureDraft'
 import { architectureDraftToMarkdown } from '../../shared/lib/markdown/exportArtifactToMarkdown'
 import { copyMarkdown } from '../../shared/lib/clipboard/copyMarkdown'
 import type { ArchitectureDraft } from '../../shared/types'
-
-// ─── Gate banner ──────────────────────────────────────────────────────────────
-
-function GateBanner({ reason }: { reason: string }) {
-  return (
-    <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800/40 dark:bg-amber-950/20">
-      <span className="mt-0.5 text-lg">⚠️</span>
-      <p className="text-sm text-amber-800 dark:text-amber-300">{reason}</p>
-    </div>
-  )
-}
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -158,9 +148,7 @@ export function ArchitecturePage() {
       {/* Bottom action bar */}
       {architectureDraft && (
         <div className="space-y-3">
-          {!archGate.canAdvance && archGate.reason && (
-            <GateBanner reason={archGate.reason} />
-          )}
+          <GateDiagnostics reasons={archGate.canAdvance || !archGate.reason ? [] : [archGate.reason]} />
           <div className="flex gap-3">
             <Button variant="secondary" onClick={handleGenerate} loading={generating} disabled={!specPack}>
               Перегенерировать

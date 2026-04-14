@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 // T-013 — SpecPage UI tests: guards, empty states, gate-driven button behavior.
-// Implements F-005 / T-013
+// T-017 — GateDiagnostics integration: hint shown for specific failure modes.
+// Implements F-005 / T-013 / T-017
 //
 // Coverage areas:
 //   1. Guard: no project → EmptyState with CTA
@@ -285,5 +286,44 @@ describe('7. Gate wiring — UI uses canAdvanceFromSpec, not inline logic', () =
     renderPage({ specPack: noType })
     const btn = screen.getByRole('button', { name: /Перейти к архитектуре/ })
     expect(btn).toBeDisabled()
+  })
+})
+
+// ─── 8. T-017 — GateDiagnostics integration ──────────────────────────────────
+
+describe('8. GateDiagnostics — diagnostic hints shown on gate failure', () => {
+  it('shows gate-diagnostics panel when spec is incomplete', () => {
+    renderPage({ specPack: makeIncompleteSpec() })
+    expect(screen.getByTestId('gate-diagnostics')).toBeInTheDocument()
+  })
+
+  it('gate-diagnostics absent when gate passes', () => {
+    renderPage({ specPack: makeSpec() })
+    expect(screen.queryByTestId('gate-diagnostics')).not.toBeInTheDocument()
+  })
+
+  it('shows diagnostic text for empty productSummary', () => {
+    renderPage({ specPack: makeSpec({ productSummary: '' }) })
+    // GateDiagnostics renders the gate reason string from canAdvanceFromSpec
+    expect(screen.getByTestId('gate-diagnostics')).toBeInTheDocument()
+    expect(screen.getByText(/резюме продукта пусто/i)).toBeInTheDocument()
+  })
+
+  it('shows diagnostic text for empty featureList', () => {
+    renderPage({ specPack: makeSpec({ featureList: [] }) })
+    expect(screen.getByTestId('gate-diagnostics')).toBeInTheDocument()
+    expect(screen.getByText(/список фич пуст/i)).toBeInTheDocument()
+  })
+
+  it('shows diagnostic text for empty MVPScope', () => {
+    renderPage({ specPack: makeSpec({ MVPScope: '' }) })
+    expect(screen.getByTestId('gate-diagnostics')).toBeInTheDocument()
+    expect(screen.getByText(/объём MVP пуст/i)).toBeInTheDocument()
+  })
+
+  it('gate-diagnostics absent when no specPack (empty state shown instead)', () => {
+    // When spec doesn't exist yet, the generate panel is shown — no gate diagnostics
+    renderPage({ specPack: null })
+    expect(screen.queryByTestId('gate-diagnostics')).not.toBeInTheDocument()
   })
 })

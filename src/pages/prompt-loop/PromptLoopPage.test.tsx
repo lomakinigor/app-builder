@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 // Component tests for PromptLoopPage — parser outcomes, warnings, empty/validation states.
-// Implements T-012B / F-007 / F-012 / F-024.
+// T-017 — review gate diagnostics: hint shown/hidden based on canAdvanceToReview result.
+// Implements T-012B / F-007 / F-012 / F-024 / T-017.
 //
 // Strategy:
 //   - useProjectStore is mocked so each test injects precise state.
@@ -732,5 +733,85 @@ describe('cycle context bar', () => {
     mockUseProjectStore.mockReturnValue(makeStore({ architectureDraft: null, promptIterations: [] }))
     render(<PromptLoopPage />)
     expect(screen.queryByText('Контекст цикла')).not.toBeInTheDocument()
+  })
+})
+
+// ─── 9. T-017 — Review gate diagnostics ──────────────────────────────────────
+// Verifies that when canAdvanceToReview fails (but base canAdvanceFromPromptLoop
+// passes), the GateDiagnostics panel appears with mapped blocking reasons.
+
+describe('T-017 — review gate diagnostics', () => {
+  // Iteration that PASSES canAdvanceFromPromptLoop (hasTests=true, warnings=[])
+  // but FAILS canAdvanceToReview (inferredNextPhase != 'review', no targetTaskId)
+  function makeReadyIteration(overrides: Partial<PromptIteration> = {}): PromptIteration {
+    return makeIteration({
+      status: 'parsed',
+      targetTaskId: null,
+      parsedSummary: makeParsed({
+        hasTests: true,
+        warnings: [],
+        inferredNextPhase: 'code_and_tests', // NOT 'review'
+      }),
+      ...overrides,
+    })
+  }
+
+  it('shows review-gate-diagnostics panel when review is blocked after a clean parse', () => {
+    const iteration = makeReadyIteration()
+    mockUseProjectStore.mockReturnValue(makeStore({ promptIterations: [iteration] }))
+    render(<PromptLoopPage />)
+    expect(screen.getByTestId('review-gate-diagnostics')).toBeInTheDocument()
+  })
+
+  it('shows "Задача ещё не готова к ревью" hint when inferredNextPhase is not review', () => {
+    const iteration = makeReadyIteration()
+    mockUseProjectStore.mockReturnValue(makeStore({ promptIterations: [iteration] }))
+    render(<PromptLoopPage />)
+    expect(screen.getByText(/задача ещё не готова к ревью/i)).toBeInTheDocument()
+  })
+
+  it('shows "Задача для ревью не указана" hint when targetTaskId is null', () => {
+    const iteration = makeReadyIteration({ targetTaskId: null })
+    mockUseProjectStore.mockReturnValue(makeStore({ promptIterations: [iteration] }))
+    render(<PromptLoopPage />)
+    expect(screen.getByText(/задача для ревью не указана/i)).toBeInTheDocument()
+  })
+
+  it('review-gate-diagnostics absent when review is allowed (inferredNextPhase=review + targetTaskId set)', () => {
+    const readyForReview = makeIteration({
+      status: 'parsed',
+      targetTaskId: 'T-007',
+      parsedSummary: makeParsed({
+        hasTests: true,
+        warnings: [],
+        inferredNextPhase: 'review',
+      }),
+    })
+    mockUseProjectStore.mockReturnValue(makeStore({ promptIterations: [readyForReview] }))
+    render(<PromptLoopPage />)
+    expect(screen.queryByTestId('review-gate-diagnostics')).not.toBeInTheDocument()
+  })
+
+  it('review-gate-diagnostics absent when base gate fails (hasTests=false) — base gate already blocks', () => {
+    // When base canAdvanceFromPromptLoop fails, the diagnostics panel is also hidden
+    // (we only show review-specific hints when the base gate passes)
+    const noTests = makeIteration({
+      status: 'parsed',
+      targetTaskId: null,
+      parsedSummary: makeParsed({
+        hasTests: false,
+        warnings: [],
+        inferredNextPhase: 'code_and_tests',
+      }),
+    })
+    mockUseProjectStore.mockReturnValue(makeStore({ promptIterations: [noTests] }))
+    render(<PromptLoopPage />)
+    expect(screen.queryByTestId('review-gate-diagnostics')).not.toBeInTheDocument()
+  })
+
+  it('review-gate-diagnostics absent when there are no iterations', () => {
+    mockUseProjectStore.mockReturnValue(makeStore({ promptIterations: [] }))
+    render(<PromptLoopPage />)
+    expect(screen.queryByTestId('review-gate-diagnostics')).not.toBeInTheDocument()
   })
 })

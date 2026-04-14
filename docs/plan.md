@@ -60,7 +60,7 @@ Tasks execute in phase order. An impl task may not begin until its paired test t
 | T-014 | test | Tests: Prompt loop engine acceptance (generateFirst, parse, generateNext, history, integration) | F-007, T-008 | — | done |
 | T-015 | test | Tests: Local persistence correctness | T-009 | — | todo |
 | T-016 | test | Tests: Stage gate unit tests (existing canAdvanceFrom* + new Prompt Loop gates canAdvanceFromPromptLoop / canAdvanceToReview) | F-007, T-005, T-007, T-014 | — | done |
-| T-017 | test | Tests: Empty states and error display | T-010 | — | todo |
+| T-017 | impl+test | Gate hints + empty states + unified diagnostics UI (GateDiagnostics, mapping, 3 pages) | F-023, T-013, T-016 | 98 new tests | done |
 | T-018 | ops | Wire test runner: Vitest + Testing Library | testing-strategy, decisions D-004 | — | done |
 | T-101 | impl | Introduce ProjectType ('application' \| 'website') in types, Project entity, store, seed data | data-model, F-025 | T-102 | done |
 | T-102 | test | Tests: ProjectType in store — setProjectType action, persist round-trip, seed value | T-101 | — | todo |
