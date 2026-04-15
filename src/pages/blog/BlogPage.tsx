@@ -14,7 +14,7 @@ import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useProjectStore } from '../../app/store/projectStore'
 import { useBlogStore } from '../../app/store/blogStore'
-import { Card, CardHeader } from '../../shared/ui/Card'
+import { Card } from '../../shared/ui/Card'
 import { PageHeader } from '../../shared/ui/PageHeader'
 import { Badge } from '../../shared/ui/Badge'
 import { Button } from '../../shared/ui/Button'
@@ -315,10 +315,13 @@ export function BlogPage() {
   const [copying, setCopying] = useState(false)
 
   const projectId = activeProject?.id ?? ''
+  // postsByProject is the reactive dep — it changes on every mutation.
+  // getPostsForProject is a stable store method reference; it reads via get() so always fresh.
+  const { postsByProject } = useBlogStore()
   const posts = useMemo(
     () => getPostsForProject(projectId).sort((a, b) => b.date.localeCompare(a.date)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [projectId, getPostsForProject]
+    [projectId, postsByProject]
   )
   const selectedPost = posts.find((p) => p.id === selectedPostId) ?? posts[0] ?? null
 
@@ -392,14 +395,14 @@ export function BlogPage() {
       {/* Scaffold export panel */}
       {showScaffold && (
         <Card>
-          <CardHeader>
-            <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+          <div className="mb-4">
+            <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
               Шаблоны для вашего проекта
-            </span>
+            </p>
             <p className="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">
               Скопируйте и создайте файлы в директории <code>blog/</code> вашего репозитория.
             </p>
-          </CardHeader>
+          </div>
           <div className="p-4 space-y-3">
             <div className="flex gap-2">
               <Button
@@ -470,11 +473,11 @@ export function BlogPage() {
           {/* Editor */}
           {selectedPost && (
             <Card>
-              <CardHeader>
-                <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+              <div className="mb-4">
+                <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
                   {selectedPost.date}
-                </span>
-              </CardHeader>
+                </p>
+              </div>
               <div className="p-4">
                 <PostEditor post={selectedPost} projectId={projectId} />
               </div>
