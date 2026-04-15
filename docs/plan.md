@@ -89,6 +89,7 @@ Tasks execute in phase order. An impl task may not begin until its paired test t
 | T-210 | impl | Inline recommendation highlight — amber ring + "Рекомендуется" on matching stepper phase; "Следующая задача" on matching task row; getRecommendedPhaseId/getRecommendedTaskId helpers | F-024, US-014 | T-210t | done |
 | T-210t | test | Tests: getRecommendedPhaseId (none/phase/task variants) + getRecommendedTaskId (none/phase/task variants) | F-024 | — | done |
 | T-301 | impl | Blog development diary module: entity (types/schema/utils/exporter), scaffold templates, blogStore, BlogPage UI, /blog route + nav | F-028 | T-302 | done |
+| T-015 | test | Local persistence correctness: projectStore shape guards, reload simulation, hot/cold mechanics, stage-gate preservation, multi-project isolation, partial-state tolerance; blogStore CRUD + ensureTodayPost + per-project isolation | F-019, F-028 | — | done |
 
 ---
 

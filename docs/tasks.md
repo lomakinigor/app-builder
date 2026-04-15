@@ -725,3 +725,24 @@ Definition of done:
 - Scaffold panel shows BLOG_RULES.md and Blog.md header content
 - Route /blog reachable; Sidebar shows 📖 Блог
 - Full test suite passes (685 tests unchanged)
+
+## T-015 — Tests: Local persistence correctness
+Type: test
+Description: Verify and document that local persistence (Zustand persist middleware) correctly saves and restores all project state between sessions. Two test files created: (1) projectStore.persist.test.ts — shape guards (emptyProjectData/initialState completeness), reload simulation via setState(capturedState), hot/cold slot mechanics for all 7 artifact types, stage-gate data preservation through switch cycles, multi-project isolation, partial-state tolerance (missing fields fall back to defaults), reset correctness, patch action merging. (2) blogStore.test.ts — full CRUD (upsert/read/updatePost/updateChannelBody/updatePublicationStatus/markCopied/delete), ensureTodayPost decision logic (weekday+activity/no-activity, weekend+activity/no-activity, idempotency), per-project isolation, rehydration simulation.
+Links: F-019, F-028
+Status: done
+Owner: AI
+Definition of done:
+- emptyProjectData has exactly 7 fields with correct defaults (null / [])
+- setState(capturedState) after reset → all 7 hot slots read back correctly
+- All ProjectData artifact types survive switch → reload cycle
+- setActiveProject snapshots all 7 artifact types into cold store
+- Unknown project gets emptyProjectData on setActiveProject
+- Three projects coexist in cold store independently
+- Partial/extra persisted state does not crash the store
+- resetProject returns store to full initialState
+- blogStore CRUD: all operations correct; deletePost/update non-existent id are no-ops
+- ensureTodayPost: weekday+0activity=fun_fallback, weekend+0activity=null, any+activity=regular, idempotent
+- Blog posts per-project: P1 posts not visible in P2
+- Blog reload simulation: posts/channel bodies/publication status survive
+- 776 tests pass (685 before T-015 + 91 new)
