@@ -231,12 +231,15 @@ export function normalizeResearchText(
 ): NormalizationResult {
   const warnings: string[] = []
 
+  // Guard against non-string raw at runtime (e.g. null rawContent from user input)
+  const safeRaw = typeof raw === 'string' ? raw : ''
+
   // Step 1: labeled sections
-  const labeled = extractLabeledSections(raw)
+  const labeled = extractLabeledSections(safeRaw)
   const foundFields = new Set(Object.keys(labeled) as (keyof SectionMap)[])
 
   // Step 2: keyword fallback for anything not yet found
-  const fallback = extractByKeywords(raw, foundFields)
+  const fallback = extractByKeywords(safeRaw, foundFields)
   const usedFallback = Object.keys(fallback).length > 0
 
   const merged: Partial<SectionMap> = { ...fallback, ...labeled }
