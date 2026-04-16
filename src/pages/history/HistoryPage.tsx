@@ -437,6 +437,17 @@ function IterationReviewCard({ iter }: { iter: PromptIteration }) {
         {new Date(iter.createdAt).toLocaleString()}
       </p>
 
+      {/* Prompt text snippet */}
+      {iter.promptText && (
+        <div
+          data-testid="prompt-text-snippet"
+          className="mb-3 rounded-lg bg-zinc-50 px-3 py-2 text-xs font-mono leading-relaxed text-zinc-600 dark:bg-zinc-900/60 dark:text-zinc-400"
+        >
+          {iter.promptText.slice(0, 500)}
+          {iter.promptText.length > 500 ? '…' : ''}
+        </div>
+      )}
+
       {/* Test presence */}
       {parsed && (
         <div className="mb-2">
@@ -656,6 +667,48 @@ export function HistoryPage() {
         />
       </Card>
 
+      {/* Architecture summary — stack + roadmap */}
+      {architectureDraft && (
+        <Card>
+          <CardHeader
+            title="Архитектура и роадмап"
+            icon="🏗️"
+            action={
+              <Badge variant={architectureDraft.projectType === 'website' ? 'info' : 'default'}>
+                {architectureDraft.projectType === 'website' ? '🌐 Сайт' : '📱 Приложение'}
+              </Badge>
+            }
+          />
+          <div className="space-y-4">
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                Стек
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {architectureDraft.recommendedStack.map((item) => (
+                  <Badge key={item.name} variant="muted">
+                    {item.name}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                Роадмап
+              </p>
+              <div className="space-y-1">
+                {architectureDraft.roadmapPhases.map((phase) => (
+                  <div key={phase.phase} className="flex items-center gap-2 text-sm">
+                    <Badge variant="muted">Ф{phase.phase}</Badge>
+                    <span className="text-zinc-700 dark:text-zinc-300">{phase.title}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {/* Prompt iterations — Review lens */}
       {promptIterations.length > 0 ? (
         <Card>
@@ -728,7 +781,7 @@ export function HistoryPage() {
               {specPack.featureList
                 .filter((f) => f.priority === 'must')
                 .map((f) => (
-                  <Badge key={f.id} variant="muted">{f.id}</Badge>
+                  <Badge key={f.id} variant="muted">{f.name}</Badge>
                 ))}
             </div>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
