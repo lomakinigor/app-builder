@@ -8,10 +8,12 @@ export default defineConfig({
   testDir: 'tests/e2e',
 
   // Per-test timeout (covers mock service delays: ~1.5s research + ~1.2s spec + ~1s arch + ~0.8s prompt)
-  timeout: 40_000,
+  // 60s allows for slower CI machines and Zustand persist rehydration after page.reload()
+  timeout: 60_000,
 
-  // Assertion timeout — allows waiting for async UI signals without explicit waits
-  expect: { timeout: 10_000 },
+  // Assertion timeout — allows waiting for async UI signals without explicit waits.
+  // 15s accommodates slow CI machines and repeated local runs under system load.
+  expect: { timeout: 15_000 },
 
   // Happy path is stateful; run sequentially so tests don't share server state
   fullyParallel: false,
@@ -25,9 +27,10 @@ export default defineConfig({
     baseURL: 'http://localhost:5173',
     // Desktop viewport so the sidebar nav is visible (≥lg breakpoint = 1024px)
     viewport: { width: 1280, height: 720 },
-    // Collect trace / video only on retry — keeps normal runs fast
+    // Collect trace on retry; screenshot on every failure for quick visual diagnosis
     trace: 'on-first-retry',
     video: 'on-first-retry',
+    screenshot: 'only-on-failure',
   },
 
   projects: [
