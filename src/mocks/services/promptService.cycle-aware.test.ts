@@ -21,111 +21,28 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import type {
-  SpecPack,
   ArchitectureDraft,
   PromptIteration,
   ParsedClaudeResponse,
 } from '../../shared/types'
 import { mockPromptService } from './promptService'
+import { createAppArch, createAppArchCoreFlow, createWebArch, createWebArchCorePages, createWebArchBlog } from '../fixtures/archFixtures'
+import { createAppSpec, createWebSpec } from '../fixtures/specFixtures'
 
-// ─── Fixtures: application ────────────────────────────────────────────────────
+// ─── Fixtures ─────────────────────────────────────────────────────────────────
 //
-// Stack and roadmap canonical to T-104 (application fixture).
-// phase[0] = Foundation; then Core flow, Dashboard and navigation.
+// Arch and spec are loaded from shared canonical fixtures (archFixtures / specFixtures).
+// Single-phase variants (CORE_FLOW, CORE_PAGES, BLOG) are used in group C tests
+// to assert that phase title + goals appear verbatim in the generated prompt.
 
-const APP_SPEC: SpecPack = {
-  projectType: 'application',
-  productSummary: 'An application: A focused task manager',
-  MVPScope: 'Single-user CRUD with local persistence. No auth in V1.',
-  featureList: [
-    { id: 'f-001', name: 'User onboarding', description: 'Sign-up / sign-in flow', priority: 'must' },
-    { id: 'f-002', name: 'Core data management', description: 'Create, view, edit, delete', priority: 'must' },
-  ],
-  assumptions: ['Desktop browser primary'],
-  constraints: ['No backend in V1'],
-  acceptanceNotes: 'User can create tasks after reload.',
-}
+const APP_SPEC = createAppSpec()
+const APP_ARCH = createAppArch()
+const APP_ARCH_CORE_FLOW = createAppArchCoreFlow()
 
-const APP_ARCH: ArchitectureDraft = {
-  projectType: 'application',
-  recommendedStack: [
-    { name: 'React', role: 'UI layer', rationale: 'Component-based SPA' },
-    { name: 'TypeScript', role: 'Type safety', rationale: 'Prevents runtime errors' },
-    { name: 'Vite', role: 'Build tool', rationale: 'Fast HMR, lean bundle' },
-    { name: 'Zustand', role: 'State management', rationale: 'Lightweight store' },
-    { name: 'React Router', role: 'Client routing', rationale: 'Declarative SPA routing' },
-    { name: 'Tailwind CSS', role: 'Styling', rationale: 'Utility-first design system' },
-  ],
-  moduleArchitecture: 'Feature-sliced: app → pages → features → entities → shared',
-  dataFlow: 'User action → store → UI re-render',
-  roadmapPhases: [
-    { phase: 0, title: 'Foundation', goals: ['App shell', 'Routing', 'Layout and navigation'], estimatedComplexity: 'low' },
-    { phase: 1, title: 'Core flow', goals: ['Onboarding screen', 'Primary entity list', 'Create/edit form'], estimatedComplexity: 'medium' },
-    { phase: 2, title: 'Dashboard and navigation', goals: ['Summary dashboard', 'In-app navigation'], estimatedComplexity: 'medium' },
-  ],
-  technicalRisks: ['localStorage limit at 5 MB'],
-}
-
-/** Application arch where the current (first) phase is "Core flow" */
-const APP_ARCH_CORE_FLOW: ArchitectureDraft = {
-  ...APP_ARCH,
-  roadmapPhases: [
-    { phase: 1, title: 'Core flow', goals: ['Onboarding screen', 'Primary entity list', 'Create/edit form'], estimatedComplexity: 'medium' },
-  ],
-}
-
-// ─── Fixtures: website ────────────────────────────────────────────────────────
-//
-// Stack and roadmap canonical to T-104 (website fixture).
-// phase[0] = Foundation; then Core pages, Blog.
-
-const WEB_SPEC: SpecPack = {
-  projectType: 'website',
-  productSummary: 'A content-driven website: A focused blog platform',
-  MVPScope: 'Homepage, about page, markdown-based blog, and contact form. No CMS in V1.',
-  featureList: [
-    { id: 'f-001', name: 'Homepage', description: 'Hero section with value proposition', priority: 'must' },
-    { id: 'f-002', name: 'Blog / articles', description: 'Markdown-based article list', priority: 'must' },
-  ],
-  assumptions: ['Content authored in MDX'],
-  constraints: ['No authentication', 'No database in MVP'],
-  acceptanceNotes: 'Visitor can navigate homepage → blog.',
-}
-
-const WEB_ARCH: ArchitectureDraft = {
-  projectType: 'website',
-  recommendedStack: [
-    { name: 'Next.js', role: 'Framework', rationale: 'SSR/SSG for SEO, file-based routing' },
-    { name: 'TypeScript', role: 'Type safety', rationale: 'Prevents runtime errors' },
-    { name: 'Tailwind CSS', role: 'Styling', rationale: 'Utility-first design system' },
-    { name: 'MDX', role: 'Content authoring', rationale: 'Markdown + JSX for V1' },
-    { name: 'Vercel', role: 'Hosting / deployment', rationale: 'Zero-config Next.js deployment' },
-  ],
-  moduleArchitecture: 'Next.js App Router with page-level components',
-  dataFlow: 'SSG at build time; ISR for dynamic pages',
-  roadmapPhases: [
-    { phase: 0, title: 'Foundation', goals: ['Next.js scaffold', 'Tailwind setup', 'Dark mode'], estimatedComplexity: 'low' },
-    { phase: 1, title: 'Core pages', goals: ['Homepage', 'About page', 'MDX pipeline'], estimatedComplexity: 'low' },
-    { phase: 2, title: 'Blog', goals: ['Article list page', 'Article detail page', 'RSS feed'], estimatedComplexity: 'medium' },
-  ],
-  technicalRisks: ['MDX versioning'],
-}
-
-/** Website arch where the current (first) phase is "Core pages" */
-const WEB_ARCH_CORE_PAGES: ArchitectureDraft = {
-  ...WEB_ARCH,
-  roadmapPhases: [
-    { phase: 1, title: 'Core pages', goals: ['Homepage', 'About page', 'MDX pipeline'], estimatedComplexity: 'low' },
-  ],
-}
-
-/** Website arch where the current (first) phase is "Blog" */
-const WEB_ARCH_BLOG: ArchitectureDraft = {
-  ...WEB_ARCH,
-  roadmapPhases: [
-    { phase: 2, title: 'Blog', goals: ['Article list page', 'Article detail page', 'RSS feed'], estimatedComplexity: 'medium' },
-  ],
-}
+const WEB_SPEC = createWebSpec()
+const WEB_ARCH = createWebArch()
+const WEB_ARCH_CORE_PAGES = createWebArchCorePages()
+const WEB_ARCH_BLOG = createWebArchBlog()
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

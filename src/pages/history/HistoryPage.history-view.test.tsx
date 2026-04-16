@@ -20,7 +20,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { HistoryPage } from './HistoryPage'
-import type { Project, SpecPack, ArchitectureDraft, PromptIteration, IdeaDraft } from '../../shared/types'
+import type { Project, SpecPack, PromptIteration, IdeaDraft } from '../../shared/types'
+import { createAppArch, createWebArch } from '../../mocks/fixtures/archFixtures'
+import { createAppSpec, createWebSpec } from '../../mocks/fixtures/specFixtures'
 
 // ─── Module mocks ──────────────────────────────────────────────────────────────
 
@@ -60,93 +62,18 @@ function makeIdeaDraft(): IdeaDraft {
 }
 
 /**
- * Application spec with canonical feature names (T-102 / T-106 contracts).
+ * Spec factories — delegate to shared canonical fixtures.
+ * Accept the same overrides API used in gate-alignment tests (group E).
  */
-function makeApplicationSpec(overrides: Partial<SpecPack> = {}): SpecPack {
-  return {
-    projectType: 'application',
-    productSummary: 'An application: A focused task manager',
-    MVPScope: 'Single-user CRUD with local persistence. No auth in V1.',
-    featureList: [
-      { id: 'f-001', name: 'User onboarding', description: 'Sign-up / sign-in flow', priority: 'must' },
-      { id: 'f-002', name: 'Core data management', description: 'Create, view, edit, delete', priority: 'must' },
-      { id: 'f-003', name: 'Dashboard / overview', description: 'Summary view', priority: 'must' },
-    ],
-    assumptions: ['Desktop browser primary'],
-    constraints: ['No backend in V1'],
-    acceptanceNotes: 'User can create tasks after reload.',
-    ...overrides,
-  }
-}
+const makeApplicationSpec = (overrides: Partial<SpecPack> = {}) => createAppSpec(overrides)
+const makeWebsiteSpec = (overrides: Partial<SpecPack> = {}) => createWebSpec(overrides)
 
 /**
- * Website spec with canonical feature names (T-102 / T-106 contracts).
+ * Arch instances from shared canonical fixtures (archFixtures).
+ * Fresh objects per module load; tests must not mutate these.
  */
-function makeWebsiteSpec(overrides: Partial<SpecPack> = {}): SpecPack {
-  return {
-    projectType: 'website',
-    productSummary: 'A content-driven website: A focused blog platform',
-    MVPScope: 'Homepage, about page, markdown-based blog, and contact form. No CMS in V1.',
-    featureList: [
-      { id: 'f-001', name: 'Homepage', description: 'Hero section with value proposition, CTA', priority: 'must' },
-      { id: 'f-002', name: 'Content pages', description: 'About, services pages', priority: 'must' },
-      { id: 'f-003', name: 'Blog / articles', description: 'Markdown-based article list', priority: 'must' },
-    ],
-    assumptions: ['Content authored in MDX'],
-    constraints: ['No authentication', 'No database in MVP'],
-    acceptanceNotes: 'Visitor can navigate homepage → blog.',
-    ...overrides,
-  }
-}
-
-/**
- * Application architecture — canonical stack (T-104 / T-108 contracts).
- */
-const APP_ARCH: ArchitectureDraft = {
-  projectType: 'application',
-  moduleArchitecture: 'Feature-sliced design',
-  dataFlow: 'Zustand store → React components → localStorage',
-  technicalRisks: ['No backend — local storage only in V1'],
-  recommendedStack: [
-    { name: 'React', role: 'UI layer', rationale: 'Component-based SPA' },
-    { name: 'TypeScript', role: 'Type safety', rationale: 'Prevents runtime errors' },
-    { name: 'Vite', role: 'Build tool', rationale: 'Fast HMR, lean bundle' },
-    { name: 'Zustand', role: 'State management', rationale: 'Lightweight store' },
-    { name: 'React Router', role: 'Client routing', rationale: 'Declarative SPA routing' },
-    { name: 'Tailwind CSS', role: 'Styling', rationale: 'Utility-first design system' },
-  ],
-  roadmapPhases: [
-    { phase: 0, title: 'Foundation', goals: ['App shell', 'Routing', 'Layout and navigation'], estimatedComplexity: 'low' },
-    { phase: 1, title: 'Core flow', goals: ['Onboarding screen', 'Primary entity list', 'Create/edit form'], estimatedComplexity: 'medium' },
-    { phase: 2, title: 'Dashboard and navigation', goals: ['Summary dashboard', 'In-app navigation'], estimatedComplexity: 'medium' },
-    { phase: 3, title: 'Search, filters, and settings', goals: ['Entity filtering', 'Search bar'], estimatedComplexity: 'medium' },
-    { phase: 4, title: 'Polish and export', goals: ['Export to CSV/JSON', 'Performance audit'], estimatedComplexity: 'high' },
-  ],
-}
-
-/**
- * Website architecture — canonical stack (T-104 / T-108 contracts).
- */
-const WEB_ARCH: ArchitectureDraft = {
-  projectType: 'website',
-  moduleArchitecture: 'Pages + shared components',
-  dataFlow: 'Static props → Next.js pages → MDX content',
-  technicalRisks: ['SEO depends on correct meta tags'],
-  recommendedStack: [
-    { name: 'Next.js', role: 'Framework', rationale: 'SSR/SSG for SEO' },
-    { name: 'TypeScript', role: 'Type safety', rationale: 'Prevents runtime errors' },
-    { name: 'Tailwind CSS', role: 'Styling', rationale: 'Utility-first design system' },
-    { name: 'MDX', role: 'Content authoring', rationale: 'Markdown + JSX for blog posts' },
-    { name: 'Vercel', role: 'Hosting / deployment', rationale: 'Zero-config deployment' },
-  ],
-  roadmapPhases: [
-    { phase: 0, title: 'Foundation', goals: ['Next.js scaffold', 'Tailwind setup', 'Dark mode'], estimatedComplexity: 'low' },
-    { phase: 1, title: 'Core pages', goals: ['Homepage', 'About page', 'MDX pipeline'], estimatedComplexity: 'low' },
-    { phase: 2, title: 'Blog', goals: ['Article list page', 'Article detail page', 'RSS feed'], estimatedComplexity: 'medium' },
-    { phase: 3, title: 'SEO and contact', goals: ['Per-page meta tags', 'Sitemap.xml', 'Contact form'], estimatedComplexity: 'medium' },
-    { phase: 4, title: 'Polish and CMS', goals: ['Analytics integration', 'Performance audit'], estimatedComplexity: 'high' },
-  ],
-}
+const APP_ARCH = createAppArch()
+const WEB_ARCH = createWebArch()
 
 /**
  * Builds a minimal PromptIteration with an explicit promptText.
