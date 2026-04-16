@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { startAttentionSignal, stopAttentionSignal } from '../../shared/lib/attentionSignal'
 import { useProjectStore } from '../../app/store/projectStore'
 import { Button } from '../../shared/ui/Button'
 import { Card, CardHeader } from '../../shared/ui/Card'
@@ -77,6 +78,9 @@ export function ResearchPage() {
   // Track which artifact produced the current brief (for source attribution)
   const [briefArtifactId, setBriefArtifactId] = useState<string | null>(null)
 
+  // Stop any active signal when leaving this page
+  useEffect(() => () => stopAttentionSignal(), [])
+
   // Stage gates
   const ideaGate = canAdvanceFromIdea(ideaDraft, activeProject?.projectType ?? null)
   const researchGate = canAdvanceFromResearch(researchBrief)
@@ -115,6 +119,7 @@ export function ResearchPage() {
       setResearchBrief(brief)
       setBriefArtifactId(null)
       setCurrentStage('research')
+      startAttentionSignal('task_completed')
     } catch {
       updateResearchRun(runId, { status: 'failed' })
     } finally {

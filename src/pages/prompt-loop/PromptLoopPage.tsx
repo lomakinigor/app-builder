@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { startAttentionSignal, stopAttentionSignal } from '../../shared/lib/attentionSignal'
 import type { CyclePhase } from '../../entities/prompt-iteration/types'
 import { useProjectStore } from '../../app/store/projectStore'
 import { Button } from '../../shared/ui/Button'
@@ -98,6 +99,9 @@ export function PromptLoopPage() {
   const [taskIdInput, setTaskIdInput] = useState('')
   const [taskDescriptionInput, setTaskDescriptionInput] = useState('')
 
+  // Stop any active signal when leaving this page
+  useEffect(() => () => stopAttentionSignal(), [])
+
   const activeIteration = promptIterations.find((p) => p.id === activeIterationId) ?? null
   const latestIteration = promptIterations.length > 0
     ? promptIterations[promptIterations.length - 1]
@@ -125,6 +129,8 @@ export function PromptLoopPage() {
       addPromptIteration(iteration)
       setActiveIterationId(iteration.id)
       setCurrentStage('first_prompt')
+      // Prompt is ready — app is now waiting for user to paste Claude's response
+      startAttentionSignal('awaiting_confirmation')
     } finally {
       setGenerating(false)
     }
@@ -135,6 +141,7 @@ export function PromptLoopPage() {
     setParsing(true)
     try {
       const parsed = mockPromptService.parseClaudeResponse(responseInput)
+      stopAttentionSignal('awaiting_confirmation')
       updatePromptIteration(activeIteration.id, {
         claudeResponseRaw: responseInput,
         parsedSummary: parsed,
@@ -142,6 +149,8 @@ export function PromptLoopPage() {
         status: 'parsed',
       })
       setResponseInput('')
+      // Parsed result is ready — user picks next action (may have tabbed away)
+      startAttentionSignal('task_completed')
     } finally {
       setParsing(false)
     }
@@ -163,6 +172,8 @@ export function PromptLoopPage() {
       addPromptIteration(next)
       setActiveIterationId(next.id)
       setCurrentStage('iterative_loop')
+      // Next prompt ready — waiting for user to paste response again
+      startAttentionSignal('awaiting_confirmation')
     } finally {
       setGenerating(false)
     }
@@ -398,7 +409,8 @@ export function PromptLoopPage() {
           <div className="space-y-3">
             <textarea
               value={responseInput}
-              onChange={(e) => setResponseInput(e.target.value)}
+              onChange={(e) => { stopAttentionSignal('awaiting_confirmation'); setResponseInput(e.target.value) }}
+              onFocus={() => stopAttentionSignal('awaiting_confirmation')}
               placeholder="Вставьте полный ответ Claude здесь…"
               rows={8}
               className="w-full resize-none rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-700 placeholder:text-zinc-400 focus:border-violet-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-violet-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-violet-500 dark:focus:bg-zinc-900 font-mono"

@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { startAttentionSignal, stopAttentionSignal } from '../../shared/lib/attentionSignal'
 import { useProjectStore } from '../../app/store/projectStore'
 import { Button } from '../../shared/ui/Button'
 import { Card, CardHeader } from '../../shared/ui/Card'
@@ -23,6 +24,9 @@ export function ArchitecturePage() {
   const [generating, setGenerating] = useState(false)
   const [archCopied, setArchCopied] = useState(false)
 
+  // Stop any active signal when leaving this page
+  useEffect(() => () => stopAttentionSignal(), [])
+
   const archGate = canAdvanceFromArchitecture(architectureDraft)
   const projectType = activeProject?.projectType ?? specPack?.projectType ?? 'application'
 
@@ -43,6 +47,7 @@ export function ArchitecturePage() {
       const arch = await mockSpecService.generateArchitecture(specPack, projectType)
       setArchitectureDraft(arch)
       setCurrentStage('architecture')
+      startAttentionSignal('task_completed')
     } finally {
       setGenerating(false)
     }

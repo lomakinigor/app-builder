@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { startAttentionSignal, stopAttentionSignal } from '../../shared/lib/attentionSignal'
 import { useProjectStore } from '../../app/store/projectStore'
 import { Button } from '../../shared/ui/Button'
 import { Card, CardHeader } from '../../shared/ui/Card'
@@ -22,6 +23,9 @@ export function SpecPage() {
   const [generating, setGenerating] = useState(false)
   const [specCopied, setSpecCopied] = useState(false)
 
+  // Stop any active signal when leaving this page
+  useEffect(() => () => stopAttentionSignal(), [])
+
   const specGate = canAdvanceFromSpec(specPack)
   const projectType = activeProject?.projectType ?? 'application'
 
@@ -42,6 +46,7 @@ export function SpecPage() {
       const spec = await mockSpecService.generateSpec(researchBrief, projectType)
       setSpecPack(spec)
       setCurrentStage('specification')
+      startAttentionSignal('task_completed')
     } finally {
       setGenerating(false)
     }
