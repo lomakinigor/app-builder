@@ -197,6 +197,15 @@ export function isSoundNotificationsEnabled(): boolean {
 }
 
 /**
+ * Play a single test beep without starting a signal cycle.
+ * Respects the global soundEnabled kill switch.
+ * Safe to call at any time (does not affect active signal state).
+ */
+export function playTestBeep(): void {
+  playBeep()
+}
+
+/**
  * Reset all singleton state. **Test use only.**
  * @internal
  */

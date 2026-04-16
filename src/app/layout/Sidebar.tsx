@@ -19,6 +19,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Цикл промптов', path: '/prompt-loop', icon: '⚡' },
   { label: 'История', path: '/history', icon: '📜' },
   { label: 'Блог', path: '/blog', icon: '📖' },
+  { label: 'Настройки', path: '/settings', icon: '⚙️' },
 ]
 
 export function Sidebar({ onClose }: { onClose?: () => void }) {

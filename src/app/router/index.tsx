@@ -9,6 +9,7 @@ import { ArchitecturePage } from '../../pages/architecture/ArchitecturePage'
 import { PromptLoopPage } from '../../pages/prompt-loop/PromptLoopPage'
 import { HistoryPage } from '../../pages/history/HistoryPage'
 import { BlogPage } from '../../pages/blog/BlogPage'
+import { SettingsPage } from '../../pages/settings/SettingsPage'
 
 export const router = createBrowserRouter([
   {
@@ -24,6 +25,7 @@ export const router = createBrowserRouter([
       { path: 'prompt-loop', element: <PromptLoopPage /> },
       { path: 'history', element: <HistoryPage /> },
       { path: 'blog', element: <BlogPage /> },
+      { path: 'settings', element: <SettingsPage /> },
     ],
   },
 ])
