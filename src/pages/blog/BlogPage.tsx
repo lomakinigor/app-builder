@@ -22,7 +22,7 @@ import { EmptyState } from '../../shared/ui/EmptyState'
 import type { BlogPost, ChannelName, PostStatus } from '../../entities/blog/types'
 import { exportBlogToMarkdown } from '../../entities/blog/exporter'
 import { BLOG_RULES_MD, BLOG_MD_HEADER } from '../../entities/blog/scaffold'
-import { createEmptyRegularPost, shouldCreatePost, createFunFallbackPost } from '../../entities/blog/utils'
+import { createEmptyRegularPost } from '../../entities/blog/utils'
 import { copyMarkdown } from '../../shared/lib/clipboard/copyMarkdown'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
