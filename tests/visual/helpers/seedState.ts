@@ -220,7 +220,99 @@ function makeResearchRun(projectId: string) {
   ]
 }
 
-// ─── Main seed function ───────────────────────────────────────────────────────
+// ─── Prompt Loop seed data ────────────────────────────────────────────────────
+
+/**
+ * Returns a single prompt iteration in 'parsed' state suitable for seeding
+ * the PromptLoopPage summary view.
+ *
+ * Key properties that drive the visible summary UI:
+ *   - status: 'parsed'              → shows the parsed result card
+ *   - inferredNextPhase: 'review'   → canAdvanceToReview passes → Review button visible
+ *   - hasTests: true                → "✓ Тесты найдены" badge
+ *   - targetTaskId: 'T-001'         → task badge in CycleContextBar + Review button label
+ *   - warnings: []                  → no parser warning card (clean state)
+ *
+ * promptText is representative and multi-line so the max-h-80 prompt box
+ * renders at full height in the snapshot.
+ */
+function makePromptLoopIteration(projectId: string, projectType: 'application' | 'website') {
+  const promptText = `## Задача T-001 — Скаффолд приложения
+
+Тип проекта: 📱 Приложение
+Этап цикла: 🔄 Код + Тесты
+
+### Обязательные документы для прочтения
+- docs/PRD.md
+- docs/features.md (F-001–F-004)
+- docs/tech-spec.md
+- docs/data-model.md
+- docs/tasks.md (DoD задачи T-001)
+
+### Стек
+React 19 · TypeScript · Vite · Zustand · React Router · Tailwind CSS
+
+### Phase 0 — цели
+- App shell с роутингом
+- Базовый layout и навигация
+- Стор Zustand (заглушка)
+
+### Задача T-001: подход tests-first
+Definition of Done:
+- App запускается без ошибок
+- Все 7 маршрутов рендерятся
+- Theme и layout работают на desktop
+- Store инициализирован
+
+⚠️ Тесты обязательны в том же ответе.
+
+### Формат ответа
+1. Краткий анализ
+2. План реализации
+3. Файлы созданы/изменены
+4. Реализация
+5. Рекомендуемый следующий шаг`
+
+  return {
+    id: `iter-vis-loop-${projectType}-001`,
+    projectId,
+    iterationNumber: 1,
+    promptText,
+    claudeResponseRaw: null,
+    parsedSummary: {
+      analysis:
+        'Реализован скаффолд T-001. Создана базовая структура приложения на TypeScript с роутингом и layout-компонентами.',
+      plan:
+        'Создана точка входа приложения, настройка роутинга и layout-компоненты.\nVite + React Router настроены, Zustand-стор инициализирован.',
+      changedFiles: [
+        'src/main.tsx',
+        'src/App.tsx',
+        'src/App.test.tsx',
+        'src/app/layout/AppLayout.tsx',
+        'src/app/store/projectStore.ts',
+        'src/shared/ui/Button.tsx',
+      ],
+      implementationSummary:
+        'Скаффолд приложения готов. Все необходимые файлы на месте с корректными границами модулей. Роутинг работает, стор инициализирован.',
+      nextStep:
+        'T-001 завершён. Все тесты проходят. Реализация готова к ревью.',
+      warnings: [],
+      hasTests: true,
+      implementedTaskIds: ['T-001'],
+      nextTaskId: 'T-001',
+      inferredNextPhase: 'review' as const,
+    },
+    recommendedNextStep: 'T-001 завершён. Все тесты проходят. Готово к T-002.',
+    status: 'parsed' as const,
+    createdAt: FIXED_DATE,
+    projectType,
+    cyclePhase: 'code_and_tests' as const,
+    targetTaskId: 'T-001',
+    roadmapPhaseNumber: 0,
+  }
+}
+
+// ─── Main seed functions ──────────────────────────────────────────────────────
 
 /**
  * Seeds localStorage with a full pipeline state and navigates to /history.
@@ -306,4 +398,85 @@ export async function seedHistoryPage(
 
   // Navigate to HistoryPage; Zustand will rehydrate from the seeded localStorage.
   await page.goto('/history')
+}
+
+/**
+ * Seeds localStorage with a full pipeline state (including a parsed iteration)
+ * and navigates to /prompt-loop.
+ *
+ * After calling this, the page will render PromptLoopPage in its richest state:
+ *   - CycleContextBar (project type badge, Код+Тесты badge, T-001 badge, Фаза 0)
+ *   - Active iteration card (Итерация 1, Распарсено badge, prompt text)
+ *   - Parsed result card (analysis, plan, changed files, task IDs, next step,
+ *     inferred next phase = review)
+ *   - "Готово к итерации 2" card with both Code+Tests and Review buttons
+ *     (canAdvanceToReview passes: hasTests=true, warnings=[], inferredNextPhase='review')
+ *
+ * All timestamps are pinned to FIXED_DATE so screenshots are stable.
+ */
+export async function seedPromptLoopPage(
+  page: Page,
+  projectType: 'application' | 'website' = 'application',
+): Promise<void> {
+  const projectId = projectType === 'application' ? APP_PROJECT_ID : WEB_PROJECT_ID
+  const project = projectType === 'application' ? makeAppProject() : makeWebProject()
+  const ideaDraft = makeIdeaDraft(projectType)
+  const researchBrief = makeResearchBrief(projectType)
+  const specPack = makeSpecPack(projectType)
+  const architectureDraft = makeArchitectureDraft(projectType)
+  const promptIterations = [makePromptLoopIteration(projectId, projectType)]
+  const researchRuns = makeResearchRun(projectId)
+
+  await page.goto('/')
+  await page.evaluate(() => {
+    localStorage.removeItem('ai-product-studio-registry')
+    localStorage.removeItem('ai-product-studio-project')
+  })
+
+  await page.evaluate(
+    ({
+      projectId: pid,
+      project: proj,
+      ideaDraft: idea,
+      researchBrief: brief,
+      specPack: spec,
+      architectureDraft: arch,
+      promptIterations: iters,
+      researchRuns: runs,
+    }) => {
+      localStorage.setItem(
+        'ai-product-studio-registry',
+        JSON.stringify({
+          state: {
+            projects: [proj],
+            selectedProjectId: pid,
+          },
+          version: 0,
+        }),
+      )
+
+      localStorage.setItem(
+        'ai-product-studio-project',
+        JSON.stringify({
+          state: {
+            activeProject: proj,
+            projectData: {},
+            ideaDraft: idea,
+            researchRuns: runs,
+            importedArtifacts: [],
+            researchBrief: brief,
+            specPack: spec,
+            architectureDraft: arch,
+            promptIterations: iters,
+            ui: { sidebarOpen: false, activeTab: 'overview' },
+          },
+          version: 0,
+        }),
+      )
+    },
+    { projectId, project, ideaDraft, researchBrief, specPack, architectureDraft, promptIterations, researchRuns },
+  )
+
+  // Navigate to PromptLoopPage; Zustand will rehydrate from seeded localStorage.
+  await page.goto('/prompt-loop')
 }

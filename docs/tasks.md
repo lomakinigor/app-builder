@@ -747,6 +747,20 @@ Definition of done:
 - Blog reload simulation: posts/channel bodies/publication status survive
 - 776 tests pass (685 before T-015 + 91 new)
 
+## T-021 — Desktop visual baseline for PromptLoopPage summary
+Type: ops
+Description: Stable full-page desktop screenshot baseline for PromptLoopPage in parsed-iteration ("summary") state. Uses seeded state (application project, one parsed T-001 iteration with hasTests=true and inferredNextPhase='review') so the full summary UI is visible: CycleContextBar, iteration card, parsed result card (analysis/plan/files/tasks/next-step), and both Code+Tests + Review action buttons.
+Links: testing-strategy.md — follows T-018, T-020
+Status: done
+Owner: AI
+Definition of done:
+- seedPromptLoopPage(page, 'application') helper added to tests/visual/helpers/seedState.ts
+- tests/visual/prompt-loop-summary.visual.spec.ts created with VIS-003 test
+- Baseline PNG committed: tests/visual/prompt-loop-summary.visual.spec.ts-snapshots/promptloop-summary-desktop-visual-chromium-linux.png
+- Test passes on 3 consecutive runs with zero pixel diff (maxDiffPixelRatio: 0.002)
+- docs/testing-strategy.md updated to mention this baseline
+- docs/plan.md updated with T-021 row
+
 ## T-020 — Promote E2E-001 to required CI gate
 Type: ops
 Description: Make the E2E-001 happy-path scenario a blocking status check for merges to main. Runs independently of deploy and independently of Netlify.

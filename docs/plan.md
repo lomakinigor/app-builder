@@ -91,6 +91,7 @@ Tasks execute in phase order. An impl task may not begin until its paired test t
 | T-301 | impl | Blog development diary module: entity (types/schema/utils/exporter), scaffold templates, blogStore, BlogPage UI, /blog route + nav | F-028 | T-302 | done |
 | T-015 | test | Local persistence correctness: projectStore shape guards, reload simulation, hot/cold mechanics, stage-gate preservation, multi-project isolation, partial-state tolerance; blogStore CRUD + ensureTodayPost + per-project isolation | F-019, F-028 | — | done |
 | T-020 | ops | Promote E2E-001 to required CI gate: dedicated e2e-critical.yml workflow, test:e2e:critical npm script, branch protection docs | testing-strategy | — | done |
+| T-021 | ops | Desktop visual baseline for PromptLoopPage summary: seedPromptLoopPage helper, VIS-003 snapshot test, baseline PNG | testing-strategy | — | done |
 
 ---
 

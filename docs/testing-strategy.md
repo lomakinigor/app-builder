@@ -152,6 +152,26 @@ This runs the exact same command as the CI gate — `playwright test tests/e2e/h
 
 ---
 
+## Visual regression baselines (T-018, T-021)
+
+Full-page desktop screenshots are committed alongside each visual spec under `tests/visual/**-snapshots/`. Baselines are captured at 1440×900, `locale: 'ru-RU'`, light mode.
+
+| Baseline file | Test ID | Screen |
+|---------------|---------|--------|
+| `history-app-desktop.png` | VIS-001 | HistoryPage — application project |
+| `history-web-desktop.png` | VIS-002 | HistoryPage — website project |
+| `promptloop-summary-desktop.png` | VIS-003 | PromptLoopPage — parsed iteration (T-001, application) |
+
+**To refresh a baseline after an intentional UI change:**
+
+```sh
+npm run test:visual:update
+```
+
+Review the diff in the Playwright report, confirm the change is intentional, then commit the updated PNG. Visual tests are **non-blocking** in CI (not added to branch protection) — they run with the full E2E suite via `e2e.yml`.
+
+---
+
 ## How this applies to user projects
 
 When AI Product Studio generates prompts for a user's application or website, the same discipline applies:
