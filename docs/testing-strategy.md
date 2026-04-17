@@ -118,6 +118,40 @@ Once branch protection is enabled, a failing `npm test` will prevent a PR from b
 
 ---
 
+## Critical E2E gate (T-020)
+
+E2E-001 (the full happy-path scenario in `tests/e2e/happy-path.spec.ts`) is promoted to a **required merge-blocking status check**.
+
+Workflow file: `.github/workflows/e2e-critical.yml`
+Job name (for branch protection): **`e2e-critical`**
+
+Steps: checkout → Node 20 LTS → `npm ci` → `npx playwright install chromium --with-deps` → `npm run test:e2e:critical`
+
+On failure: trace + screenshots uploaded as artifact `e2e-critical-report` (14-day retention).
+
+**To enforce blocking merges**, configure branch protection in GitHub:
+> Settings → Branches → Add rule for `main` → ✓ Require status checks to pass before merging → add the **`e2e-critical`** check
+
+### Scope
+
+| Workflow | Scope | Blocking |
+|----------|-------|----------|
+| `test.yml` (`test` job) | Vitest unit + integration suite | yes (T-113) |
+| `e2e-critical.yml` (`e2e-critical` job) | E2E-001 happy-path only | yes (T-020) |
+| `e2e.yml` (`e2e` job) | Full Playwright suite (all specs) | no — informational |
+
+The full suite (`e2e.yml`) continues to run on every push/PR but is **not** a merge gate. Only `e2e-critical` is required.
+
+### Local reproduction
+
+```sh
+npm run test:e2e:critical
+```
+
+This runs the exact same command as the CI gate — `playwright test tests/e2e/happy-path.spec.ts` — using the shared `playwright.config.ts`.
+
+---
+
 ## How this applies to user projects
 
 When AI Product Studio generates prompts for a user's application or website, the same discipline applies:

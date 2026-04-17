@@ -11,6 +11,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:e2e:critical": "playwright test tests/e2e/happy-path.spec.ts",
     "test:e2e:local": "PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1 LD_LIBRARY_PATH=$HOME/.local/pw-deps:$LD_LIBRARY_PATH playwright test",
     "test:visual": "PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1 LD_LIBRARY_PATH=$HOME/.local/pw-deps:$LD_LIBRARY_PATH playwright test --config=playwright.visual.config.ts",
     "test:visual:update": "PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1 LD_LIBRARY_PATH=$HOME/.local/pw-deps:$LD_LIBRARY_PATH playwright test --config=playwright.visual.config.ts --update-snapshots"

@@ -746,3 +746,18 @@ Definition of done:
 - Blog posts per-project: P1 posts not visible in P2
 - Blog reload simulation: posts/channel bodies/publication status survive
 - 776 tests pass (685 before T-015 + 91 new)
+
+## T-020 — Promote E2E-001 to required CI gate
+Type: ops
+Description: Make the E2E-001 happy-path scenario a blocking status check for merges to main. Runs independently of deploy and independently of Netlify.
+Links: testing-strategy.md — pairs with T-113
+Status: done
+Owner: AI
+Definition of done:
+- npm script test:e2e:critical added to package.json — runs only tests/e2e/happy-path.spec.ts
+- .github/workflows/e2e-critical.yml created: triggers on push/PR to main, job named e2e-critical, uploads trace+screenshots on failure
+- Full E2E suite (e2e.yml) unchanged — still runs but is informational only
+- docs/testing-strategy.md updated: E2E-001 documented as the critical CI gate with the required status check name
+- docs/plan.md updated with T-020 row
+- Validation: npm run test:e2e:critical passes locally
+- Branch protection step documented (manual): add "e2e-critical" as required status check in GitHub repo settings
