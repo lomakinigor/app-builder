@@ -172,6 +172,39 @@ Review the diff in the Playwright report, confirm the change is intentional, the
 
 ---
 
+## Type-aware spec and architecture tests (T-106)
+
+`src/mocks/services/specService.type-aware.test.ts` — 90 tests across 6 groups.
+
+| Group | What it verifies |
+|-------|-----------------|
+| A — Spec differentiation | featureList, constraints, assumptions, acceptanceNotes, productSummary, MVPScope differ meaningfully between `application` and `website` |
+| B — Arch differentiation | stack (React vs Next.js), moduleArchitecture, dataFlow, roadmap phases, technicalRisks are distinct per type |
+| C — Minimal contract | All required fields non-empty for every supported type; `canAdvanceFromSpec` and `canAdvanceFromArchitecture` pass |
+| D — Brief integration | `valueHypothesis`, `recommendedMVP`, and `targetUsers` from the ResearchBrief propagate correctly into the spec |
+| E — Fallback | Unknown/unsupported `projectType` cast falls through to application shape without throwing; gate still passes |
+| F — Determinism | Identical inputs produce byte-for-byte identical spec and arch outputs across multiple calls |
+
+Uses `vi.useFakeTimers()` to suppress async delays. No UI, store, or page dependencies — pure service layer.
+
+---
+
+## Sound notification test coverage (T-019, T-023, T-024, SOUND-004)
+
+| Test ID | Level | File | Signal path |
+|---------|-------|------|------------|
+| SOUND-001 | E2E | `tests/e2e/sound-notifications.spec.ts` | Settings preview → `playTestBeep()` → oscillator-start |
+| SOUND-002 | E2E | `tests/e2e/sound-notifications.spec.ts` | Sound OFF → preview button absent → no oscillator |
+| SOUND-003 | E2E | `tests/e2e/sound-notifications.spec.ts` | Toggle round-trip OFF→ON → preview fires |
+| SOUND-004 | E2E | `tests/e2e/sound-awaiting-confirmation.spec.ts` | PromptLoop generate → `awaiting_confirmation` → oscillator-start; textarea input stops signal |
+| attentionSignal groups A–G | Unit | `src/shared/lib/attentionSignal.test.ts` | Timing, priority, anti-overlap, disabled mode, browser constraints, `playTestBeep` results |
+| SettingsPage groups A–F | RTL | `src/pages/settings/SettingsPage.test.tsx` | Toggle wiring, preview button guard, blocked audio UI (`role="status"`) |
+
+All E2E sound tests are **non-blocking** (run via `e2e.yml`, not added to branch protection).
+Playwright requires system Chromium dependencies; tests run in CI (`e2e.yml`) and must be validated in an environment with `libatk-1.0.so.0` present.
+
+---
+
 ## How this applies to user projects
 
 When AI Product Studio generates prompts for a user's application or website, the same discipline applies:

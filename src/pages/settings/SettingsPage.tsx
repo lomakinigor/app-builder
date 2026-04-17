@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useSettingsStore } from '../../app/store/settingsStore'
 import { playTestBeep } from '../../shared/lib/attentionSignal'
 import { PageHeader } from '../../shared/ui/PageHeader'
@@ -73,6 +74,13 @@ function SettingRow({ labelId, descId, label, description, children }: SettingRo
 
 export function SettingsPage() {
   const { soundNotificationsEnabled, setSoundNotificationsEnabled } = useSettingsStore()
+  const [beepBlocked, setBeepBlocked] = useState(false)
+
+  async function handlePreviewBeep() {
+    setBeepBlocked(false)
+    const result = await playTestBeep()
+    if (result === 'blocked') setBeepBlocked(true)
+  }
 
   return (
     <div className="space-y-6">
@@ -111,17 +119,27 @@ export function SettingsPage() {
 
           {/* Preview button */}
           {soundNotificationsEnabled && (
-            <div className="flex items-center gap-3 pt-1">
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={playTestBeep}
-              >
-                Проверить звук
-              </Button>
-              <span className="text-xs text-zinc-400 dark:text-zinc-500">
-                Один короткий сигнал
-              </span>
+            <div className="space-y-2 pt-1">
+              <div className="flex items-center gap-3">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={handlePreviewBeep}
+                >
+                  Проверить звук
+                </Button>
+                <span className="text-xs text-zinc-400 dark:text-zinc-500">
+                  Один короткий сигнал
+                </span>
+              </div>
+              {beepBlocked && (
+                <p
+                  role="status"
+                  className="text-xs text-amber-600 dark:text-amber-400"
+                >
+                  Браузер заблокировал воспроизведение. Попробуйте нажать кнопку ещё раз.
+                </p>
+              )}
             </div>
           )}
         </div>

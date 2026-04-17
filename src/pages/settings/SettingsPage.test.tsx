@@ -9,7 +9,7 @@
 //   E. Preview button   (11)
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { SettingsPage } from './SettingsPage'
 
 // ─── Module mocks ──────────────────────────────────────────────────────────────
@@ -139,5 +139,76 @@ describe('E. Preview button', () => {
     renderPage()
     fireEvent.click(screen.getByRole('button', { name: /Проверить звук/ }))
     expect(mockPlayTestBeep).toHaveBeenCalledTimes(1)
+  })
+
+  it('12. preview button is NOT rendered when sound is disabled', () => {
+    // T-023: guard — button is conditionally rendered only when soundNotificationsEnabled=true
+    mockSoundEnabled = false
+    renderPage()
+    expect(screen.queryByRole('button', { name: /Проверить звук/ })).not.toBeInTheDocument()
+  })
+
+  it('13. playTestBeep is NOT called when sound is disabled (button absent)', () => {
+    // T-023: no path to playTestBeep exists when sound is off — confirm spy stays clean
+    mockSoundEnabled = false
+    renderPage()
+    expect(mockPlayTestBeep).not.toHaveBeenCalled()
+  })
+})
+
+// ─── F. Blocked audio feedback ────────────────────────────────────────────────
+// T-024: when playTestBeep resolves to 'blocked', the UI shows an inline message
+// via role="status". On success ('played') or default (undefined), no message shown.
+
+describe('F. Blocked audio feedback', () => {
+  it('14. blocked result → role="status" message appears', async () => {
+    mockPlayTestBeep.mockResolvedValue('blocked')
+    renderPage()
+    fireEvent.click(screen.getByRole('button', { name: /Проверить звук/ }))
+    await waitFor(() => {
+      expect(screen.getByRole('status')).toBeInTheDocument()
+    })
+  })
+
+  it('15. blocked result → message mentions audio being blocked', async () => {
+    mockPlayTestBeep.mockResolvedValue('blocked')
+    renderPage()
+    fireEvent.click(screen.getByRole('button', { name: /Проверить звук/ }))
+    await waitFor(() => {
+      expect(screen.getByRole('status')).toHaveTextContent(/заблокировал/i)
+    })
+  })
+
+  it('16. played result → no blocked-sound status message', async () => {
+    mockPlayTestBeep.mockResolvedValue('played')
+    renderPage()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Проверить звук/ }))
+    })
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+  })
+
+  it('17. unavailable result → no blocked-sound status message', async () => {
+    mockPlayTestBeep.mockResolvedValue('unavailable')
+    renderPage()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Проверить звук/ }))
+    })
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+  })
+
+  it('18. blocked message clears on next click attempt', async () => {
+    // First click: blocked
+    mockPlayTestBeep.mockResolvedValueOnce('blocked')
+    renderPage()
+    fireEvent.click(screen.getByRole('button', { name: /Проверить звук/ }))
+    await waitFor(() => expect(screen.getByRole('status')).toBeInTheDocument())
+
+    // Second click: played — message should disappear
+    mockPlayTestBeep.mockResolvedValueOnce('played')
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Проверить звук/ }))
+    })
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
 })

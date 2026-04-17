@@ -67,7 +67,7 @@ Tasks execute in phase order. An impl task may not begin until its paired test t
 | T-103 | impl | Add project type selector (Application / Website) to Idea page; wire stage gate and store | F-025, US-015 | T-104 | done |
 | T-104 | test | Tests: project type selector — selection state, validation block, store update, HomePage display | T-103 | — | todo |
 | T-105 | impl | Make Spec and Architecture generation aware of ProjectType; type-aware mock outputs, type badges in UI, tightened stage gates | F-025, F-005, F-006, US-015 | T-106 | done |
-| T-106 | test | Tests: type-aware spec/arch generation — application vs website outputs, stage gate assertions, badge display | T-105 | — | todo |
+| T-106 | test | Tests: type-aware spec/arch generation — application vs website outputs, stage gate assertions, badge display | T-105 | — | done |
 | T-107 | impl | Align Prompt Loop with Superpowers cycle — add CyclePhase + projectType to PromptIteration; cycle-aware first/next prompts with TDD requirement; parser extracts hasTests, task IDs; UI shows phase/type/task context | F-007, F-024, US-011, US-012, US-013 | T-108 | done |
 | T-108 | test | Tests: cycle-aware prompt generation — first prompt mentions projectType and TDD rule; parser detects test files and task IDs; UI shows correct phase badges | T-107 | — | todo |
 | T-109 | impl | Make HistoryPage the visible Review phase — 6-stage cycle timeline, iteration T-xxx/F-xxx/test badges, decisions panel, review checklist | F-024, F-007, US-011–013 | T-110 | done |
@@ -92,6 +92,10 @@ Tasks execute in phase order. An impl task may not begin until its paired test t
 | T-015 | test | Local persistence correctness: projectStore shape guards, reload simulation, hot/cold mechanics, stage-gate preservation, multi-project isolation, partial-state tolerance; blogStore CRUD + ensureTodayPost + per-project isolation | F-019, F-028 | — | done |
 | T-020 | ops | Promote E2E-001 to required CI gate: dedicated e2e-critical.yml workflow, test:e2e:critical npm script, branch protection docs | testing-strategy | — | done |
 | T-021 | ops | Desktop visual baseline for PromptLoopPage summary: seedPromptLoopPage helper, VIS-003 snapshot test, baseline PNG | testing-strategy | — | done |
+| T-022 | test | SpecPage structural RTL slice: section headings, MoSCoW labels, assumptions/constraints, acceptanceNotes, edit/cancel round-trip | F-005, T-013, T-106 | — | done |
+| T-023 | test | SettingsPage sound RTL smoke: preview button absent + playTestBeep not called when sound disabled (guard C) | PLAT-ALERT-002, T-019 | — | done |
+| SOUND-004 | test | E2E: awaiting_confirmation path in PromptLoop — generate first prompt → oscillator-start fires → textarea input → beeps stop | PLAT-ALERT-001, T-019 | — | done |
+| T-024 | impl+test | Surface blocked sound state: PlayBeepResult return from playTestBeep, beepBlocked state in SettingsPage, role="status" message, 11 new tests | PLAT-ALERT-002, T-019, T-023 | — | done |
 
 ---
 

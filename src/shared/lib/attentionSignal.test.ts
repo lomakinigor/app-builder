@@ -16,6 +16,7 @@ import {
   isAttentionSignalActive,
   setSoundNotificationsEnabled,
   isSoundNotificationsEnabled,
+  playTestBeep,
   _resetForTest,
   SIGNAL_INTERVAL_MS,
   SIGNAL_MAX_BEEPS,
@@ -243,5 +244,62 @@ describe('F. Browser constraints', () => {
     expect(() => startAttentionSignal('task_completed')).not.toThrow()
     expect(ctx.resume).toHaveBeenCalledTimes(1)
     stopAttentionSignal()
+  })
+})
+
+// ─── G. playTestBeep result ───────────────────────────────────────────────────
+
+describe('G. playTestBeep result', () => {
+  it('16. returns "played" when AudioContext is in running state', async () => {
+    const result = await playTestBeep()
+    expect(result).toBe('played')
+  })
+
+  it('17. returns "unavailable" when AudioContext constructor is absent', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (window as any).AudioContext
+    const result = await playTestBeep()
+    expect(result).toBe('unavailable')
+  })
+
+  it('18. returns "unavailable" when sound is disabled globally', async () => {
+    setSoundNotificationsEnabled(false)
+    const result = await playTestBeep()
+    expect(result).toBe('unavailable')
+  })
+
+  it('19. returns "played" when AudioContext was suspended and resume() transitions it to running', async () => {
+    const { ctx } = makeMockAudioCtx('suspended')
+    ctx.resume.mockImplementation(() => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(ctx as any).state = 'running'
+      return Promise.resolve()
+    })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(window as any).AudioContext = vi.fn(function () { return ctx })
+
+    const result = await playTestBeep()
+    expect(result).toBe('played')
+  })
+
+  it('20. returns "blocked" when AudioContext is suspended and resume() rejects', async () => {
+    const { ctx } = makeMockAudioCtx('suspended')
+    ctx.resume.mockRejectedValue(new Error('NotAllowedError'))
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(window as any).AudioContext = vi.fn(function () { return ctx })
+
+    const result = await playTestBeep()
+    expect(result).toBe('blocked')
+  })
+
+  it('21. returns "blocked" when AudioContext is suspended and stays suspended after resume()', async () => {
+    // resume() resolves but the browser does not actually un-suspend the context
+    const { ctx } = makeMockAudioCtx('suspended')
+    ctx.resume.mockResolvedValue(undefined) // state stays 'suspended'
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(window as any).AudioContext = vi.fn(function () { return ctx })
+
+    const result = await playTestBeep()
+    expect(result).toBe('blocked')
   })
 })

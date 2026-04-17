@@ -29,6 +29,17 @@
 
 export type SignalReason = 'awaiting_confirmation' | 'task_completed'
 
+/**
+ * Result of a playTestBeep() call.
+ *
+ * - 'played'      — AudioContext was running (or successfully resumed) and the
+ *                   oscillator was started. The user should hear the beep.
+ * - 'blocked'     — AudioContext was suspended and could not be resumed (autoplay
+ *                   policy, missing user gesture, or browser permission denied).
+ * - 'unavailable' — Web Audio API not present, or an unexpected error occurred.
+ */
+export type PlayBeepResult = 'played' | 'blocked' | 'unavailable'
+
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const PRIORITY: Record<SignalReason, number> = {
@@ -200,9 +211,37 @@ export function isSoundNotificationsEnabled(): boolean {
  * Play a single test beep without starting a signal cycle.
  * Respects the global soundEnabled kill switch.
  * Safe to call at any time (does not affect active signal state).
+ *
+ * Returns a PlayBeepResult describing the outcome so the caller can surface
+ * feedback when audio is blocked by autoplay policy:
+ *   - 'played'      — oscillator started successfully
+ *   - 'blocked'     — AudioContext suspended and could not be resumed
+ *   - 'unavailable' — Web Audio API absent or unexpected error
  */
-export function playTestBeep(): void {
-  playBeep()
+export async function playTestBeep(): Promise<PlayBeepResult> {
+  if (!soundEnabled) return 'unavailable'
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const Ctor: typeof AudioContext | undefined = (window as any).AudioContext ?? (window as any).webkitAudioContext
+    if (!Ctor) return 'unavailable'
+
+    if (!audioCtx) audioCtx = new Ctor()
+
+    if (audioCtx.state === 'suspended') {
+      try {
+        await audioCtx.resume()
+      } catch {
+        return 'blocked'
+      }
+      // resume() resolved but browser may have left the context suspended
+      if (audioCtx.state !== 'running') return 'blocked'
+    }
+
+    doBeep()
+    return 'played'
+  } catch {
+    return 'unavailable'
+  }
 }
 
 /**
