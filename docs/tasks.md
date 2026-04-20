@@ -768,6 +768,20 @@ Definition of done:
 - SettingsPage.test.tsx group F: 5 new tests (blocked message appears, copy check, played/unavailable no message, clears on retry)
 - All 39 tests in both files pass; full suite 1294+11=1305 pass
 
+## T-025 — SMOKE-RTL-002: full-route render smoke
+Type: test
+Description: RTL smoke confirming all 10 main application routes (/, /idea, /research, /spec, /architecture, /prompt-loop, /history, /blog, /settings, /project/new) render without crash under a minimal null-project store state. One it.each over all page components; each case checks for the page-specific heading or guard text.
+Links: T-011, T-012, T-001, T-002
+Status: done
+Owner: AI
+Definition of done:
+- src/app/router/FullRoute.smoke.test.tsx created with 10 it.each cases
+- All 10 routes covered: HomePage, IdeaPage, ResearchPage, SpecPage, ArchitecturePage, PromptLoopPage, HistoryPage, BlogPage, SettingsPage, ProjectNewPage
+- Mocks: react-router-dom (useNavigate), projectStore, projectRegistryStore, blogStore, settingsStore
+- All 10 tests pass in isolation; no changes to existing tests
+- docs/plan.md updated with T-025 row
+- docs/testing-strategy.md updated with SMOKE-RTL-002 section
+
 ## SOUND-004 — E2E: awaiting_confirmation attentionSignal path in PromptLoop
 Type: test
 Description: E2E Playwright test verifying that the awaiting_confirmation sound path fires through PromptLoopPage. Generates the first prompt (which calls startAttentionSignal('awaiting_confirmation')), asserts at least one oscillator-start is recorded via the AudioContext monitor, then types in the response textarea (which calls stopAttentionSignal('awaiting_confirmation') via onChange), and asserts no further beeps fire in the 300ms window following the stop.

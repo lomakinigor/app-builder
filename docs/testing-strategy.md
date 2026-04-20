@@ -304,6 +304,27 @@ Uses `vi.useFakeTimers()` to suppress async delays. No UI, store, or page depend
 
 ---
 
+## Full-route render smoke (T-025 / SMOKE-RTL-002)
+
+`src/app/router/FullRoute.smoke.test.tsx` — 10 it.each cases, one per main route.
+
+Renders each page component directly (no AppLayout / RouterProvider) with a minimal null-project store state shared across all mocks.  Confirms the page surfaces its expected heading or guard text without crashing.
+
+| Route | Component | Expected text |
+|-------|-----------|---------------|
+| `/` | `HomePage` | "AI Product Studio" |
+| `/idea` | `IdeaPage` | "Идея" |
+| `/research` | `ResearchPage` | "Исследование" |
+| `/spec` | `SpecPage` | "Спецификация" |
+| `/architecture` | `ArchitecturePage` | "Архитектура" |
+| `/prompt-loop` | `PromptLoopPage` | "Цикл промптов" |
+| `/history` | `HistoryPage` | "Обзор" |
+| `/blog` | `BlogPage` | "Проект не выбран" (guard — no PageHeader in this branch) |
+| `/settings` | `SettingsPage` | "Настройки" |
+| `/project/new` | `ProjectNewPage` | "Новый проект" |
+
+---
+
 ## Sound notification test coverage (T-019, T-023, T-024, SOUND-004)
 
 | Test ID | Level | File | Signal path |

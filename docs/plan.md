@@ -96,6 +96,7 @@ Tasks execute in phase order. An impl task may not begin until its paired test t
 | T-023 | test | SettingsPage sound RTL smoke: preview button absent + playTestBeep not called when sound disabled (guard C) | PLAT-ALERT-002, T-019 | — | done |
 | SOUND-004 | test | E2E: awaiting_confirmation path in PromptLoop — generate first prompt → oscillator-start fires → textarea input → beeps stop | PLAT-ALERT-001, T-019 | — | done |
 | T-024 | impl+test | Surface blocked sound state: PlayBeepResult return from playTestBeep, beepBlocked state in SettingsPage, role="status" message, 11 new tests | PLAT-ALERT-002, T-019, T-023 | — | done |
+| T-025 | test | SMOKE-RTL-002: full-route render smoke — 10 routes × it.each, confirms every page renders without crash under null-project state | T-001, T-002, T-011 | — | done |
 
 ---
 
