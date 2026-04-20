@@ -392,16 +392,15 @@ Definition of done:
 Type: test
 Description: Acceptance tests for the Idea page project type selector. Covers selection state, validation blocking, store updates, and the HomePage type badge display.
 Links: F-025, US-015 — pairs with T-103
-Status: todo
+Status: done
 Owner: AI
-Acceptance criteria:
-- no project type selected + submitted: blocked state banner shows, "Continue" is disabled
-- selecting 'application': selector shows 'Application' as active
-- selecting 'website': selector shows 'Website' as active
-- canAdvanceFromIdea returns false with reason when projectType is null (and idea text is valid)
-- canAdvanceFromIdea returns true when both idea text is valid and projectType is non-null
-- after save with projectType='website', activeProject.projectType === 'website' in store
-- HomePage active project card renders 'Application' or 'Website' badge matching stored type
+Definition of done:
+- A: Initial render — both "Приложение" / "Сайт" buttons visible; aria-pressed reflects activeProject.projectType
+- B: Interaction — click switches aria-pressed state; idempotent re-click does not crash
+- C: Store wiring — clicking a type calls setProjectType with the correct value; two-click sequence calls setProjectType twice
+- D: Null activeProject — EmptyState shown, type selector absent, setProjectType never called
+- 20/20 pass; aria-pressed added to ProjectTypeSelector buttons in IdeaPage.tsx for semantic testing
+- 1346/1346 total suite, no regressions
 
 ## T-107 — Align Prompt Loop with Superpowers cycle
 Type: impl

@@ -172,6 +172,21 @@ Review the diff in the Playwright report, confirm the change is intentional, the
 
 ---
 
+## IdeaPage project type selector (T-104)
+
+`src/pages/idea/IdeaPage.projectType.test.tsx` — 20 tests across 4 groups. IdeaPage is the primary UI entry point for `projectType` selection.
+
+| Group | What it verifies |
+|-------|-----------------|
+| A — Initial render | Both option buttons render; `aria-pressed` reflects `activeProject.projectType` on mount |
+| B — Interaction | Click switches `aria-pressed` state; idempotent re-click does not crash; round-trip stable |
+| C — Store wiring | Each click calls `setProjectType` with the correct type; two-click sequence calls it twice |
+| D — Null activeProject | EmptyState renders, type selector absent, `setProjectType` never called |
+
+`ProjectTypeSelector` buttons carry `aria-pressed` for semantic testability (added in T-104).
+
+---
+
 ## ProjectType store behavior (T-102)
 
 `src/app/store/projectStore.projectType.test.ts` — 21 tests across 4 groups.

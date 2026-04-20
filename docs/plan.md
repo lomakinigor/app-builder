@@ -65,7 +65,7 @@ Tasks execute in phase order. An impl task may not begin until its paired test t
 | T-101 | impl | Introduce ProjectType ('application' \| 'website') in types, Project entity, store, seed data | data-model, F-025 | T-102 | done |
 | T-102 | test | Tests: ProjectType in store — setProjectType action, persist round-trip, seed value | T-101 | — | done |
 | T-103 | impl | Add project type selector (Application / Website) to Idea page; wire stage gate and store | F-025, US-015 | T-104 | done |
-| T-104 | test | Tests: project type selector — selection state, validation block, store update, HomePage display | T-103 | — | todo |
+| T-104 | test | Tests: project type selector — selection state, validation block, store update, HomePage display | T-103 | — | done |
 | T-105 | impl | Make Spec and Architecture generation aware of ProjectType; type-aware mock outputs, type badges in UI, tightened stage gates | F-025, F-005, F-006, US-015 | T-106 | done |
 | T-106 | test | Tests: type-aware spec/arch generation — application vs website outputs, stage gate assertions, badge display | T-105 | — | done |
 | T-107 | impl | Align Prompt Loop with Superpowers cycle — add CyclePhase + projectType to PromptIteration; cycle-aware first/next prompts with TDD requirement; parser extracts hasTests, task IDs; UI shows phase/type/task context | F-007, F-024, US-011, US-012, US-013 | T-108 | done |

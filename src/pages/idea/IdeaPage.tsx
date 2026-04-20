@@ -51,6 +51,7 @@ function ProjectTypeSelector({
           <button
             key={type}
             type="button"
+            aria-pressed={value === type}
             onClick={() => onChange(type)}
             className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
               value === type
