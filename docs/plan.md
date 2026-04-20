@@ -53,7 +53,7 @@ Tasks execute in phase order. An impl task may not begin until its paired test t
 | T-009 | impl | Add local persistence: Zustand persist, restore on reload | F-008, US-013 | T-015 | done |
 | T-010 | impl | Polish errors and empty states: validation feedback, parser warnings | F-012, F-023 | T-017 | done |
 | T-011 | test | Tests: Idea and Research workflow acceptance | T-005, T-006 | — | done |
-| T-012 | test | Tests: Import normalizer edge cases | T-006 | — | todo |
+| T-012 | test | Tests: Import normalizer edge cases | T-006 | — | done |
 | T-012A | test | Tests: parser (parseClaudeResponse) + rule-engine (buildTaskReviewModel, filterTaskRows) — section extraction, hasTests, T-xxx IDs, warnings contract, degenerate inputs, regressions | F-007, F-024 | — | done |
 | T-012B | test | Tests: PromptLoopPage UI — empty states, validation, parse outcomes, warnings, iteration switcher | F-007, F-012, F-024 | — | done |
 | T-013 | test | Tests: Spec and Architecture workflow acceptance | T-007 | — | done |

@@ -169,13 +169,17 @@ Definition of done:
 Type: test
 Description: Unit-level tests for the heuristic text normalizer. Covers labeled sections, keyword fallback, empty input, and partial matches.
 Links: F-003, F-013 — US-004, US-005 — pairs with T-006
-Status: todo
+Status: done
 Owner: AI
-Acceptance criteria:
-- labeled headings map to correct ResearchBrief fields
-- missing sections produce empty strings, not undefined
-- keyword fallback fires when no headings found
-- warnings are returned when fewer than 3 sections are extracted
+Definition of done:
+- 77 unit tests across 7 groups in `src/features/imported-research-input/normalizer.test.ts`
+  - A (7): happy path — full markdown → correct extraction per field, extractedSectionCount ≥ 4, zero warnings
+  - B (8): empty/null/undefined input — no throw, valid brief shape, extractedSectionCount=0, 2 warnings, whitespace parity
+  - C (4): missing/partial sections — fallback strings for scalar fields, empty arrays for absent array fields, targetUsers invariant, warnings emitted
+  - D (7): malformed input — headers without body, duplicates (last wins), random text — no throw, valid shape
+  - E (7): ideaDraft fallback — problem/targetUser/rawIdea fill gaps; labeled section beats draft; null draft safe; keyword fallback flag
+  - F (35): output shape invariants — 7-case matrix × 5 invariants: targetUsers non-empty array, risks/opportunities/openQuestions arrays, scalar fields non-empty strings, sourceIds=[artifactId], briefSource="imported", warnings array
+  - G (4): stability — determinism, no input mutation, integer sectionCount, warning threshold contract
 
 ## T-012A — Tests: Parser and rule-engine (Prompt Loop)
 Type: test

@@ -172,6 +172,22 @@ Review the diff in the Playwright report, confirm the change is intentional, the
 
 ---
 
+## Import normalizer unit tests (T-012)
+
+`src/features/imported-research-input/normalizer.test.ts` — 77 tests across 7 groups. Pure unit tests for `normalizeResearchText()` — no UI, no store. Runs in node environment (no jsdom needed).
+
+| Group | What it verifies |
+|-------|-----------------|
+| A — Happy path (7 tests) | Full markdown with all 8 sections: correct field extraction, `extractedSectionCount ≥ 4`, zero warnings, `sourceIds=[artifactId]`, `briefSource="imported"` |
+| B — Empty/null/whitespace (8 tests) | `""`, whitespace-only, `null`, `undefined` inputs: no throw, valid brief shape with all fields present, `extractedSectionCount=0`, 2 warnings fired (both thresholds) |
+| C — Missing/partial sections (4 tests) | Single-section input: absent scalar fields get placeholder strings; absent array fields are `[]`; `targetUsers` invariant holds; warnings emitted |
+| D — Malformed input (7 tests) | Headers without body, duplicate headings (last wins), random unstructured text: no throw, valid shape |
+| E — ideaDraft fallback (7 tests) | `ideaDraft.problem`/`.targetUser`/`.rawIdea` fill gaps when sections absent; labeled section beats ideaDraft; `null` draft is safe; keyword fallback flag set |
+| F — Shape invariants (35 tests) | 7-input matrix × 5 invariants: `targetUsers` non-empty array, `risks`/`opportunities`/`openQuestions` arrays, scalar fields non-empty strings, `sourceIds=[artifactId]`, `warnings` array |
+| G — Stability (4 tests) | Deterministic output on repeated calls; ideaDraft not mutated; `extractedSectionCount` is non-negative integer; warning threshold contract (< 2 sections → 2 warnings, ≥ 4 → 0) |
+
+---
+
 ## Idea and Research workflow acceptance tests (T-011)
 
 Two acceptance test files covering the early user flow from project entry through Research → Spec transition.
