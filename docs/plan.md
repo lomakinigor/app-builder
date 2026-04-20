@@ -69,7 +69,7 @@ Tasks execute in phase order. An impl task may not begin until its paired test t
 | T-105 | impl | Make Spec and Architecture generation aware of ProjectType; type-aware mock outputs, type badges in UI, tightened stage gates | F-025, F-005, F-006, US-015 | T-106 | done |
 | T-106 | test | Tests: type-aware spec/arch generation — application vs website outputs, stage gate assertions, badge display | T-105 | — | done |
 | T-107 | impl | Align Prompt Loop with Superpowers cycle — add CyclePhase + projectType to PromptIteration; cycle-aware first/next prompts with TDD requirement; parser extracts hasTests, task IDs; UI shows phase/type/task context | F-007, F-024, US-011, US-012, US-013 | T-108 | done |
-| T-108 | test | Tests: cycle-aware prompt generation — first prompt mentions projectType and TDD rule; parser detects test files and task IDs; UI shows correct phase badges | T-107 | — | todo |
+| T-108 | test | Tests: cycle-aware prompt generation — first prompt mentions projectType and TDD rule; parser detects test files and task IDs; UI shows correct phase badges | T-107 | — | done |
 | T-109 | impl | Make HistoryPage the visible Review phase — 6-stage cycle timeline, iteration T-xxx/F-xxx/test badges, decisions panel, review checklist | F-024, F-007, US-011–013 | T-110 | done |
 | T-110 | test | Tests: Review phase history view — cycle stages, test badges, task ID badges, decisions panel | T-109 | — | todo |
 | T-111 | impl | Per-artifact "Copy as markdown" — pure formatters + clipboard/download utility + UI buttons on 4 pages | F-012, F-026, D-006 | T-112 | done |

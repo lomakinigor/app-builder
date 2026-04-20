@@ -172,6 +172,33 @@ Review the diff in the Playwright report, confirm the change is intentional, the
 
 ---
 
+## Cycle-aware prompt generation and phase badges (T-108)
+
+Two test files covering the full cycle-aware + type-aware contract for the Prompt Loop.
+
+**Service layer** — `src/mocks/services/promptService.cycle-aware.test.ts` — 63 tests, 7 groups:
+
+| Group | What it verifies |
+|-------|-----------------|
+| A — Website tech context | Next.js, MDX, Vercel, SSG/SEO in first prompt for website type |
+| B — Stack format + no cross-contamination | "Name — Role" format; website vocab absent from application prompts and vice versa |
+| C — Roadmap vocabulary | Phase title and goals from `arch.roadmapPhases[0]` appear verbatim in first prompt |
+| D — Next-prompt type guidance | `typeAwareGuidance()` injected in next prompts for both types |
+| E — Cycle-aware structural behavior | TDD rule present in `code_and_tests`; absent in `review`; missing-tests warning when `hasTests=false` |
+| F — First vs Next structural differences | `## Stack` and `## MVP scope` only in first prompt; "continuing the implementation" only in next |
+| G — Combined: type + stack + phase | All three dimensions co-present in a single prompt |
+
+**UI layer** — `src/pages/prompt-loop/PromptLoopPage.cycle-badges.test.tsx` — 24 tests, 4 groups:
+
+| Group | What it verifies |
+|-------|-----------------|
+| A — Phase label badges | All 6 CyclePhase values map to correct Russian label in CycleContextBar |
+| B — projectType badges | "📱 Приложение" for application, "🌐 Сайт" for website; cross-contamination absent |
+| C — Supporting data | `targetTaskId` and `roadmapPhaseNumber` appear in context bar |
+| D — Visibility rules | Bar shown with active iteration or architectureDraft; hidden otherwise; phase badge absent when no iteration |
+
+---
+
 ## IdeaPage project type selector (T-104)
 
 `src/pages/idea/IdeaPage.projectType.test.tsx` — 20 tests across 4 groups. IdeaPage is the primary UI entry point for `projectType` selection.

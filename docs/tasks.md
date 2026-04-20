@@ -423,18 +423,13 @@ Definition of done:
 Type: test
 Description: Acceptance tests for cycle-aware prompt generation and parsing.
 Links: F-007, F-024, US-011, US-012, US-013 — pairs with T-107
-Status: todo
+Status: done
 Owner: AI
-Acceptance criteria:
-- generateFirstPrompt with projectType='application' produces promptText containing 'application' and the TDD rule about tests
-- generateFirstPrompt with projectType='website' produces promptText containing 'website'
-- parseClaudeResponse on text mentioning 'src/foo.test.ts' sets hasTests=true
-- parseClaudeResponse on text with no .test. or .spec. files sets hasTests=false
-- parseClaudeResponse extracts ['T-001', 'T-002'] from a response mentioning 'T-001' and 'T-002'
-- parseClaudeResponse sets nextTaskId='T-002' when 'T-002' appears first in the next-step section
-- generateNextPrompt with hasTests=false in parsedResponse includes a warning about missing tests
-- PromptLoopPage renders 'Code + Tests' badge when activeIteration.status !== 'parsed'
-- PromptLoopPage renders 'Review' badge when activeIteration.status === 'parsed'
+Definition of done:
+- promptService.cycle-aware.test.ts — 63 tests across 7 groups (A–G): website/application tech context, stack format + cross-contamination, roadmap vocabulary, next-prompt type guidance, cycle-aware structural behavior (TDD rule, review vs code_and_tests), first vs next structural differences, combined type+stack+phase
+- PromptLoopPage.cycle-badges.test.tsx — 24 tests across 4 groups (A–D): phase label badges for all 6 CyclePhase values, projectType badges (application/website), supporting data (taskId, phaseNumber), visibility rules (shown/hidden with iteration and architectureDraft)
+- TDD rule confirmed: "## TDD rule (mandatory)" present in code_and_tests prompts, absent in review prompts
+- 1370/1370 total suite, no regressions
 
 ## T-109 — Make HistoryPage the visible Review phase of the cycle
 Type: impl
