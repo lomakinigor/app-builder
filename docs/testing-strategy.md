@@ -172,6 +172,21 @@ Review the diff in the Playwright report, confirm the change is intentional, the
 
 ---
 
+## HistoryPage review phase tests (T-110)
+
+`src/pages/history/HistoryPage.review.test.tsx` — 44 tests across 4 groups.
+
+Distinct from `HistoryPage.history-view.test.tsx` (which covers type/stack/roadmap/cross-type) — this file pins the review-phase contract: cycle stage UI, test/task badges from parsed iterations, decisions panel, and partial-state safety.
+
+| Group | What it verifies |
+|-------|-----------------|
+| A — Cycle stages (14 tests) | All 6 CycleTimeline stage labels; "Фаза обзора" top banner; "← вы здесь" on Review (unconditional); completion details per data state ("Идея зафиксирована", "Спек-пакет сгенерирован", "Архитектура и роадмап готовы", "Цикл промптов активен"); "Готово" badge on completed stages |
+| B — Task and test badges (11 tests) | `hasTests=true` → "✓ Тесты обнаружены"; `hasTests=false` → "⚠ Тестовые файлы не обнаружены"; `parsedSummary=null` → no test badge; `targetTaskId` badge; `implementedTaskIds` badges + "Упомянутые задачи:" label; `nextTaskId` + "Следующая:" label; status badges (Распарсено/Отправлено); warnings text |
+| C — Decisions panel + review checklist (10 tests) | "Ключевые решения" heading; D-001/D-002 IDs and D-001 title; linked tasks (T-001) and features (F-008); "Чеклист обзора" heading; docs/PRD.md and docs/tasks.md checklist entries; guidance text |
+| D — Partial/empty states (9 tests) | null activeProject; no promptIterations; no specPack; no architectureDraft; null parsedSummary + null targetTaskId crash-safety; all-null stability; roadmapPhaseNumber=null/1 |
+
+---
+
 ## Cycle-aware prompt generation and phase badges (T-108)
 
 Two test files covering the full cycle-aware + type-aware contract for the Prompt Loop.

@@ -449,16 +449,15 @@ Definition of done:
 Type: test
 Description: Acceptance tests for the redesigned HistoryPage as the Review phase view.
 Links: F-024 — pairs with T-109
-Status: todo
+Status: done
 Owner: AI
-Acceptance criteria:
-- HistoryPage renders all 6 cycle stage names (Brainstorm, Spec, Plan, Tasks, Code + Tests, Review)
-- Review stage is labeled "You are here" or equivalent when no further stage has been completed
-- A prompt iteration with hasTests=true shows a tests-present badge
-- A prompt iteration with hasTests=false shows a missing-tests warning badge
-- A prompt iteration with implementedTaskIds=['T-001'] renders a 'T-001' badge
-- Key decisions panel renders at least D-001 entry
-- Review checklist section renders at least one review criterion
+Definition of done:
+- HistoryPage.review.test.tsx — 44 tests across 4 groups (A–D):
+  - A (14 tests) — Cycle stages: all 6 CycleTimeline labels, "← вы здесь" on Review stage, completion details per data state ("Готово", "Идея зафиксирована", "Спек-пакет сгенерирован", "Архитектура и роадмап готовы", "Цикл промптов активен")
+  - B (11 tests) — Task and test badges: hasTests=true "✓ Тесты обнаружены", hasTests=false "⚠ Тестовые файлы не обнаружены", null parsedSummary (no badge), targetTaskId badge, implementedTaskIds badges + "Упомянутые задачи:" label, nextTaskId + "Следующая:" label, status badges, warnings
+  - C (10 tests) — Decisions panel + review checklist: "Ключевые решения" heading, D-001/D-002 IDs, D-001 title, linked tasks T-001, linked features F-008, "Чеклист обзора" heading, docs/PRD.md item, docs/tasks.md item, guidance text
+  - D (9 tests) — Partial/empty states: null activeProject, no iterations, no specPack, no architectureDraft, null parsedSummary + null targetTaskId safety, all-null stability, roadmapPhaseNumber=null/1
+- 1414/1414 total suite, no regressions
 
 ## T-111 — Implement per-artifact "Copy as markdown" export
 Type: impl

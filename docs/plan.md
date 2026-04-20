@@ -71,7 +71,7 @@ Tasks execute in phase order. An impl task may not begin until its paired test t
 | T-107 | impl | Align Prompt Loop with Superpowers cycle — add CyclePhase + projectType to PromptIteration; cycle-aware first/next prompts with TDD requirement; parser extracts hasTests, task IDs; UI shows phase/type/task context | F-007, F-024, US-011, US-012, US-013 | T-108 | done |
 | T-108 | test | Tests: cycle-aware prompt generation — first prompt mentions projectType and TDD rule; parser detects test files and task IDs; UI shows correct phase badges | T-107 | — | done |
 | T-109 | impl | Make HistoryPage the visible Review phase — 6-stage cycle timeline, iteration T-xxx/F-xxx/test badges, decisions panel, review checklist | F-024, F-007, US-011–013 | T-110 | done |
-| T-110 | test | Tests: Review phase history view — cycle stages, test badges, task ID badges, decisions panel | T-109 | — | todo |
+| T-110 | test | Tests: Review phase history view — cycle stages, test badges, task ID badges, decisions panel | T-109 | — | done |
 | T-111 | impl | Per-artifact "Copy as markdown" — pure formatters + clipboard/download utility + UI buttons on 4 pages | F-012, F-026, D-006 | T-112 | done |
 | T-112 | test | Tests: markdown formatters (content, projectType label) + clipboard utility (copy path, download fallback) | T-111 | — | done |
 | T-113 | ops | Wire CI: GitHub Actions workflow runs `npm test` on push/PR to main; failures block merges | testing-strategy, T-018, T-112 | — | done |
