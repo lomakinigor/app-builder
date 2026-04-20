@@ -331,14 +331,15 @@ Definition of done:
 Type: test
 Description: Unit tests confirming that setProjectType updates activeProject.projectType correctly, that the initial/null state is handled, and that persist round-trip preserves projectType. Pairs with T-101.
 Links: F-025 — pairs with T-101
-Status: todo
+Status: done
 Owner: AI
-Acceptance criteria:
-- setProjectType('application') sets activeProject.projectType to 'application'
-- setProjectType('website') sets activeProject.projectType to 'website'
-- calling setProjectType when activeProject is null does not throw
-- after simulated persist round-trip, projectType value is restored correctly
-- mockProject.projectType equals 'application'
+Definition of done:
+- src/app/store/projectStore.projectType.test.ts created with 21 tests across 4 groups (A–D)
+- A: happy path — setProjectType('application'/'website'), round-trip, idempotent, updatedAt bumped, other fields preserved
+- B: null-safety — no throw when activeProject=null, state stays null, earlier no-op call has no effect on subsequent setActiveProject
+- C: persist round-trip — application and website projectType both survive capture→reset→rehydrate; updatedAt preserved
+- D: seed data pin — mockProject.projectType equals 'application'
+- 21/21 pass, no regressions
 
 ## T-103 — Add project type selector to Idea page
 Type: impl

@@ -63,7 +63,7 @@ Tasks execute in phase order. An impl task may not begin until its paired test t
 | T-017 | impl+test | Gate hints + empty states + unified diagnostics UI (GateDiagnostics, mapping, 3 pages) | F-023, T-013, T-016 | 98 new tests | done |
 | T-018 | ops | Wire test runner: Vitest + Testing Library | testing-strategy, decisions D-004 | — | done |
 | T-101 | impl | Introduce ProjectType ('application' \| 'website') in types, Project entity, store, seed data | data-model, F-025 | T-102 | done |
-| T-102 | test | Tests: ProjectType in store — setProjectType action, persist round-trip, seed value | T-101 | — | todo |
+| T-102 | test | Tests: ProjectType in store — setProjectType action, persist round-trip, seed value | T-101 | — | done |
 | T-103 | impl | Add project type selector (Application / Website) to Idea page; wire stage gate and store | F-025, US-015 | T-104 | done |
 | T-104 | test | Tests: project type selector — selection state, validation block, store update, HomePage display | T-103 | — | todo |
 | T-105 | impl | Make Spec and Architecture generation aware of ProjectType; type-aware mock outputs, type badges in UI, tightened stage gates | F-025, F-005, F-006, US-015 | T-106 | done |

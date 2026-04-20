@@ -172,6 +172,21 @@ Review the diff in the Playwright report, confirm the change is intentional, the
 
 ---
 
+## ProjectType store behavior (T-102)
+
+`src/app/store/projectStore.projectType.test.ts` — 21 tests across 4 groups.
+
+| Group | What it verifies |
+|-------|-----------------|
+| A — Happy path | `setProjectType('application'/'website')` updates `activeProject.projectType`; round-trip; idempotent; `updatedAt` bumped; other project fields untouched |
+| B — Null-safety | No throw when `activeProject=null`; state stays null; earlier no-op call has no effect on subsequent `setActiveProject` |
+| C — Persist round-trip | Both supported types survive `capture → resetStore → setState` (Zustand rehydration simulation); `updatedAt` preserved |
+| D — Seed data pin | `mockProject.projectType === 'application'` structural pin |
+
+Complements T-015 (`projectStore.persist.test.ts`) which covers artifact hot/cold slots; T-102 focuses exclusively on the `projectType` field lifecycle.
+
+---
+
 ## Type-aware spec and architecture tests (T-106)
 
 `src/mocks/services/specService.type-aware.test.ts` — 90 tests across 6 groups.
