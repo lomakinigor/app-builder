@@ -527,6 +527,7 @@ Definition of done:
 - HomePage shows "No project selected" empty state when selectedProjectId is null
 - loadMockProject() calls selectProject before loading stage data
 - TypeScript build passes with zero errors
+- Unit tests for projectRegistryStore: 18 tests covering createProject, selectProject, updateProject, selectSelectedProject selector (src/app/store/projectRegistryStore.test.ts)
 
 ## T-202 — Project creation page (name + type → registry → /idea)
 Type: impl
