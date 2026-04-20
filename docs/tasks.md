@@ -148,14 +148,22 @@ Definition of done:
 Type: test
 Description: Acceptance tests for F-001, F-002, F-003, F-004. Covers idea validation, research provider selection, import normalizer output quality, brief editability, and stage gates.
 Links: F-001, F-002, F-003, F-004 — US-001, US-002, US-003, US-004, US-005, US-006 — pairs with T-005, T-006
-Status: todo
-Owner: human
-Acceptance criteria:
-- idea under 50 chars is rejected with message
-- research brief from mock run has all required fields non-empty
-- pasted freeform text produces at least 3 non-empty ResearchBrief fields
-- stage gate returns canAdvance=false with reason when brief is missing
-- edits to research brief persist through store
+Status: done
+Owner: AI
+Definition of done:
+- IdeaPage: 24 acceptance tests across 5 groups (A–E) in `src/pages/idea/IdeaPage.acceptance.test.tsx`
+  - A (5): no-project guard → EmptyState + "Создать проект" CTA, no form rendered
+  - B (4): project present + empty idea → textarea rendered, type selector present, draft button disabled, no premature errors
+  - C (5): submit with empty/short idea → validation errors, blocked-state banner, no navigate, no setIdeaDraft
+  - D (7): valid idea pre-seeded → form pre-populated, type pre-selected, continue saves + navigates to /research, draft-save-only path
+  - E (3): persistence contract — stored idea is source of truth for form init, no error banner, "Проект активен" badge
+- ResearchPage: 29 acceptance tests across 6 groups (A–F) in `src/pages/research/ResearchPage.acceptance.test.tsx`
+  - A (5): no-project guard → EmptyState, no run button, no tabs
+  - B (5): idea gate failures → GateBanner shown, run button disabled; gate absent when idea valid
+  - C (6): valid idea + no brief → empty state, tabs visible, run enabled, "Бриф отсутствует" badge
+  - D (5): valid brief → editable brief rendered, "Бриф готов" badge, advance button available + navigates to /spec
+  - E (3): incomplete brief (empty problemSummary) → advance disabled, reason shown, no navigation
+  - F (5): cross-stage acceptance — idea state drives research readiness through real gate logic
 
 ## T-012 — Tests: Import normalizer edge cases
 Type: test

@@ -172,6 +172,33 @@ Review the diff in the Playwright report, confirm the change is intentional, the
 
 ---
 
+## Idea and Research workflow acceptance tests (T-011)
+
+Two acceptance test files covering the early user flow from project entry through Research → Spec transition.
+
+**IdeaPage** — `src/pages/idea/IdeaPage.acceptance.test.tsx` — 24 tests, 5 groups:
+
+| Group | What it verifies |
+|-------|-----------------|
+| A — Entry guard (5 tests) | No-project → EmptyState "Проект не выбран"; "Создать проект" CTA navigates to /project/new; form and type selector absent |
+| B — Empty idea state (4 tests) | Project present + empty idea → textarea rendered; type selector visible; draft button disabled; no premature errors |
+| C — Blocking (5 tests) | Submit with empty/short idea → validation errors shown; blocked-state banner visible; no navigation; setIdeaDraft not called |
+| D — Happy path (7 tests) | Valid idea pre-seeded → form pre-populated with stored values; type pre-selected; continue saves + navigates to /research; draft-save-only path does not navigate |
+| E — Persistence contract (3 tests) | Stored ideaDraft is form init source of truth; no error banner for valid idle state; "Проект активен" badge |
+
+**ResearchPage** — `src/pages/research/ResearchPage.acceptance.test.tsx` — 29 tests, 6 groups:
+
+| Group | What it verifies |
+|-------|-----------------|
+| A — Entry guard (5 tests) | No-project → EmptyState; "Создать проект" navigates to /project/new; no run button or tabs |
+| B — Idea gate (5 tests) | Null/short ideaDraft → GateBanner with reason + link to /idea; run button disabled; no banner when idea valid |
+| C — Research empty state (6 tests) | Valid idea + no brief → "Бриф ещё не создан"; tabs visible; run button enabled; "Бриф отсутствует" badge |
+| D — Research happy path (5 tests) | Valid brief → editable brief rendered; "Бриф готов" badge; "Перейти к спецификации" button appears and navigates |
+| E — Research blocking (3 tests) | Brief with empty problemSummary → advance disabled; gate reason text shown; no navigation |
+| F — Cross-stage acceptance (5 tests) | Idea state flows into Research readiness: no ideaDraft blocks run + advance; valid ideaDraft + valid brief unlocks advance; incomplete brief blocks advance despite valid idea |
+
+---
+
 ## HistoryPage review phase tests (T-110)
 
 `src/pages/history/HistoryPage.review.test.tsx` — 44 tests across 4 groups.
