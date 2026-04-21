@@ -1,10 +1,12 @@
-// E2E-001 — Happy path: New Project → Idea → Research → Spec → Architecture → Prompt Loop → Review
+// E2E-001 — Happy path: New Project → Idea → Research → Spec → Architecture → Prompt Loop → Review → Complete
+// T-214 — Playwright E2E golden path: create project → complete review → complete project
 //
 // Verifies what RTL/unit tests cannot:
 //   - real SPA routing (URL changes, browser back-forward)
 //   - TopBar project switcher reflects the active project
 //   - localStorage persistence survives page.reload()
 //   - full stage pipeline passes all mock service calls end-to-end
+//   - review completion and project-level completion (T-212 / T-213 contracts)
 //
 // Mock service timings (built into the app):
 //   research: ~1 500ms  |  spec: ~1 200ms  |  architecture: ~1 000ms  |  first prompt: ~800ms
@@ -68,7 +70,7 @@ test.beforeEach(async ({ page }) => {
 
 // ─── Happy path ───────────────────────────────────────────────────────────────
 
-test('E2E-001 — new project → idea → research → spec → architecture → prompt loop → review', async ({ page }) => {
+test('E2E-001 — new project → idea → research → spec → architecture → prompt loop → review → complete', async ({ page }) => {
 
   // ── 1. Home page ──────────────────────────────────────────────────────────────
 
@@ -216,5 +218,44 @@ test('E2E-001 — new project → idea → research → spec → architecture �
 
     // Prompt iteration is reflected in the review
     await expect(page.getByText('Итерация #1')).toBeVisible()
+  })
+
+  // ── 9. Complete task review ───────────────────────────────────────────────────
+  //
+  // Task T-001: targetTaskId='T-001' (filled in step 7) + hasTests=true
+  // (src/App.test.tsx in CLAUDE_RESPONSE files list) → "Завершить review" button visible.
+
+  await test.step('9. History — complete task T-001 review', async () => {
+    const reviewBtn = page.getByRole('button', { name: 'Завершить review' })
+    await expect(reviewBtn).toBeVisible()
+    await reviewBtn.click()
+
+    // Badge replaces button; gate unlocked (completedReviewTaskIds now non-empty)
+    await expect(page.getByText('✓ Review завершён')).toBeVisible()
+    await expect(reviewBtn).not.toBeVisible()
+  })
+
+  // ── 10. Complete the project ──────────────────────────────────────────────────
+
+  await test.step('10. History — complete project via "Завершить проект"', async () => {
+    // Gate satisfied → button is enabled
+    const completeBtn = page.getByTestId('complete-project-button')
+    await expect(completeBtn).toBeEnabled()
+    await completeBtn.click()
+
+    // Completed banner appears; button is replaced by completed text
+    await expect(page.getByTestId('project-completed-banner')).toBeVisible()
+    await expect(page.getByTestId('complete-project-button')).not.toBeVisible()
+  })
+
+  // ── 11. Home — verify completed state ────────────────────────────────────────
+
+  await test.step('11. Home — "✓ Завершён" badge and "Просмотреть итоги" CTA', async () => {
+    await page.getByRole('link', { name: /Главная/ }).click()
+    await expect(page).toHaveURL('/')
+
+    // Registry status propagated: badge changes, primary CTA changes
+    await expect(page.getByText('✓ Завершён')).toBeVisible()
+    await expect(page.getByRole('button', { name: /Просмотреть итоги проекта/ })).toBeVisible()
   })
 })

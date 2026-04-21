@@ -97,6 +97,10 @@ Tasks execute in phase order. An impl task may not begin until its paired test t
 | SOUND-004 | test | E2E: awaiting_confirmation path in PromptLoop — generate first prompt → oscillator-start fires → textarea input → beeps stop | PLAT-ALERT-001, T-019 | — | done |
 | T-024 | impl+test | Surface blocked sound state: PlayBeepResult return from playTestBeep, beepBlocked state in SettingsPage, role="status" message, 11 new tests | PLAT-ALERT-002, T-019, T-023 | — | done |
 | T-025 | test | SMOKE-RTL-002: full-route render smoke — 10 routes × it.each, confirms every page renders without crash under null-project state | T-001, T-002, T-011 | — | done |
+| T-211 | impl+test | Superpowers cycle — route completeness + integration tests: all 10 routes safe with null activeProject; cross-page data flow; multi-project isolation; stage gate hints; T-212 review terminal action | F-024, T-207 | T-212 | done |
+| T-212 | impl+test | "Review complete" action: completedReviewTaskIds[], markTaskReviewComplete, reviewStatus()='done', TaskProgressPanel "Завершить review" button + "✓ Review завершён" badge | F-024, T-207 | T-213 | done |
+| T-213 | impl+test | Project-level completion: 'completed' ProjectStatus, markProjectCompleted(), HistoryPage banner+button (data-testid), HomePage "✓ Завершён" badge + CTA change | F-024, T-212 | T-214 | done |
+| T-214 | e2e | Extend E2E-001 golden path with review completion + project completion: step 9 "Завершить review" → badge; step 10 "Завершить проект" → banner; step 11 Home "✓ Завершён" badge + CTA | T-212, T-213 | — | done |
 
 ---
 

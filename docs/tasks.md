@@ -931,3 +931,22 @@ Definition of done:
 - `projectRegistryStore.test.ts` updated: Group E added with 5 tests covering markProjectCompleted (status set, idempotency, updatedAt bump, unknown ID no-op, other projects unaffected)
 - All 5 existing HistoryPage test files updated with `useProjectRegistry` mock to maintain test isolation
 - Total: 1582 tests pass, 0 failures (was 1568 before T-213)
+
+## T-214 — Playwright E2E happy-path: review complete → project complete
+Type: e2e
+Description: Extends the existing Playwright golden-path test (E2E-001) with three new steps that cover the full Superpowers cycle terminal actions introduced in T-212 and T-213. Prior to T-214, the E2E test stopped at "navigate to History and verify iterations visible". T-214 adds browser-level proof that task review completion, project completion, and cross-page completed state (HistoryPage → HomePage) all work end-to-end in a real browser with real localStorage persistence.
+Links: T-212, T-213, F-024
+Status: done
+Owner: AI
+Definition of done:
+- `tests/e2e/happy-path.spec.ts` extended with three steps appended after step 8 (History summary):
+  - Step 9: `getByRole('button', { name: 'Завершить review' })` → click → "✓ Review завершён" badge visible, button gone
+  - Step 10: `getByTestId('complete-project-button')` enabled → click → `data-testid="project-completed-banner"` visible, button gone
+  - Step 11: navigate to `/` via sidebar "Главная" link → "✓ Завершён" badge and "Просмотреть итоги проекта →" button visible
+- Test name updated to include "→ complete" suffix: `E2E-001 — new project → idea → research → spec → architecture → prompt loop → review → complete`
+- No new UI changes required: all selectors were already accessible via semantic roles, button text, and data-testid attributes from T-212/T-213
+- No additional test files created: T-214 is a focused extension of the single golden path, not a separate suite
+- Local run: 1 test / 11 steps / 24.0s — 1 passed (30.8s total with server startup)
+- Run command: `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1 LD_LIBRARY_PATH=$HOME/.local/pw-deps:$LD_LIBRARY_PATH npx playwright test tests/e2e/happy-path.spec.ts`
+- Standard CI run command: `npm run test:e2e:critical` (Chromium, `playwright.config.ts`, port 5173)
+- Infrastructure note: this environment requires `LD_LIBRARY_PATH=$HOME/.local/pw-deps` (pre-bundled system libs in `/home/deploy/.local/pw-deps/`) because Ubuntu 22.04 system packages are not installed; `test:e2e:local` npm script handles this automatically
