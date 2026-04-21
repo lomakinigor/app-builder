@@ -147,6 +147,8 @@ function makeProjectStore(overrides: Record<string, unknown> = {}) {
     specPack: makeSpec(),
     architectureDraft: makeArch(),
     promptIterations: [] as PromptIteration[],
+    completedReviewTaskIds: [] as string[],
+    markTaskReviewComplete: vi.fn(),
     addPromptIteration: vi.fn(),
     updatePromptIteration: vi.fn(),
     setCurrentStage: vi.fn(),

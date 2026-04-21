@@ -132,9 +132,13 @@ describe('A. emptyProjectData shape — all fields present with correct defaults
     expect(emptyProjectData.promptIterations).toEqual([])
   })
 
-  it('emptyProjectData has exactly 7 keys — matches ProjectData interface', () => {
+  it('completedReviewTaskIds defaults to empty array', () => {
+    expect(emptyProjectData.completedReviewTaskIds).toEqual([])
+  })
+
+  it('emptyProjectData has exactly 8 keys — matches ProjectData interface', () => {
     const keys = Object.keys(emptyProjectData)
-    expect(keys).toHaveLength(7)
+    expect(keys).toHaveLength(8)
     expect(keys).toContain('ideaDraft')
     expect(keys).toContain('researchRuns')
     expect(keys).toContain('importedArtifacts')
@@ -142,6 +146,7 @@ describe('A. emptyProjectData shape — all fields present with correct defaults
     expect(keys).toContain('specPack')
     expect(keys).toContain('architectureDraft')
     expect(keys).toContain('promptIterations')
+    expect(keys).toContain('completedReviewTaskIds')
   })
 
   it('array fields are real arrays (not null, not undefined)', () => {

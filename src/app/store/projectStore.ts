@@ -28,6 +28,8 @@ export interface ProjectData {
   specPack: SpecPack | null
   architectureDraft: ArchitectureDraft | null
   promptIterations: PromptIteration[]
+  /** Task IDs the user has explicitly marked as review-complete (T-212) */
+  completedReviewTaskIds: string[]
 }
 
 export const emptyProjectData: ProjectData = {
@@ -38,6 +40,7 @@ export const emptyProjectData: ProjectData = {
   specPack: null,
   architectureDraft: null,
   promptIterations: [],
+  completedReviewTaskIds: [],
 }
 
 // ─── State shape ──────────────────────────────────────────────────────────────
@@ -58,6 +61,7 @@ interface ProjectState {
   specPack: SpecPack | null
   architectureDraft: ArchitectureDraft | null
   promptIterations: PromptIteration[]
+  completedReviewTaskIds: string[]
 
   // UI state
   ui: {
@@ -84,6 +88,7 @@ interface ProjectActions {
   updateArchitectureDraft: (patch: Partial<ArchitectureDraft>) => void
   addPromptIteration: (iteration: PromptIteration) => void
   updatePromptIteration: (id: string, patch: Partial<PromptIteration>) => void
+  markTaskReviewComplete: (taskId: string) => void
   toggleSidebar: () => void
   resetProject: () => void
 }
@@ -94,6 +99,7 @@ const initialState: ProjectState = {
   activeProject: null,
   projectData: {},
   ...emptyProjectData,
+  completedReviewTaskIds: [],
   ui: {
     sidebarOpen: false,
     activeTab: 'overview',
@@ -123,6 +129,7 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(
                   specPack: state.specPack,
                   architectureDraft: state.architectureDraft,
                   promptIterations: state.promptIterations,
+                  completedReviewTaskIds: state.completedReviewTaskIds,
                 },
               }
             : state.projectData
@@ -193,6 +200,13 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(
           promptIterations: state.promptIterations.map((p) =>
             p.id === id ? { ...p, ...patch } : p
           ),
+        })),
+
+      markTaskReviewComplete: (taskId) =>
+        set((state) => ({
+          completedReviewTaskIds: state.completedReviewTaskIds.includes(taskId)
+            ? state.completedReviewTaskIds
+            : [...state.completedReviewTaskIds, taskId],
         })),
 
       toggleSidebar: () =>

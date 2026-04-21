@@ -109,15 +109,19 @@ const PHASE_VARIANTS: Record<CyclePhase, 'muted' | 'info' | 'warning' | 'success
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-// implements F-024 / T-207, T-210
+// implements F-024 / T-207, T-210, T-212
 function TaskProgressPanel({
   iterations,
   onOpenPromptLoop,
+  onMarkReviewComplete,
   recommendedTaskId,
+  completedReviewTaskIds,
 }: {
   iterations: PromptIteration[]
   onOpenPromptLoop: () => void
+  onMarkReviewComplete: (taskId: string) => void
   recommendedTaskId?: string | null
+  completedReviewTaskIds: string[]
 }) {
   const [phaseFilter, setPhaseFilter] = useState<PhaseFilter>('all')
   const [testFilter, setTestFilter] = useState<TestFilter>('all')
@@ -254,21 +258,37 @@ function TaskProgressPanel({
                 )}
 
                 {/* Action */}
-                <div className="mt-2">
-                  {isRecommended ? (
-                    <button
-                      onClick={onOpenPromptLoop}
-                      className="rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-700 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/50"
-                    >
-                      Открыть в Prompt Loop →
-                    </button>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  {completedReviewTaskIds.includes(row.taskId) ? (
+                    <span className="inline-flex items-center rounded-md bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+                      ✓ Review завершён
+                    </span>
                   ) : (
-                    <button
-                      onClick={onOpenPromptLoop}
-                      className="text-xs text-violet-600 hover:underline dark:text-violet-400"
-                    >
-                      Открыть в Цикле промптов →
-                    </button>
+                    <>
+                      {isRecommended ? (
+                        <button
+                          onClick={onOpenPromptLoop}
+                          className="rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-700 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/50"
+                        >
+                          Открыть в Prompt Loop →
+                        </button>
+                      ) : (
+                        <button
+                          onClick={onOpenPromptLoop}
+                          className="text-xs text-violet-600 hover:underline dark:text-violet-400"
+                        >
+                          Открыть в Цикле промптов →
+                        </button>
+                      )}
+                      {row.hasTests && row.taskId !== '(unassigned)' && (
+                        <button
+                          onClick={() => onMarkReviewComplete(row.taskId)}
+                          className="rounded-md border border-emerald-300 bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-100 dark:border-emerald-700/50 dark:bg-emerald-950/20 dark:text-emerald-400 dark:hover:bg-emerald-950/40"
+                        >
+                          Завершить review
+                        </button>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -557,6 +577,8 @@ export function HistoryPage() {
     specPack,
     architectureDraft,
     promptIterations,
+    completedReviewTaskIds,
+    markTaskReviewComplete,
   } = useProjectStore()
 
   if (!activeProject) {
@@ -663,7 +685,9 @@ export function HistoryPage() {
         <TaskProgressPanel
           iterations={promptIterations}
           onOpenPromptLoop={() => navigate('/prompt-loop')}
+          onMarkReviewComplete={markTaskReviewComplete}
           recommendedTaskId={recommendedTaskId}
+          completedReviewTaskIds={completedReviewTaskIds}
         />
       </Card>
 

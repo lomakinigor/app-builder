@@ -107,6 +107,8 @@ function makeStore(overrides: Record<string, unknown> = {}) {
     specPack: null,
     architectureDraft: null,
     promptIterations: [] as PromptIteration[],
+    completedReviewTaskIds: [] as string[],
+    markTaskReviewComplete: vi.fn(),
     ...overrides,
   }
 }

@@ -885,3 +885,23 @@ Definition of done:
 - Pre-existing IdeaPage timeout fixes: replaced slow getByRole(button, name:...) with queryAllByText/getAllByText in 8 test cases across groups B, C, D — all 24 tests now pass in isolation and full suite
 - Integration test file: 19 tests in 5 groups (A–E) in src/app/router/T211.integration.test.tsx
 - Total with IdeaPage fixes: 1554 tests — all pass, 0 failures
+
+## T-212 — "Review complete" action on HistoryPage
+Type: impl+test
+Description: Adds an explicit user-confirmed completion action for the Review stage of the Superpowers cycle. Prior to T-212, the Review phase was considered "done" only implicitly (iteration with cyclePhase='review' or parsedSummary present). T-212 adds a "Завершить review" button per task row in TaskProgressPanel, a "✓ Review завершён" completed badge, and a `completedReviewTaskIds` field in project state that drives the `reviewStatus()` function to return 'done'. The cycle now has an explicit terminal action, not just an analytical dashboard.
+Links: F-024, T-207, T-211
+Status: done
+Owner: AI
+Definition of done:
+- `completedReviewTaskIds: string[]` added to `ProjectData` interface and `emptyProjectData` default in `src/app/store/projectStore.ts`
+- `markTaskReviewComplete(taskId)` action added to store (idempotent — no duplicate IDs)
+- `completedReviewTaskIds` snapshotted/restored in `setActiveProject` for multi-project isolation
+- `reviewStatus()` in `src/shared/lib/superpowers/cycleProgress.ts` updated: `completedReviewTaskIds.length > 0` → 'done'
+- `TaskProgressPanel` in `HistoryPage.tsx` updated: shows "Завершить review" button for tasks with `hasTests=true` and real taskId (not unassigned); shows "✓ Review завершён" badge after completion; hides button for completed tasks, tests-missing tasks, and unassigned rows
+- Existing test files updated to include new store fields (`completedReviewTaskIds`, `markTaskReviewComplete`): `HistoryPage.task-progress.test.tsx`, `HistoryPage.review.test.tsx`, `HistoryPage.history-view.test.tsx`, `HistoryPage.cross-stage-smoke.test.tsx`, `T211.integration.test.tsx`
+- `projectStore.persist.test.ts` updated: key count test updated from 7 to 8 keys, `completedReviewTaskIds` default field test added
+- New test file: `src/pages/history/HistoryPage.review-complete.test.tsx` — 10 tests across 3 groups:
+  - A (3): Model — `reviewStatus` not_started / done / in_progress based on `completedReviewTaskIds` via `computeCycleProgress`
+  - B (6): UI — button shown for review-ready task; click calls `markTaskReviewComplete(taskId)`; completed badge rendered; button hidden after completion; no button for hasTests=false; no button for (unassigned) rows
+  - C (1): Integration — `completedReviewTaskIds` non-empty → `computeCycleProgress` review.status = 'done'
+- Total: 1568 tests pass, 0 failures (was 1557 before T-211+T-212)

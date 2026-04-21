@@ -87,6 +87,9 @@ function codeAndTestsStatus(data: ProjectData): CyclePhaseStatus {
 
 function reviewStatus(data: ProjectData): CyclePhaseStatus {
   if (!data.promptIterations.length) return 'not_started'
+  // User explicitly marked at least one task as review-complete (T-212)
+  const completed = Array.isArray(data.completedReviewTaskIds) ? data.completedReviewTaskIds : []
+  if (completed.length > 0) return 'done'
   const hasReview = data.promptIterations.some((i) => i.cyclePhase === 'review')
   if (hasReview) return 'done'
   // Any parsed iteration = review is in progress
