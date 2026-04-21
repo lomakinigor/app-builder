@@ -605,6 +605,8 @@ Definition of done:
 - SpecPage shows "This spec is tailored for an Application/Website." above the editable output
 - ArchitecturePage shows "This architecture is tailored for an Application/Website." above the editable output
 - TypeScript build passes; all tests pass
+- Service tests: 60+ tests in specService.type-aware.test.ts (groups A–F: type differentiation, contract, brief integration, fallback, determinism)
+- Page tests: 20 tests in SpecPage.type-aware.test.tsx (type badge, description, features, summary, gate) + 30+ tests in ArchitecturePage.type-aware.test.tsx (type badge, stack, vocabulary, cross-contamination, gate)
 
 ## T-206 — Task-centric Prompt Loop aligned with Superpowers cycle
 Type: impl
