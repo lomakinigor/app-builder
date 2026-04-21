@@ -868,3 +868,20 @@ Definition of done:
 - docs/plan.md updated with T-020 row
 - Validation: npm run test:e2e:critical passes locally
 - Branch protection step documented (manual): add "e2e-critical" as required status check in GitHub repo settings
+
+
+## T-211 — Superpowers cycle completeness: integration / acceptance tests
+Type: test
+Description: Integration-closing audit for the full Superpowers cycle (T-201…T-207). (1) Verified end-to-end cycle reachability: all 10 routes render without crash, every flow page shows EmptyState + CTA when no activeProject, navigation links are connected. (2) Confirmed stage-gate hints are actionable: missing arch → "Требуется архитектура" card; missing iterations → TaskProgressPanel empty state + navigate CTA; missing project → EmptyState + "Создать проект" CTA. (3) Verified cross-page data flow: task-centric prompt iterations appear in HistoryPage TaskProgressPanel grouped by T-xxx, card badge counts match buildTaskReviewModel output. (4) Verified multi-project isolation: switching to a project with no iterations shows "0 задач" / empty TaskProgressPanel without bleeding data from another project. (5) Fixed 3 pre-existing timeout failures in IdeaPage.acceptance.test.tsx (slow getByRole accessible-name computation replaced with fast getByText/getAllByText selectors).
+Links: F-024, F-027, T-201, T-202, T-203, T-204, T-205, T-206, T-207
+Status: done
+Owner: AI
+Definition of done:
+- Dead-end audit complete: all flow pages (Idea, Research, Spec, Architecture, PromptLoop, History) have no-project EmptyState with actionable CTA navigating to /project/new
+- Stage-gate hints verified: PromptLoopPage shows "Требуется архитектура" when architectureDraft null; HistoryPage shows "Промпт-итераций пока нет" + PromptLoop CTA when no iterations
+- Cross-page data flow verified: iterations with targetTaskId appear as task rows in HistoryPage; grouped by T-xxx (same task → one row); card header badge count matches
+- Multi-project isolation verified: project B with no iterations shows "0 задач", no bleed from project A; TopBar shows "Нет проекта" pill when selectedProjectId null
+- No-project route resilience: ArchitecturePage, ResearchPage, and all flow pages safe with null activeProject
+- Pre-existing IdeaPage timeout fixes: replaced slow getByRole(button, name:...) with queryAllByText/getAllByText in 8 test cases across groups B, C, D — all 24 tests now pass in isolation and full suite
+- Integration test file: 19 tests in 5 groups (A–E) in src/app/router/T211.integration.test.tsx
+- Total with IdeaPage fixes: 1554 tests — all pass, 0 failures

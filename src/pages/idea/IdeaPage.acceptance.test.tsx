@@ -138,9 +138,10 @@ describe('B. Idea form — project present, idea empty', () => {
 
   it('"Сохранить черновик" is disabled when textarea is empty', () => {
     renderPage()
-    expect(
-      screen.getByRole('button', { name: /Сохранить черновик/ }),
-    ).toBeDisabled()
+    // Use queryAllByText to avoid slow accessible-name computation across all buttons
+    const saveDraftBtns = screen.queryAllByText(/Сохранить черновик/)
+    expect(saveDraftBtns.length).toBeGreaterThan(0)
+    expect(saveDraftBtns[0]).toBeDisabled()
   })
 
   it('does NOT show a validation error before the user interacts', () => {
@@ -155,11 +156,9 @@ describe('B. Idea form — project present, idea empty', () => {
 describe('C. Idea blocking — submit triggers validation errors', () => {
   it('shows "Пожалуйста, опишите идею" after clicking continue with empty form', () => {
     renderPage({ ideaDraft: null })
-    // Both continue buttons call handleContinue which sets submitted=true
-    const [, continueBtn] = screen.getAllByRole('button', {
-      name: /Сохранить и перейти к исследованию/,
-    })
-    fireEvent.click(continueBtn)
+    // Use getAllByText to avoid slow accessible-name computation across all buttons
+    const continueBtns = screen.getAllByText(/Сохранить и перейти к исследованию/)
+    fireEvent.click(continueBtns[0])
     expect(
       screen.getByText('Пожалуйста, опишите идею продукта, чтобы продолжить.'),
     ).toBeInTheDocument()
@@ -167,19 +166,15 @@ describe('C. Idea blocking — submit triggers validation errors', () => {
 
   it('shows character-length error after clicking continue with a short idea', () => {
     renderPage({ ideaDraft: makeIdeaDraft({ rawIdea: SHORT_RAW_IDEA }) })
-    const [, continueBtn] = screen.getAllByRole('button', {
-      name: /Сохранить и перейти к исследованию/,
-    })
-    fireEvent.click(continueBtn)
+    const continueBtns = screen.getAllByText(/Сохранить и перейти к исследованию/)
+    fireEvent.click(continueBtns[0])
     expect(screen.getByText(/символах/)).toBeInTheDocument()
   })
 
   it('shows the blocked state explanation banner after failed submit', () => {
     renderPage({ ideaDraft: null })
-    const [, continueBtn] = screen.getAllByRole('button', {
-      name: /Сохранить и перейти к исследованию/,
-    })
-    fireEvent.click(continueBtn)
+    const continueBtns = screen.getAllByText(/Сохранить и перейти к исследованию/)
+    fireEvent.click(continueBtns[0])
     expect(
       screen.getByText(/Исправьте ошибки выше/),
     ).toBeInTheDocument()
@@ -187,20 +182,16 @@ describe('C. Idea blocking — submit triggers validation errors', () => {
 
   it('does NOT call navigate when idea is invalid', () => {
     renderPage({ ideaDraft: null })
-    const [, continueBtn] = screen.getAllByRole('button', {
-      name: /Сохранить и перейти к исследованию/,
-    })
-    fireEvent.click(continueBtn)
+    const continueBtns = screen.getAllByText(/Сохранить и перейти к исследованию/)
+    fireEvent.click(continueBtns[0])
     expect(mockNavigate).not.toHaveBeenCalled()
   })
 
   it('does NOT call setIdeaDraft when idea is invalid', () => {
     const mockSetIdeaDraft = vi.fn()
     renderPage({ ideaDraft: null, setIdeaDraft: mockSetIdeaDraft })
-    const [, continueBtn] = screen.getAllByRole('button', {
-      name: /Сохранить и перейти к исследованию/,
-    })
-    fireEvent.click(continueBtn)
+    const continueBtns = screen.getAllByText(/Сохранить и перейти к исследованию/)
+    fireEvent.click(continueBtns[0])
     expect(mockSetIdeaDraft).not.toHaveBeenCalled()
   })
 })
@@ -241,10 +232,8 @@ describe('D. Idea happy path — valid idea and projectType in store', () => {
       ideaDraft: makeIdeaDraft(),
       setIdeaDraft: mockSetIdeaDraft,
     })
-    const [, continueBtn] = screen.getAllByRole('button', {
-      name: /Сохранить и перейти к исследованию/,
-    })
-    fireEvent.click(continueBtn)
+    const continueBtns = screen.getAllByText(/Сохранить и перейти к исследованию/)
+    fireEvent.click(continueBtns[0])
     expect(mockSetIdeaDraft).toHaveBeenCalledOnce()
     expect(mockSetIdeaDraft.mock.calls[0][0]).toMatchObject({
       rawIdea: VALID_RAW_IDEA,
@@ -256,10 +245,8 @@ describe('D. Idea happy path — valid idea and projectType in store', () => {
       activeProject: makeProject({ projectType: 'application' }),
       ideaDraft: makeIdeaDraft(),
     })
-    const [, continueBtn] = screen.getAllByRole('button', {
-      name: /Сохранить и перейти к исследованию/,
-    })
-    fireEvent.click(continueBtn)
+    const continueBtns = screen.getAllByText(/Сохранить и перейти к исследованию/)
+    fireEvent.click(continueBtns[0])
     expect(mockNavigate).toHaveBeenCalledWith('/research')
   })
 
@@ -268,9 +255,9 @@ describe('D. Idea happy path — valid idea and projectType in store', () => {
       activeProject: makeProject(),
       ideaDraft: makeIdeaDraft(),
     })
-    expect(
-      screen.getByRole('button', { name: /Сохранить черновик/ }),
-    ).toBeEnabled()
+    const saveDraftBtns = screen.queryAllByText(/Сохранить черновик/)
+    expect(saveDraftBtns.length).toBeGreaterThan(0)
+    expect(saveDraftBtns[0]).toBeEnabled()
   })
 
   it('clicking "Сохранить черновик" calls setIdeaDraft but does NOT navigate', () => {
@@ -280,7 +267,8 @@ describe('D. Idea happy path — valid idea and projectType in store', () => {
       ideaDraft: makeIdeaDraft(),
       setIdeaDraft: mockSetIdeaDraft,
     })
-    fireEvent.click(screen.getByRole('button', { name: /Сохранить черновик/ }))
+    const saveDraftBtns = screen.getAllByText(/Сохранить черновик/)
+    fireEvent.click(saveDraftBtns[0])
     expect(mockSetIdeaDraft).toHaveBeenCalledOnce()
     expect(mockNavigate).not.toHaveBeenCalled()
   })
