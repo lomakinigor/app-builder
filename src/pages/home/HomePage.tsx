@@ -106,9 +106,13 @@ export function HomePage() {
             title="Выбранный проект"
             icon="📂"
             action={
-              <Badge variant="muted">
-                {selectedProject.projectType === 'application' ? '📱 Приложение' : '🌐 Сайт'}
-              </Badge>
+              selectedProject.status === 'completed' ? (
+                <Badge variant="success">✓ Завершён</Badge>
+              ) : (
+                <Badge variant="muted">
+                  {selectedProject.projectType === 'application' ? '📱 Приложение' : '🌐 Сайт'}
+                </Badge>
+              )
             }
           />
           <div className="mb-5">
@@ -129,12 +133,18 @@ export function HomePage() {
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2">
-            <Button
-              size="sm"
-              onClick={() => navigate(activePhase?.path ?? '/idea')}
-            >
-              {activePhase ? `Продолжить: ${activePhase.label} →` : 'Открыть проект →'}
-            </Button>
+            {selectedProject.status === 'completed' ? (
+              <Button size="sm" onClick={() => navigate('/history')}>
+                Просмотреть итоги проекта →
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                onClick={() => navigate(activePhase?.path ?? '/idea')}
+              >
+                {activePhase ? `Продолжить: ${activePhase.label} →` : 'Открыть проект →'}
+              </Button>
+            )}
             <Button size="sm" variant="secondary" onClick={() => navigate('/history')}>
               Обзор
             </Button>

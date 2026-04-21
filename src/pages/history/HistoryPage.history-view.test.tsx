@@ -36,6 +36,13 @@ vi.mock('../../app/store/projectStore', () => ({
   useProjectStore: (...args: unknown[]) => mockUseProjectStore(...args),
 }))
 
+const mockUseProjectRegistry = vi.fn()
+vi.mock('../../app/store/projectRegistryStore', () => ({
+  useProjectRegistry: (...args: unknown[]) => mockUseProjectRegistry(...args),
+  selectSelectedProject: (s: { projects: { id: string; status: string }[]; selectedProjectId: string | null }) =>
+    s.projects.find((p) => p.id === s.selectedProjectId) ?? null,
+}))
+
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
 function makeProject(overrides: Partial<Project> = {}): Project {
@@ -212,6 +219,10 @@ function makeStore(overrides: Record<string, unknown> = {}) {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  mockUseProjectRegistry.mockImplementation((selector?: (s: unknown) => unknown) => {
+    const s = { projects: [], selectedProjectId: null, markProjectCompleted: vi.fn() }
+    return selector ? selector(s) : s
+  })
 })
 
 function renderPage(storeOverrides: Record<string, unknown> = {}) {

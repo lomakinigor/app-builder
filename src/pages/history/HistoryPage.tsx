@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useProjectStore } from '../../app/store/projectStore'
+import { useProjectRegistry, selectSelectedProject } from '../../app/store/projectRegistryStore'
 import { Card, CardHeader } from '../../shared/ui/Card'
 import { PageHeader } from '../../shared/ui/PageHeader'
 import { Badge } from '../../shared/ui/Badge'
@@ -580,6 +581,8 @@ export function HistoryPage() {
     completedReviewTaskIds,
     markTaskReviewComplete,
   } = useProjectStore()
+  const { markProjectCompleted } = useProjectRegistry()
+  const selectedProject = useProjectRegistry(selectSelectedProject)
 
   if (!activeProject) {
     return (
@@ -610,10 +613,23 @@ export function HistoryPage() {
     specPack,
     architectureDraft,
     promptIterations,
+    completedReviewTaskIds,
   })
   const nextAction = computeNextAction(cyclePhases, promptIterations)
   const recommendedPhaseId = getRecommendedPhaseId(nextAction)
   const recommendedTaskId = getRecommendedTaskId(nextAction)
+
+  // isProjectCompleted reads from selectedProject (reactive to registry) with fallback to
+  // activeProject.status for projects loaded directly (e.g. persisted state already completed).
+  const isProjectCompleted =
+    (selectedProject?.id === activeProject.id && selectedProject?.status === 'completed') ||
+    activeProject.status === 'completed'
+  const canCompleteProject = completedReviewTaskIds.length > 0 && !isProjectCompleted
+
+  function handleCompleteProject() {
+    if (!canCompleteProject) return
+    markProjectCompleted(activeProject.id)
+  }
 
   return (
     <div className="space-y-6">
@@ -631,12 +647,38 @@ export function HistoryPage() {
         </span>
       </div>
 
+      {/* Project completed banner — T-213 */}
+      {isProjectCompleted && (
+        <div
+          data-testid="project-completed-banner"
+          className="flex flex-wrap items-center gap-3 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 dark:border-emerald-700/50 dark:bg-emerald-950/20"
+        >
+          <span className="text-xl">🎉</span>
+          <div>
+            <p className="font-semibold text-emerald-800 dark:text-emerald-300">Проект завершён</p>
+            <p className="text-xs text-emerald-700/80 dark:text-emerald-400">
+              Все ключевые задачи прошли review. Проект зафиксирован как завершённый.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Next action recommendation — T-209 */}
       <NextActionCard action={nextAction} />
 
       {/* Project overview */}
       <Card>
-        <CardHeader title={activeProject.name} icon="📂" action={<Badge variant="success">{activeProject.status}</Badge>} />
+        <CardHeader
+          title={activeProject.name}
+          icon="📂"
+          action={
+            isProjectCompleted ? (
+              <Badge variant="success">✓ Завершён</Badge>
+            ) : (
+              <Badge variant="success">{activeProject.status}</Badge>
+            )
+          }
+        />
         <div className="grid gap-3 text-sm sm:grid-cols-3">
           <div>
             <p className="text-xs font-medium text-zinc-500">Начат</p>
@@ -843,6 +885,40 @@ export function HistoryPage() {
         </p>
         <DecisionsPanel />
       </Card>
+
+      {/* Project completion action — T-213 */}
+      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900/40">
+        {isProjectCompleted ? (
+          <div className="flex items-center gap-2">
+            <span className="text-emerald-600 dark:text-emerald-400">✓</span>
+            <span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">Проект завершён</span>
+          </div>
+        ) : (
+          <>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Завершить проект</p>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                {canCompleteProject
+                  ? 'Все необходимые задачи прошли review. Можно зафиксировать проект как завершённый.'
+                  : 'Завершите review хотя бы одной задачи, чтобы отметить проект завершённым.'}
+              </p>
+            </div>
+            <button
+              data-testid="complete-project-button"
+              onClick={handleCompleteProject}
+              disabled={!canCompleteProject}
+              className={[
+                'rounded-lg px-4 py-2 text-sm font-medium transition-colors',
+                canCompleteProject
+                  ? 'bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-600'
+                  : 'cursor-not-allowed bg-zinc-200 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-600',
+              ].join(' ')}
+            >
+              Завершить проект
+            </button>
+          </>
+        )}
+      </div>
 
       <div className="flex flex-wrap gap-2">
         <Button variant="secondary" onClick={() => navigate('/prompt-loop')}>

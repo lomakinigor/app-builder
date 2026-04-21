@@ -11,7 +11,7 @@ export type ProjectStage =
   | 'iterative_loop'
   | 'done'
 
-export type ProjectStatus = 'active' | 'paused' | 'archived'
+export type ProjectStatus = 'active' | 'paused' | 'archived' | 'completed'
 
 // ─── Core project entity ──────────────────────────────────────────────────────
 

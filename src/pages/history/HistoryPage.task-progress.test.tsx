@@ -26,6 +26,13 @@ vi.mock('../../app/store/projectStore', () => ({
   useProjectStore: (...args: unknown[]) => mockUseProjectStore(...args),
 }))
 
+const mockUseProjectRegistry = vi.fn()
+vi.mock('../../app/store/projectRegistryStore', () => ({
+  useProjectRegistry: (...args: unknown[]) => mockUseProjectRegistry(...args),
+  selectSelectedProject: (s: { projects: { id: string; status: string }[]; selectedProjectId: string | null }) =>
+    s.projects.find((p) => p.id === s.selectedProjectId) ?? null,
+}))
+
 // nextActionEngine mocked so we control recommendedTaskId independently of store shape
 const mockGetRecommendedTaskId = vi.fn(() => null as string | null)
 const mockGetRecommendedPhaseId = vi.fn(() => null)
@@ -128,6 +135,10 @@ beforeEach(() => {
   mockGetRecommendedTaskId.mockReturnValue(null)
   mockGetRecommendedPhaseId.mockReturnValue(null)
   mockComputeNextAction.mockReturnValue({ kind: 'none', path: '/', label: '', reason: '' })
+  mockUseProjectRegistry.mockImplementation((selector?: (s: unknown) => unknown) => {
+    const s = { projects: [], selectedProjectId: null, markProjectCompleted: vi.fn() }
+    return selector ? selector(s) : s
+  })
 })
 
 // ─── A. Task rows display ─────────────────────────────────────────────────────

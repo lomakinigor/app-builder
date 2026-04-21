@@ -34,6 +34,8 @@ interface RegistryActions {
   selectProject: (id: string) => void
   /** Patch name and/or projectType on an existing project. */
   updateProject: (id: string, patch: Partial<Pick<Project, 'name' | 'projectType'>>) => void
+  /** Mark a project as completed (project-level lifecycle completion — T-213). Idempotent. */
+  markProjectCompleted: (id: string) => void
 }
 
 // ─── Initial state ────────────────────────────────────────────────────────────
@@ -80,6 +82,16 @@ export const useProjectRegistry = create<RegistryState & RegistryActions>()(
           projects: state.projects.map((p) =>
             p.id === id
               ? { ...p, ...patch, updatedAt: new Date().toISOString() }
+              : p
+          ),
+        }))
+      },
+
+      markProjectCompleted: (id) => {
+        set((state) => ({
+          projects: state.projects.map((p) =>
+            p.id === id && p.status !== 'completed'
+              ? { ...p, status: 'completed', updatedAt: new Date().toISOString() }
               : p
           ),
         }))

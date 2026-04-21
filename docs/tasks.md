@@ -905,3 +905,29 @@ Definition of done:
   - B (6): UI — button shown for review-ready task; click calls `markTaskReviewComplete(taskId)`; completed badge rendered; button hidden after completion; no button for hasTests=false; no button for (unassigned) rows
   - C (1): Integration — `completedReviewTaskIds` non-empty → `computeCycleProgress` review.status = 'done'
 - Total: 1568 tests pass, 0 failures (was 1557 before T-211+T-212)
+
+## T-213 — Project-level "Проект завершён" completion state
+Type: impl+test
+Description: Adds an explicit project-level completion state to the Superpowers cycle. Prior to T-213, there was no way to mark a project as "done" — only individual task review completion existed (T-212). T-213 adds a `'completed'` value to `ProjectStatus`, a `markProjectCompleted(id)` action in `projectRegistryStore`, and UI in HistoryPage (completion button + banner) and HomePage (completed badge + CTA change). The gate rule requires at least one completed review task before the project can be marked complete.
+Links: F-024, T-212
+Status: done
+Owner: AI
+Definition of done:
+- `'completed'` added to `ProjectStatus` type in `src/entities/project/types.ts`
+- `markProjectCompleted(id)` action added to `projectRegistryStore.ts`: sets `status: 'completed'`, bumps `updatedAt`, idempotent (no-op if already completed), does not affect other projects
+- `HistoryPage.tsx` updated:
+  - Imports `useProjectRegistry` and `selectSelectedProject`
+  - `isProjectCompleted` reads from `selectedProject.status` (reactive to registry) with fallback to `activeProject.status`
+  - Gate: `canCompleteProject = completedReviewTaskIds.length > 0 && !isProjectCompleted`
+  - "Завершить проект" button (`data-testid="complete-project-button"`) shown when gate passes; disabled with explanation when gate fails; hidden when project already completed
+  - "Проект завершён" banner (`data-testid="project-completed-banner"`) shown when `isProjectCompleted = true`
+  - Project card header badge shows "✓ Завершён" (success variant) when completed
+- `HomePage.tsx` updated:
+  - Project card header badge shows "✓ Завершён" (success variant) when `selectedProject.status === 'completed'`
+  - Primary CTA changes to "Просмотреть итоги проекта →" when project is completed (instead of "Продолжить: Phase →")
+- New test file: `src/pages/history/HistoryPage.project-complete.test.tsx` — 9 tests across 2 groups:
+  - A (6): UI — enabled button when gate met; click calls markProjectCompleted; disabled button when no review tasks; explanation text; banner shown when completed; button hidden when completed
+  - B (3): Integration — "✓ Завершён" badge when completed; no banner/badge for active project; action bar shows completion text (not button) when completed
+- `projectRegistryStore.test.ts` updated: Group E added with 5 tests covering markProjectCompleted (status set, idempotency, updatedAt bump, unknown ID no-op, other projects unaffected)
+- All 5 existing HistoryPage test files updated with `useProjectRegistry` mock to maintain test isolation
+- Total: 1582 tests pass, 0 failures (was 1568 before T-213)

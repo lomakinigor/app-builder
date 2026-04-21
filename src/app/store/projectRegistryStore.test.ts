@@ -165,3 +165,46 @@ describe('D. selectSelectedProject selector', () => {
     expect(selectSelectedProject(state)).toBeNull()
   })
 })
+
+// ─── E. markProjectCompleted — T-213 ─────────────────────────────────────────
+
+describe('E. markProjectCompleted — sets project status to completed (T-213)', () => {
+  beforeEach(resetStores)
+
+  it('marks an existing project as completed', () => {
+    const p = useProjectRegistry.getState().createProject({ name: 'Ship It', projectType: 'application' })
+    useProjectRegistry.getState().markProjectCompleted(p.id)
+    const found = useProjectRegistry.getState().projects.find((x) => x.id === p.id)
+    expect(found?.status).toBe('completed')
+  })
+
+  it('is idempotent — calling twice keeps status completed', () => {
+    const p = useProjectRegistry.getState().createProject({ name: 'Idempotent', projectType: 'website' })
+    useProjectRegistry.getState().markProjectCompleted(p.id)
+    useProjectRegistry.getState().markProjectCompleted(p.id)
+    const found = useProjectRegistry.getState().projects.find((x) => x.id === p.id)
+    expect(found?.status).toBe('completed')
+  })
+
+  it('bumps updatedAt when completing a project', () => {
+    // Use mockProject which has a fixed updatedAt from seedData (not Date.now())
+    const before = mockProject.updatedAt
+    useProjectRegistry.getState().markProjectCompleted(mockProject.id)
+    const found = useProjectRegistry.getState().projects.find((x) => x.id === mockProject.id)
+    expect(found?.updatedAt).not.toBe(before)
+  })
+
+  it('unknown id is a no-op — other projects unchanged', () => {
+    useProjectRegistry.getState().markProjectCompleted('no-such-id')
+    const found = useProjectRegistry.getState().projects.find((x) => x.id === mockProject.id)
+    expect(found?.status).toBe('active')
+  })
+
+  it('other projects are not affected when one is completed', () => {
+    // Create one new project; use mockProject as the "other" to avoid Date.now() ID collision
+    const newProj = useProjectRegistry.getState().createProject({ name: 'New App', projectType: 'application' })
+    useProjectRegistry.getState().markProjectCompleted(newProj.id)
+    const mock = useProjectRegistry.getState().projects.find((x) => x.id === mockProject.id)
+    expect(mock?.status).toBe('active')
+  })
+})
