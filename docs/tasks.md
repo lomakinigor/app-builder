@@ -570,6 +570,7 @@ Definition of done:
 - HomePage selected-project card shows the stepper; "Continue" button targets the active phase
 - New project shows all phases not_started; demo project shows all phases done or in-progress
 - TypeScript build passes; all existing tests pass
+- Acceptance tests: 22 tests in 5 groups A–E (src/shared/ui/CycleProgressStepper.test.tsx): rendering, state mapping, cross-project prop changes, navigation semantics, accessibility
 
 ## T-204t — Tests: computeCycleProgress unit tests
 Type: test
