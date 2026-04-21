@@ -644,6 +644,10 @@ Definition of done:
 - Phase filter dropdown and test filter dropdown work
 - "Open in Prompt Loop →" link navigates to /prompt-loop
 - TypeScript build passes; all existing tests pass
+- Model tests: 40 tests in taskReviewModel.test.ts (grouping by taskId, sort order, hasTests/hasReview aggregation, phasesVisited dedup+order, lastIterationNumber, lastAnalysisSnippet truncation+source, warnings dedup, filterTaskRows phase/test/combined filters)
+- HistoryPage UI tests: 44 tests in HistoryPage.review.test.tsx (T-110: CycleTimeline stages, test badges, decisions panel, empty states) + 39 tests in HistoryPage.history-view.test.tsx (type/stack/roadmap, prompt history, cross-type) + 2 tests in HistoryPage.cross-stage-smoke.test.tsx (full-cycle app+website smoke)
+- TaskProgressPanel UI tests: 32 tests in HistoryPage.task-progress.test.tsx (T-207: task rows display, filter interactivity, recommended task badge+CTA, navigation, empty/safe states)
+- Total: 117 tests across 4 files — all pass
 
 ## T-208 — Type-aware, task-centric Prompt Loop (application vs website vocabulary)
 Type: impl
