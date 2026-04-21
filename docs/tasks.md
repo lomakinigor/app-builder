@@ -541,6 +541,7 @@ Definition of done:
 - On submit: project created in registry, selected, user routed to /idea
 - HomePage "Start New Project" navigates to /project/new instead of /idea directly
 - TypeScript build passes with zero errors
+- Acceptance tests: 20 tests in 5 groups A–E (src/pages/project-new/ProjectNewPage.acceptance.test.tsx)
 
 ## T-203 — Project switcher + per-project state binding
 Type: impl
