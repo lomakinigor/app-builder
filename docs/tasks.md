@@ -556,6 +556,7 @@ Definition of done:
 - All flow pages (Idea, Research, Spec, Architecture, PromptLoop, History) show a "No project selected" EmptyState with Create project CTA when activeProject is null
 - Two-project switching test: create two projects, switch back and forth, verify artifact isolation
 - TypeScript build passes; all 52 existing tests still pass
+- Acceptance tests: 22 tests in 6 groups A–F (src/app/layout/TopBar.test.tsx): initial state, dropdown render, switching, New project shortcut, empty state, bridge UI wiring
 
 ## T-204 — Superpowers cycle progress stepper on HomePage
 Type: impl
