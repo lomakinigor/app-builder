@@ -622,6 +622,12 @@ Definition of done:
 - "Ready for next" panel shows Review button only when hasTests=true and a targetTaskId is set
 - Iteration switcher shows cyclePhase badge + task badge + summary snippet per entry
 - TypeScript build passes; all existing tests pass
+- Service tests: 48 tests in promptService.engine.test.ts (groups A–C: generateFirstPrompt shape/fields/promptText, parseClaudeResponse contracts, generateNextPrompt linkage/targetPhase/missingTests) + 37 tests in promptService.test.ts (inferNextPhase keyword coverage, typeAwareGuidance vocabulary)
+- Cycle-aware service tests: 63 tests in promptService.cycle-aware.test.ts (T-108: website Next.js/SSG/SEO context, stack entries verbatim, roadmap vocabulary, generateNextPrompt type-aware guidance, review vs code_and_tests structural differences, combined type+stack+phase)
+- Store tests: 17 tests in promptIterations.test.ts (addPromptIteration, updatePromptIteration, full first→parse→next integration through store)
+- Stage gate tests: 45 tests in stageGates.promptLoop.test.ts (canAdvanceFromPromptLoop, canAdvanceToReview scenarios A–F)
+- UI tests: 71 tests in PromptLoopPage.test.tsx (T-012B: empty states, generate/parse button gating, task ID field, parse display, warnings, derived warnings, iteration switcher) + 24 tests in PromptLoopPage.cycle-badges.test.tsx (T-108: CycleContextBar phase labels, projectType badges, targetTaskId, roadmapPhaseNumber, visibility rules)
+- Total: 305 tests across 7 files — all pass
 
 ## T-207 — HistoryPage: Task progress dashboard (Review phase)
 Type: impl
