@@ -2,13 +2,15 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { startAttentionSignal, stopAttentionSignal } from '../../shared/lib/attentionSignal'
 import { useProjectStore } from '../../app/store/projectStore'
+import { useCanEditProject } from '../../app/store/viewingModeStore'
 import { Button } from '../../shared/ui/Button'
 import { Card, CardHeader } from '../../shared/ui/Card'
 import { PageHeader } from '../../shared/ui/PageHeader'
 import { Badge } from '../../shared/ui/Badge'
 import { EmptyState } from '../../shared/ui/EmptyState'
 import { EditableResearchBrief } from '../../features/research-brief/EditableResearchBrief'
-import { mockResearchService, mockResearchProviders } from '../../mocks/services/researchService'
+import { mockResearchProviders } from '../../mocks/services/researchService'
+import { getResearchApi } from '../../shared/api'
 import { canAdvanceFromIdea, canAdvanceFromResearch } from '../../shared/lib/stageGates'
 import { generateId } from '../../shared/lib/id'
 import { researchBriefToMarkdown } from '../../shared/lib/markdown/exportArtifactToMarkdown'
@@ -50,6 +52,7 @@ function GateBanner({ reason, action, actionLabel }: { reason: string; action?: 
 
 export function ResearchPage() {
   const navigate = useNavigate()
+  const canEdit = useCanEditProject()
   const {
     activeProject,
     ideaDraft,
@@ -110,7 +113,7 @@ export function ResearchPage() {
     })
 
     try {
-      const brief = await mockResearchService.runResearch({
+      const brief = await getResearchApi().runResearch({
         projectId: activeProject.id,
         mode: selectedMode,
         inputSummary: ideaDraft.rawIdea,
@@ -148,7 +151,7 @@ export function ResearchPage() {
     addImportedArtifact(artifact)
 
     try {
-      const { brief, warnings } = await mockResearchService.normalizeImportedArtifact(
+      const { brief, warnings } = await getResearchApi().normalizeImportedArtifact(
         artifact,
         ideaDraft
       )
@@ -232,7 +235,9 @@ export function ResearchPage() {
         />
       )}
 
-      {/* Two-path tab switcher */}
+      {/* Two-path tab switcher + run/import forms + normalization callout — hidden for viewers */}
+      {canEdit && (
+      <>
       <div className="flex rounded-2xl border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-700/60 dark:bg-zinc-900">
         <button
           onClick={() => setActiveTab('run')}
@@ -464,6 +469,9 @@ export function ResearchPage() {
         </div>
       </div>
 
+      </>
+      )}
+
       {/* Research brief — editable */}
       {researchBrief ? (
         <Card>
@@ -477,7 +485,7 @@ export function ResearchPage() {
             brief={researchBrief}
             artifactTitle={briefArtifact?.title}
             normalizationWarnings={normalizationWarnings}
-            onSave={handleBriefSave}
+            onSave={canEdit ? handleBriefSave : () => {}}
           />
 
           {/* Stage gate: advance to spec */}

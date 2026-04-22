@@ -950,3 +950,324 @@ Definition of done:
 - Run command: `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1 LD_LIBRARY_PATH=$HOME/.local/pw-deps:$LD_LIBRARY_PATH npx playwright test tests/e2e/happy-path.spec.ts`
 - Standard CI run command: `npm run test:e2e:critical` (Chromium, `playwright.config.ts`, port 5173)
 - Infrastructure note: this environment requires `LD_LIBRARY_PATH=$HOME/.local/pw-deps` (pre-bundled system libs in `/home/deploy/.local/pw-deps/`) because Ubuntu 22.04 system packages are not installed; `test:e2e:local` npm script handles this automatically
+
+## T-302 — Adapter layer: service interfaces + env switching (Phase 1)
+Type: impl
+Description: Introduce a clean adapter layer between page components and service implementations. Pages no longer import from src/mocks/services directly; they call factory functions (getSpecApi, getPromptLoopApi, getResearchApi) that return the correct adapter based on VITE_API_MODE env var. Three adapter interfaces defined (SpecApi, PromptLoopApi, ResearchApi); mock adapters delegate to existing mock services; HTTP stubs are scaffolded with TODOs for future real backend endpoints.
+Links: F-005, F-006, F-007, F-001, F-002
+Status: done
+Owner: AI
+Definition of done:
+- src/shared/api/types.ts defines SpecApi, PromptLoopApi, ResearchApi interfaces
+- src/shared/api/mock/specApi.mock.ts, promptLoopApi.mock.ts, researchApi.mock.ts — mock adapters delegating to src/mocks/services/*
+- src/shared/api/http/specApi.http.ts, promptLoopApi.http.ts, researchApi.http.ts — HTTP stubs (throw NotImplemented)
+- src/shared/api/index.ts — getSpecApi(), getPromptLoopApi(), getResearchApi() factories reading VITE_API_MODE
+- SpecPage, ArchitecturePage: import getSpecApi() instead of mockSpecService
+- PromptLoopPage: imports getPromptLoopApi() instead of mockPromptService
+- ResearchPage: imports getResearchApi() instead of mockResearchService (mockResearchProviders still imported directly as UI data)
+- src/shared/api/index.test.ts: 14 tests in 4 groups — A (mock mode), B (real mode), C (callable contracts), D (http stubs throw)
+- Env values: VITE_API_MODE=mock (default) → mock adapters; VITE_API_MODE=real + VITE_API_BASE_URL → http adapters
+- All existing tests continue to pass (no behaviour change, only import path change)
+
+## T-303 — ResearchApi HTTP adapter implementation
+Type: impl
+Description: Replace the throw-stub in researchApi.http.ts with real fetch-based HTTP calls against a defined API contract. ResearchPage already uses getResearchApi() via the T-302 adapter layer; this task completes the HTTP adapter so it's ready when a backend is deployed. No UI changes required; mock mode remains the default for all tests and local development.
+Links: T-302, F-002, F-003
+Status: done
+Owner: AI
+Definition of done:
+- src/shared/api/http/researchApi.http.ts: throw stubs replaced with real fetch calls
+- Contract: POST /api/research/run → ResearchBrief; POST /api/research/normalize → { brief, warnings }
+- Error handling: ApiError(status, message) thrown on non-2xx; message extracted from response.json().message if present
+- VITE_API_MODE=mock (default) still routes to mock adapter — no tests broken
+- VITE_API_MODE=real + VITE_API_BASE_URL routes to http adapter (ready for backend deployment)
+- docs/tech-spec.md updated: ResearchApi HTTP contract table added; adapter table updated to note HTTP-ready status
+- All 1596 existing tests continue to pass (no behaviour change)
+- No unit tests for HTTP layer: no msw setup in project; mapping is identity (no separate helpers to test); snetwork layer left for integration/manual smoke when backend is deployed
+
+## T-304 — PromptLoopApi HTTP adapter implementation
+Type: impl
+Description: Replace the throw stubs in promptLoopApi.http.ts with real fetch-based HTTP calls. Two endpoints implemented: POST /api/prompt-loop/first and POST /api/prompt-loop/next. The adapter receives SpecPack + ArchitectureDraft / ParsedClaudeResponse from the caller (matching the PromptLoopApi interface) and serializes compact context bodies — only the fields the backend needs to build the prompt. parseClaudeResponse stays client-side and throws on the HTTP adapter. Same ApiError pattern as T-303.
+Links: T-302, T-303, F-007, F-024
+Status: done
+Owner: AI
+Definition of done:
+- src/shared/api/http/promptLoopApi.http.ts: throw stubs replaced with real fetch calls for generateFirstPrompt and generateNextPrompt
+- generateFirstPrompt sends: projectId, projectType, taskId, taskDescription, compact spec (productSummary, MVPScope, featureList, constraints), compact arch (roadmapPhases, recommendedStack)
+- generateNextPrompt sends: projectId, projectType, nextIterationNumber, targetPhase, prevIteration metadata, compact parsedSummary fields
+- parseClaudeResponse: throws with "client-side only" message — HTTP adapter must never be called for this method
+- Error handling: ApiError(status, message) on non-2xx; message from response.json().message if present
+- VITE_API_MODE=mock (default) still routes to mock adapter — no tests broken
+- VITE_API_MODE=real + VITE_API_BASE_URL routes to HTTP adapter (ready for backend deployment)
+- docs/tech-spec.md updated: adapter table updated, PromptLoopApi HTTP contract section added
+- src/shared/api/index.test.ts: group D updated (promptLoopApiHttp no longer a stub), group F added (5 contract checks)
+- All 1601 tests pass (3 new in group F net, 1 removed from group D)
+- No unit tests for network layer: no msw in project; network left for integration/manual smoke
+
+## T-305 — SpecApi HTTP adapter implementation (Phase 1 complete)
+Type: impl
+Description: Replace the throw stubs in specApi.http.ts with real fetch-based HTTP calls. Two endpoints implemented: POST /api/spec/generate → SpecPack and POST /api/architecture/generate → ArchitectureDraft. Compact payloads: generateSpec sends key ResearchBrief fields (problemSummary, targetUsers, valueHypothesis, competitorNotes, risks, opportunities, recommendedMVP, openQuestions); generateArchitecture sends compact spec context (productSummary, MVPScope, featureList, constraints, assumptions). Same ApiError pattern as T-303/T-304. Completes Phase 1 adapter migration: all three domains (ResearchApi, PromptLoopApi, SpecApi) now have production-ready HTTP adapters.
+Links: T-302, T-303, T-304, F-005, F-006, F-025
+Status: done
+Owner: AI
+Definition of done:
+- src/shared/api/http/specApi.http.ts: throw stubs replaced with real fetch calls for generateSpec and generateArchitecture
+- generateSpec sends: projectType + compact brief (8 key fields from ResearchBrief)
+- generateArchitecture sends: projectType + compact spec (productSummary, MVPScope, featureList, constraints, assumptions)
+- Error handling: ApiError(status, message) on non-2xx; message from response.json().message if present
+- VITE_API_MODE=mock (default) still routes to mock adapter — no tests broken
+- VITE_API_MODE=real + VITE_API_BASE_URL routes to HTTP adapter (ready for backend deployment)
+- docs/tech-spec.md updated: adapter table updated (all three HTTP-ready), SpecApi HTTP contract section added, status note updated to reflect Phase 1 complete
+- docs/plan.md: T-305 row added (status: done)
+- src/shared/api/index.test.ts: group D replaced (no more throw-stub tests), group G added (4 contract checks for specApiHttp)
+- SpecPage and ArchitecturePage continue to call getSpecApi() unchanged — no UI changes
+- Phase 1 adapter migration complete: ResearchApi (T-303) + PromptLoopApi (T-304) + SpecApi (T-305)
+
+## T-306 — MSW contract tests for HTTP adapters (ResearchApi, PromptLoopApi, SpecApi)
+Type: test
+Description: Add MSW v2 (Mock Service Worker) contract tests that verify all 6 HTTP adapter endpoints at the network level. Each test verifies: correct URL and HTTP method (POST), compact request body shape, response mapped to the matching entity type, ApiError thrown on non-2xx with message from response.json().message, fallback to "HTTP <status>" when body lacks a message field, and graceful handling of non-JSON error bodies. MSW v2 intercepts fetch() in Node so no real backend is needed. Adapters are imported directly (not through factory) so mock mode and existing tests are unaffected.
+Links: T-303, T-304, T-305
+Status: done
+Owner: AI
+Definition of done:
+- msw v2 added to devDependencies
+- src/shared/api/http/adapters.contract.test.ts: 11 tests in 4 groups
+- Group A (ResearchApi): runResearch payload+response, normalizeImportedArtifact payload+response, non-2xx ApiError
+- Group B (PromptLoopApi): generateFirstPrompt compact spec/arch body+response, generateNextPrompt prev-iteration body+response, non-2xx ApiError
+- Group C (SpecApi): generateSpec compact brief body+response, generateArchitecture compact spec body+response, non-2xx ApiError
+- Group D (Error semantics): JSON body without .message falls back to "HTTP <status>"; non-JSON body falls back gracefully
+- All 1615 tests pass (11 new); no existing mock-mode tests affected
+- docs/testing-strategy.md updated with API contract testing section
+- docs/plan.md and docs/tasks.md updated
+
+## T-307 — Shared HTTP client + auth/header contract
+Type: impl+test
+Description: Centralise all HTTP adapter infrastructure into src/shared/api/http/client.ts — ApiError class, baseUrl(), postJson(), buildApiHeaders(), and a bearer auth token provider (getApiAuthToken / setApiTokenProvider / resetApiTokenProvider). Migrate all three HTTP adapters to use the shared client instead of local copies. Add Group E contract tests that lock in the header contract: Content-Type + Accept on every request, Authorization: Bearer when token is configured (one call per adapter domain), header absent when no token.
+Links: T-303, T-304, T-305, T-306
+Status: done
+Owner: AI
+Definition of done:
+- src/shared/api/http/client.ts created: ApiError, getApiAuthToken, setApiTokenProvider, resetApiTokenProvider, buildApiHeaders, baseUrl, postJson
+- researchApi.http.ts, promptLoopApi.http.ts, specApi.http.ts: local ApiError/baseUrl/postJson removed; import postJson from client.ts
+- Bearer auth: VITE_API_BEARER_TOKEN env variable → Authorization header; omitted when unset; extensible via setApiTokenProvider
+- Standard headers on every request: Content-Type: application/json, Accept: application/json
+- Group E added to adapters.contract.test.ts: 3 new tests (json headers all adapters, auth present, auth absent)
+- All 1618 tests pass; no regression in mock mode or existing contract groups
+- docs/tech-spec.md: shared client section added (standard headers, optional bearer auth, env vars table)
+- docs/testing-strategy.md: Group E documented in HTTP adapter contracts section
+- docs/plan.md and docs/tasks.md updated
+
+## T-308 — Staging smoke infrastructure (critical real-backend path)
+Type: ops+test
+Description: Add the infrastructure to run a minimal staging smoke against a real backend in VITE_API_MODE=real. Includes a separate Playwright config (playwright.staging.config.ts), a dedicated test file (tests/e2e/critical-real-backend.spec.ts), and an npm script (test:e2e:staging). The single test SMOKE-001 covers the critical API path: research → spec → architecture → first prompt. Tests are skipped with an explicit reason when VITE_API_BASE_URL is not configured; a missing env = skip, an unreachable backend = real failure.
+Links: T-303, T-304, T-305, T-306, T-307
+Status: done
+Owner: AI
+Definition of done:
+- playwright.staging.config.ts created: separate port (5174), no retries, 3-minute test timeout, always traces
+- tests/e2e/critical-real-backend.spec.ts: SMOKE-001 with 7 steps (home → create → idea → research → spec → arch → first prompt)
+- Skip strategy: test.skip(!VITE_API_BASE_URL, reason) in beforeEach — explicit skip, not a cryptic network error
+- Assertions are content-agnostic: badge/heading presence, not exact LLM text
+- npm script test:e2e:staging added to package.json
+- Existing mock-mode tests (npm test, npm run test:e2e:critical) unaffected
+- docs/testing-strategy.md: staging smoke documented as a separate test level
+- docs/plan.md and docs/tasks.md updated
+- Live smoke: NOT executed — no staging backend deployed yet. Infrastructure is ready; execute when VITE_API_BASE_URL and credentials are available.
+
+## T-309 — Request tracing for HTTP adapters (X-Request-Id correlation)
+Type: impl+test
+Description: Add request tracing to the shared HTTP client so every request carries a stable X-Request-Id (unique per call) and an optional X-Session-Id (per run/session). Tracing is entirely in client.ts — adapters are unaffected. Provider functions (setApiRequestIdProvider/resetApiRequestIdProvider, setApiSessionIdProvider/resetApiSessionIdProvider) allow stable ids in tests and future CI/runtime wiring without changing adapter signatures.
+Links: T-307, T-308
+Status: done
+Owner: AI
+Definition of done:
+- X-Request-Id added to buildApiHeaders() — always present, generated via crypto.randomUUID() with timestamp fallback
+- X-Session-Id added to buildApiHeaders() — present only when VITE_SESSION_ID is set or session id provider returns non-null
+- setApiRequestIdProvider/resetApiRequestIdProvider exported from client.ts
+- setApiSessionIdProvider/resetApiSessionIdProvider exported from client.ts
+- Group F contract tests (4 tests): X-Request-Id present + unique by default; custom provider overrides id; X-Session-Id present when provider set; X-Session-Id absent when not set
+- No adapter signatures changed; no UI changes
+- docs/tech-spec.md: shared client header table updated with X-Request-Id and X-Session-Id rows; env vars table updated with VITE_SESSION_ID; backend guidance added
+- docs/testing-strategy.md: Group F mentioned alongside E in header contract coverage
+- docs/plan.md and docs/tasks.md updated
+- All 1622 tests pass (1618 before + 4 new Group F tests)
+
+## T-310 — Propagate backend requestId through ApiError
+Type: impl+test
+Description: Close the correlation loop between frontend and backend. ApiError gains a requestId field (string | null). postJson() extracts it from the error body ({ message, requestId }) as primary source, with response header x-request-id as fallback. Adapters are unchanged. Group G contract tests cover all extraction paths: body requestId, body-only fallback to header, null on non-JSON response.
+Links: T-309, T-307
+Status: done
+Owner: AI
+Definition of done:
+- ApiError constructor extended: ApiError(status, message, requestId?: string | null)
+- postJson() extracts requestId from JSON error body; falls back to response x-request-id header; null if neither present
+- No adapter signatures changed
+- Group G contract tests (4 tests): requestId from body; fallback message with body requestId; header fallback; null on non-JSON
+- docs/tech-spec.md: error correlation contract documented (backend shape, ApiError shape, extraction precedence)
+- docs/testing-strategy.md: Group G row added; key properties updated
+- docs/plan.md and docs/tasks.md updated
+- All 1626 tests pass (1622 before + 4 new Group G tests)
+
+## T-311 — Wire run-level X-Session-Id into staging smoke and CI nightly
+Type: ops
+Description: Every staging smoke run now gets a unique VITE_SESSION_ID that is sent as X-Session-Id on every HTTP request in that run, enabling backend log correlation across the whole run. scripts/staging-smoke.sh auto-generates a smoke-<YYYYMMDDHHmm>-<4hex> id if not already set. A new npm script (test:e2e:staging:session) wraps it. playwright.staging.config.ts logs the session id at config time. The staging-nightly.yml CI workflow derives the id from GITHUB_RUN_ID. The session id is surfaced as a Playwright report annotation on every test.
+Links: T-309, T-308
+Status: done
+Owner: AI
+Definition of done:
+- scripts/staging-smoke.sh: generates VITE_SESSION_ID=smoke-<ts>-<4hex>; logs it; passes through if already set; exec's playwright
+- package.json: test:e2e:staging:session script added
+- playwright.staging.config.ts: reads VITE_SESSION_ID; logs it (or warns if absent); updated run instructions
+- tests/e2e/critical-real-backend.spec.ts: SESSION_ID constant; testInfo.annotations push X-Session-Id; header comment updated
+- .github/workflows/staging-nightly.yml: nightly schedule (02:00 UTC) + workflow_dispatch; derives VITE_SESSION_ID=staging-<run_id>-<attempt>; artifact named staging-smoke-<session-id>; skip guard via STAGING_ENABLED var
+- docs/tech-spec.md: X-Request-Id vs X-Session-Id scope table; recommended formats for local and CI
+- docs/testing-strategy.md: staging smoke section updated with session correlation guidance, scripts table, run examples
+- docs/plan.md and docs/tasks.md updated
+- All 1626 tests pass — no new unit tests added (session id generation fully covered by T-309 contract tests)
+
+## T-401 — MVP read-only sharing for projects
+Type: impl+test
+Description: Add minimal read-only sharing for projects. Owner can generate a share link (/shared/:shareId). Guest opens the link, the app resolves shareId → projectId, selects the project, sets viewingMode='viewer', and redirects to /history. All write actions (generate, regenerate, paste response, parse, complete review, complete project) are hidden/disabled for viewers. A ReadOnlyBanner is shown across all pages in viewer mode. Sharing uses a deterministic mock token (share-<projectId>) switchable to a real backend via VITE_API_MODE=real.
+Links: F-027
+Status: done
+Owner: AI
+Definition of done:
+- ViewingMode type ('owner' | 'viewer') + useViewingModeStore (non-persisted Zustand) + useIsViewer() selector hook
+- SharingApi interface (generateShareToken, resolveShare) added to src/shared/api/types.ts
+- sharingApiMock: deterministic share-<projectId> token; resolves by parsing prefix
+- sharingApiHttp stub: POST /api/shares, GET /api/shares/:shareId — ready for backend
+- getSharingApi() factory added to src/shared/api/index.ts
+- ReadOnlyBanner component: shown via AppLayout when isViewer=true; role="banner", aria-label
+- SharedProjectPage (/shared/:shareId): resolves share → selectProject + setViewingMode('viewer') → navigate('/history'); shows error state on invalid/unknown token
+- Router: /shared/:shareId route added inside AppLayout
+- AppLayout: ReadOnlyBanner rendered between TopBar and main content
+- SpecPage: generate panel hidden, "Перегенерировать" hidden, EditableSpecPack.onSave noop when viewer
+- ArchitecturePage: generate panel hidden, "Перегенерировать" hidden, EditableArchitectureDraft.onSave noop when viewer
+- ResearchPage: tab switcher + run/import cards + normalization callout hidden, EditableResearchBrief.onSave noop when viewer
+- PromptLoopPage: "Сгенерировать первый промпт" hidden, "Вставить ответ" hidden, "Следующий промпт" hidden for viewer
+- HistoryPage: "Завершить review" button gated via isReadOnly prop on TaskProgressPanel; "Завершить проект" section hidden for viewer
+- HomePage: "🔗 Поделиться" button on selected project card — calls getSharingApi().generateShareToken → copies full URL to clipboard
+- Tests: viewingModeStore.test.ts (5 tests), SharedProjectPage.test.tsx (4 tests), SpecPage.viewerMode.test.tsx (5 tests), HistoryPage.viewerMode.test.tsx (3 tests)
+- All existing tests pass with zero regressions
+
+## T-402 — Feature flag + progressive rollout for project sharing
+Type: impl+test
+Links: T-401
+Status: done
+Owner: AI
+Definition of done:
+- src/shared/config/features.ts: isSharingEnabled() reads VITE_FEATURE_SHARING==='true'; centralised flag helper for future flags
+- features.test.ts: 5 tests covering true / empty / undefined / 'false' / '1' values
+- HomePage: share button wrapped in {isSharingEnabled() && (...)}; hidden when flag OFF
+- SharedProjectPage: isSharingEnabled() checked before useEffect logic; renders "Функция недоступна" page when flag OFF; resolveShare never called; viewingMode never set to viewer
+- ReadOnlyBanner: skips rendering when !isSharingEnabled() even if viewingMode is viewer
+- SharedProjectPage.test.tsx updated: vi.mock for features returns isSharingEnabled=true so T-401 flow tests are unaffected
+- SharedProjectPage.featureFlag.test.tsx: 5 tests — flag OFF shows unavailable, no resolveShare call, no setViewingMode; flag ON loading/success regression
+- HomePage.sharingFlag.test.tsx: 4 tests — flag OFF hides button, flag ON shows button; owner content visible in both modes
+- tech-spec.md: Feature flags section added with flag table, ON/OFF behaviour, rollout defaults table
+- plan.md and tasks.md updated
+- All 1657 tests pass with zero regressions
+
+## T-403 — Backend SharingApi (HTTP contract + email invites MVP)
+Type: impl+test
+Links: T-401, T-402
+Status: done
+Owner: AI
+Definition of done:
+- src/shared/api/types.ts: InviteResult type added; SharingApi extended with inviteByEmail(shareId, email): Promise<InviteResult>
+- src/shared/api/http/client.ts: getJson<T>(path) helper added; extractApiError() private helper shared by postJson and getJson (DRY refactor)
+- src/shared/api/http/sharingApi.http.ts: resolveShare upgraded to getJson (proper ApiError + requestId); inviteByEmail uses postJson to POST /api/shares/:shareId/invite; imports trimmed (removed unused buildApiHeaders, baseUrl)
+- src/shared/api/mock/sharingApi.mock.ts: inviteByEmail with basic email validation (@ + .); returns { invitedEmail, status: 'sent' }
+- src/shared/api/index.ts: ShareInfo, ResolvedShare, InviteResult exported from barrel
+- adapters.contract.test.ts Group H: 7 contract tests — generateShareToken body/response; resolveShare GET URL/response; inviteByEmail POST body/response; 404 share not found; 400 invalid email; 409 already invited; 404 on generateShareToken
+- src/pages/home/HomePage.tsx: currentShareId + inviteEmail + inviteStatus state; handleInviteByEmail(); invite panel (data-testid="invite-panel") appears after share token generated; success/error feedback inline; all gated by isSharingEnabled()
+- src/pages/home/HomePage.inviteUI.test.tsx: 6 tests — panel hidden before share; visible after share click; inviteByEmail called with correct args; success feedback; error feedback; flag OFF hides all
+- src/pages/home/HomePage.sharingFlag.test.tsx: getSharingApi mock updated to include inviteByEmail
+- docs/tech-spec.md: SharingApi contract table updated with inviteByEmail row; error codes table; getJson helper noted; auth/access model described
+- docs/plan.md and docs/tasks.md updated
+- All 1670 tests pass with zero regressions
+
+## T-404 — Sharing audit trail
+Type: impl+test
+Links: T-401, T-402, T-403
+Status: done
+Owner: AI
+Definition of done:
+- src/shared/api/types.ts: SharingAuditEvent interface added (id, projectId, type, timestamp, actorLabel?, targetEmail?, shareId?); type union: 'share_link_created' | 'share_link_opened' | 'share_invite_sent'
+- src/shared/api/types.ts: SharingApi extended with getAuditTrail(projectId): Promise<SharingAuditEvent[]>
+- src/shared/api/mock/sharingApi.mock.ts: getAuditTrail returns 3 deterministic events (link created, invite sent, link opened) keyed by projectId
+- src/shared/api/http/sharingApi.http.ts: getAuditTrail via getJson<SharingAuditEvent[]>('/api/projects/:projectId/sharing-audit')
+- src/shared/api/index.ts: SharingAuditEvent exported from barrel
+- adapters.contract.test.ts Group I: 3 contract tests — correct URL, empty array mapping, ApiError on 403
+- src/pages/home/HomePage.tsx: auditEvents / auditLoading / auditError state; useEffect loads getAuditTrail on mount when isSharingEnabled() + selectedProject; audit panel (data-testid="audit-panel") renders event list, empty state, error state; hidden when sharing flag OFF; formatAuditEvent() formats each event type in Russian
+- src/pages/home/HomePage.sharingFlag.test.tsx: mock updated to include getAuditTrail
+- src/pages/home/HomePage.inviteUI.test.tsx: mock updated to include getAuditTrail
+- src/pages/home/HomePage.auditPanel.test.tsx: 5 tests — panel visible/hidden by flag; event rows rendered; empty state; error state
+- docs/tech-spec.md: audit endpoint + SharingAuditEvent schema documented
+- docs/plan.md and docs/tasks.md updated
+- All existing tests pass with zero regressions
+
+## T-405 — Editor role for shared projects
+Type: impl+test
+Links: T-401, T-402, T-403, T-404
+Status: done
+Owner: AI
+Definition of done:
+- src/app/store/viewingModeStore.ts: ViewingMode expanded to 'owner' | 'editor' | 'viewer'; useCanEditProject() (owner+editor=true); useCanManageSharing() (owner-only=true); useIsViewer() kept for backward compat
+- src/shared/api/types.ts: ResolvedShare.canEdit changed from literal false to boolean
+- src/shared/api/mock/sharingApi.mock.ts: share-edit-<projectId> token → canEdit:true; share-<projectId> → canEdit:false; makeEditShareId() exported for tests
+- src/pages/shared-project/SharedProjectPage.tsx: branches on canEdit to set 'editor' or 'viewer' mode
+- src/shared/ui/ReadOnlyBanner.tsx: renders amber viewer banner OR blue editor banner depending on viewingMode; owner sees nothing
+- src/pages/spec/SpecPage.tsx: useIsViewer → useCanEditProject (editor can generate/regenerate spec)
+- src/pages/architecture/ArchitecturePage.tsx: same pattern
+- src/pages/research/ResearchPage.tsx: same pattern
+- src/pages/prompt-loop/PromptLoopPage.tsx: same pattern
+- src/pages/history/HistoryPage.tsx: isReadOnly={!canEdit} (editor can mark tasks done); "Завершить проект" gated by canManageSharing (owner-only)
+- src/pages/home/HomePage.tsx: share button, invite panel, audit panel all gated by isSharingEnabled() && canManageSharing (owner-only)
+- src/app/store/viewingModeStore.test.ts: updated + extended with editor transition tests + useCanEditProject / useCanManageSharing coverage
+- src/pages/spec/SpecPage.viewerMode.test.tsx: mock updated from useIsViewer to useCanEditProject
+- src/pages/history/HistoryPage.viewerMode.test.tsx: mock updated from useIsViewer to useCanEditProject + useCanManageSharing
+- src/pages/shared-project/SharedProjectPage.editorMode.test.tsx: 3 tests — canEdit=true→editor, canEdit=false→viewer, selectProject called
+- src/pages/spec/SpecPage.editorMode.test.tsx: 3 tests — editor sees generate panel and regenerate button
+- src/pages/home/HomePage.editorMode.test.tsx: 4 tests — editor cannot see share/invite/audit; sees project content
+- docs/tech-spec.md, docs/plan.md, docs/tasks.md updated
+- All existing tests pass with zero regressions
+
+## T-406 — Collaborator management UI
+Type: impl+test
+Links: T-401, T-402, T-403, T-404, T-405
+Status: done
+Owner: AI
+Definition of done:
+- src/shared/api/types.ts: ProjectCollaborator interface (id, email, role: 'viewer'|'editor', status: 'invited'|'active', shareId?, invitedAt?); SharingApi extended with listCollaborators(projectId), updateCollaboratorRole(id, role), revokeCollaborator(id); inviteByEmail signature updated to inviteByEmail(shareId, email, role?: 'viewer'|'editor')
+- src/shared/api/http/client.ts: patchJson<T>(path, body) and deleteJson<T>(path) helpers added
+- src/shared/api/mock/sharingApi.mock.ts: in-memory collaborator Map seeded with 2 entries (alice@example.com viewer/active, bob@example.com editor/invited); listCollaborators returns all; updateCollaboratorRole updates in-place; revokeCollaborator deletes from map; inviteByEmail adds new entry with chosen role; resetCollaboratorStore() exported for test cleanup; makeEditShareId() kept
+- src/shared/api/http/sharingApi.http.ts: listCollaborators via GET /api/projects/:projectId/collaborators; updateCollaboratorRole via PATCH /api/collaborators/:id; revokeCollaborator via DELETE /api/collaborators/:id; inviteByEmail now sends { email, role } in body
+- src/shared/api/index.ts: ProjectCollaborator exported from barrel
+- src/pages/home/HomePage.tsx: collaborators / collaboratorsLoading / collaboratorsError state; useEffect loads listCollaborators on mount when isSharingEnabled() + canManageSharing + selectedProject; collaborator panel (data-testid="collaborator-panel") — per-row role select + Отозвать button + status badge; empty state "Пока нет приглашённых участников"; invite panel now includes role select (Просмотр / Редактор); invite success triggers list refresh; handleChangeRole calls updateCollaboratorRole + optimistic list update; handleRevoke calls revokeCollaborator + removes row; all gated by isSharingEnabled() && canManageSharing
+- adapters.contract.test.ts Group J: 4 tests — listCollaborators URL/response, updateCollaboratorRole PATCH body, revokeCollaborator DELETE response, inviteByEmail sends role; existing Group H inviteByEmail body assertion updated to include role: 'viewer'
+- src/pages/home/HomePage.collaboratorPanel.test.tsx: 7 tests — owner sees panel; flag OFF hides; editor hides; list renders email/role/status/revoke; empty state; role change calls updateCollaboratorRole; revoke calls revokeCollaborator and removes row
+- src/pages/home/HomePage.editorMode.test.tsx: 5th test added — editor cannot see collaborator-panel
+- All existing test mocks updated to include listCollaborators/updateCollaboratorRole/revokeCollaborator stubs
+- All 1708 tests pass across 62 files
+
+## T-407 — Comments on project artifacts (Spec / Architecture / Prompt Loop)
+Type: impl+test
+Links: T-405, T-406
+Status: done
+Owner: AI
+Definition of done:
+- src/shared/api/types.ts: ArtifactType ('spec' | 'architecture' | 'prompt_iteration'); ArtifactComment interface (id, projectId, artifactType, artifactId, body, authorLabel, createdAt); AddCommentInput interface; CommentsApi interface with listComments(projectId, artifactType, artifactId) and addComment(input)
+- src/shared/api/mock/commentsApi.mock.ts: in-memory Map keyed by "projectId:artifactType:artifactId"; seeded with 3 deterministic comments (proj-demo × spec, architecture, prompt_iteration); addComment appends in-memory with auto-id; resetCommentStore() exported for test cleanup
+- src/shared/api/http/commentsApi.http.ts: listComments via GET /api/projects/:projectId/comments?artifactType=...&artifactId=...; addComment via POST /api/projects/:projectId/comments with { artifactType, artifactId, body }; throws ApiError on non-2xx
+- src/shared/api/index.ts: getCommentsApi() factory added; ArtifactComment, ArtifactType, AddCommentInput, CommentsApi exported from barrel
+- src/shared/ui/CommentsPanel.tsx: reusable panel (data-testid="comments-panel"); shows loading / error / empty / list states; owner/editor: comment list + textarea + submit button; viewer: comment list + "Только для чтения"; max 1000 chars; empty body prevents submit; optimistic append on success; cleanup cancels in-flight request on unmount
+- src/pages/spec/SpecPage.tsx: CommentsPanel shown when specPack && activeProject; artifactType='spec', artifactId=activeProject.id, canPost=canEdit
+- src/pages/architecture/ArchitecturePage.tsx: CommentsPanel shown when architectureDraft && activeProject; artifactType='architecture', artifactId=activeProject.id, canPost=canEdit
+- src/pages/prompt-loop/PromptLoopPage.tsx: CommentsPanel shown when activeIteration && activeProject; artifactType='prompt_iteration', artifactId=activeIteration.id, canPost=canEdit
+- src/shared/api/http/commentsApi.contract.test.ts (Group K): 5 tests — listComments URL+query params, empty response, addComment POST body, listComments 403 ApiError, addComment 400 ApiError
+- src/pages/spec/SpecPage.comments.test.tsx: 9 tests — visibility, list rendering, empty state, error state, add form owner, submit calls addComment, disabled empty, viewer read-only
+- src/pages/architecture/ArchitecturePage.comments.test.tsx: 5 tests — visibility, hidden when no arch, listComments args, body render, viewer read-only
+- src/pages/prompt-loop/PromptLoopPage.comments.test.tsx: 6 tests — visibility, hidden when no iteration, listComments args, body render, editor add, viewer read-only
+- sharing flag OFF does not affect comments (no isSharingEnabled gate)
+- All 1733 tests pass across 66 files

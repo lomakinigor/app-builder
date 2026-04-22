@@ -35,6 +35,112 @@ Examples in this project:
 Tool: Vitest + Testing Library
 When to write: for every impl task (T-xxx) that changes a page or feature component, before that task is marked done.
 
+### HTTP adapter contracts
+What: verify that each HTTP adapter hits the correct URL and HTTP method, serializes the documented compact payload, maps the response to the correct entity type, throws `ApiError` on non-2xx responses, and sends the correct HTTP headers (including bearer auth when configured).
+
+These tests sit between unit and integration: they test the network boundary without a real backend by intercepting `fetch()` with MSW v2 (Mock Service Worker) in Node.
+
+Test file: `src/shared/api/http/adapters.contract.test.ts`
+
+| Group | Domain | What is verified |
+|-------|--------|-----------------|
+| A | ResearchApi | URL, compact body, response mapping, `ApiError` |
+| B | PromptLoopApi | URL, compact body, response mapping, `ApiError` |
+| C | SpecApi | URL, compact body, response mapping, `ApiError` |
+| D | Error semantics | `ApiError` message extraction; non-JSON fallback |
+| E | Header / auth contract | `Content-Type`, `Accept` on all adapters; `Authorization: Bearer` when token set; header absent when no token |
+| F | Tracing contract | `X-Request-Id` present and unique by default; custom request id provider overrides id; `X-Session-Id` present when session provider set; `X-Session-Id` absent otherwise |
+| G | Error correlation contract | `ApiError.requestId` extracted from body `{ requestId }`; falls back to response `x-request-id` header; `null` when neither present; no crash on non-JSON body |
+
+Key properties verified per test:
+- Correct URL path (MSW only matches exact path — wrong URL → unhandled request → test fails)
+- Compact request body shape (only the fields in the documented contract, not the full entity)
+- Response fields mapped correctly to entity types (`ResearchBrief`, `SpecPack`, `ArchitectureDraft`, `PromptIteration`)
+- `ApiError(status, message, requestId)` on non-2xx; `message` from `response.json().message`; fallback to `"HTTP <status>"`
+- `ApiError.requestId` from `response.json().requestId` (primary) or `response.headers.get('x-request-id')` (fallback); `null` when absent
+- `Content-Type: application/json` and `Accept: application/json` on every request (via shared client)
+- `Authorization: Bearer <token>` present when token provider returns non-null; header absent otherwise
+- `X-Request-Id` present on every request, unique per call by default, overrideable via `setApiRequestIdProvider`
+- `X-Session-Id` present when `setApiSessionIdProvider` returns non-null or `VITE_SESSION_ID` is set; absent otherwise
+
+Tool: Vitest + MSW v2 (`setupServer` from `msw/node`)
+When to write: whenever a new HTTP adapter endpoint is added, an existing compact payload changes, or a new standard header is added to the shared client.
+
+**Relationship to other test levels:**
+
+| Level | Mode | What it tests | Backend needed |
+|-------|------|--------------|----------------|
+| Unit / RTL (`VITE_API_MODE=mock`) | mock | Page UI, stores, stage gates, service logic | no |
+| HTTP contract (MSW) | HTTP adapters directly | URL, payload shape, response mapping, error handling, auth headers | no (MSW intercepts) |
+| E2E Playwright mock (`VITE_API_MODE=mock`) | mock | Full user journey in a real browser | no |
+| Staging smoke (`VITE_API_MODE=real`) | real backend | Critical path with live HTTP adapters and real API | yes |
+
+RTL tests and E2E Playwright mock-mode tests never touch the HTTP adapters and are unaffected by MSW.
+
+### Staging smoke
+What: minimal real-backend smoke that proves the frontend ↔ backend integration works end-to-end. Not a regression suite — one short test covering the critical API path.
+
+Test file: `tests/e2e/critical-real-backend.spec.ts`
+
+Config: `playwright.staging.config.ts` (port 5174, no retries, 3-minute test timeout, always captures trace + video)
+
+**Scripts:**
+
+| Script | When to use |
+|--------|-------------|
+| `npm run test:e2e:staging` | Manual, caller sets all env vars including `VITE_SESSION_ID` |
+| `npm run test:e2e:staging:session` | Recommended — auto-generates `VITE_SESSION_ID` via `scripts/staging-smoke.sh` |
+
+**Required env vars:**
+
+| Variable | Required | Purpose |
+|----------|----------|---------|
+| `VITE_API_MODE` | yes (`real`) | Activates HTTP adapters instead of mocks |
+| `VITE_API_BASE_URL` | yes | Base URL of the staging backend |
+| `VITE_API_BEARER_TOKEN` | optional | Bearer auth; omitted from requests when absent |
+| `VITE_SESSION_ID` | recommended | Run-level session id — all HTTP requests send `X-Session-Id: <id>` |
+
+**Skip strategy:** when `VITE_API_BASE_URL` is not set, every test in the file is skipped with an explicit reason before any network call is attempted. A missing env = skip; an unreachable backend = real failure.
+
+**Run-level session correlation (T-311):**
+
+Every smoke run should have a unique `VITE_SESSION_ID` so all backend log entries for the run are queryable by one id:
+
+```sh
+# Auto-generate session id (recommended):
+VITE_API_MODE=real \
+VITE_API_BASE_URL=https://api-staging.example.com \
+VITE_API_BEARER_TOKEN=<token> \
+npm run test:e2e:staging:session
+
+# Manual override:
+VITE_SESSION_ID=smoke-debug-001 \
+VITE_API_MODE=real \
+VITE_API_BASE_URL=https://api-staging.example.com \
+npm run test:e2e:staging
+```
+
+Generated format: `smoke-<YYYYMMDDHHmm>-<4-hex>` (e.g. `smoke-202604221030-ab12`).
+CI nightly format: `staging-<GITHUB_RUN_ID>-<GITHUB_RUN_ATTEMPT>` (set in `staging-nightly.yml`).
+
+The session id appears in:
+- `[staging] Run session id: ...` log line at config time
+- `X-Session-Id` request header on every HTTP call in the run
+- `X-Session-Id` annotation on every test in the Playwright report
+- Artifact name: `staging-smoke-<session-id>` for direct log correlation
+
+**Critical path covered (SMOKE-001):**
+1. App boots with `VITE_API_MODE=real`
+2. Project created + idea filled
+3. `POST /api/research/run` — brief badge appears
+4. `POST /api/spec/generate` — "Сгенерировано" badge appears
+5. `POST /api/architecture/generate` — "Сгенерировано" badge appears
+6. `POST /api/prompt-loop/first` — "Итерация 1" card appears
+
+Assertions are content-agnostic (presence of badges and headings, not exact LLM text) to stay resilient to backend output variation.
+
+**When to run:** on-demand before a real backend rollout, or as a nightly CI step via `.github/workflows/staging-nightly.yml` against a stable staging environment.
+
 ### E2E
 What: full user journey through the app from Idea to Prompt Loop, running in a real browser.
 Examples in this project:

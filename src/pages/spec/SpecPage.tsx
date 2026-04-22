@@ -2,17 +2,19 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { startAttentionSignal, stopAttentionSignal } from '../../shared/lib/attentionSignal'
 import { useProjectStore } from '../../app/store/projectStore'
+import { useCanEditProject } from '../../app/store/viewingModeStore'
 import { Button } from '../../shared/ui/Button'
 import { Card, CardHeader } from '../../shared/ui/Card'
 import { PageHeader } from '../../shared/ui/PageHeader'
 import { Badge } from '../../shared/ui/Badge'
 import { EmptyState } from '../../shared/ui/EmptyState'
-import { mockSpecService } from '../../mocks/services/specService'
+import { getSpecApi } from '../../shared/api'
 import { canAdvanceFromSpec } from '../../shared/lib/stageGates'
 import { GateDiagnostics } from '../../shared/ui/GateDiagnostics'
 import { EditableSpecPack } from '../../features/spec-output/EditableSpecPack'
 import { specPackToMarkdown } from '../../shared/lib/markdown/exportArtifactToMarkdown'
 import { copyMarkdown } from '../../shared/lib/clipboard/copyMarkdown'
+import { CommentsPanel } from '../../shared/ui/CommentsPanel'
 import type { SpecPack } from '../../shared/types'
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -20,6 +22,7 @@ import type { SpecPack } from '../../shared/types'
 export function SpecPage() {
   const navigate = useNavigate()
   const { activeProject, researchBrief, specPack, setSpecPack, updateSpecPack, setCurrentStage } = useProjectStore()
+  const canEdit = useCanEditProject()
   const [generating, setGenerating] = useState(false)
   const [specCopied, setSpecCopied] = useState(false)
 
@@ -43,7 +46,7 @@ export function SpecPage() {
     if (!researchBrief) return
     setGenerating(true)
     try {
-      const spec = await mockSpecService.generateSpec(researchBrief, projectType)
+      const spec = await getSpecApi().generateSpec(researchBrief, projectType)
       setSpecPack(spec)
       setCurrentStage('specification')
       startAttentionSignal('task_completed')
@@ -104,8 +107,8 @@ export function SpecPage() {
         </Card>
       )}
 
-      {/* Generate panel — shown when brief exists but no spec yet */}
-      {researchBrief && !specPack && (
+      {/* Generate panel — shown when brief exists but no spec yet; hidden for viewers */}
+      {researchBrief && !specPack && canEdit && (
         <Card>
           <CardHeader
             title="Генерация спецификации"
@@ -143,8 +146,18 @@ export function SpecPage() {
               {specCopied ? '✓ Скопировано' : '↓ Скопировать как markdown'}
             </Button>
           </div>
-          <EditableSpecPack spec={specPack} onSave={handleSaveSpec} />
+          <EditableSpecPack spec={specPack} onSave={!canEdit ? () => {} : handleSaveSpec} />
         </>
+      )}
+
+      {/* Comments — visible to all roles when spec exists */}
+      {specPack && activeProject && (
+        <CommentsPanel
+          projectId={activeProject.id}
+          artifactType="spec"
+          artifactId={activeProject.id}
+          canPost={canEdit}
+        />
       )}
 
       {/* Bottom action bar */}
@@ -152,9 +165,11 @@ export function SpecPage() {
         <div className="space-y-3">
           <GateDiagnostics reasons={specGate.canAdvance || !specGate.reason ? [] : [specGate.reason]} />
           <div className="flex gap-3">
-            <Button variant="secondary" onClick={handleGenerate} loading={generating} disabled={!researchBrief}>
-              Перегенерировать
-            </Button>
+            {canEdit && (
+              <Button variant="secondary" onClick={handleGenerate} loading={generating} disabled={!researchBrief}>
+                Перегенерировать
+              </Button>
+            )}
             <Button
               onClick={() => navigate('/architecture')}
               disabled={!specGate.canAdvance}

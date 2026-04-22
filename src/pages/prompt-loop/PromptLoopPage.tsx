@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import { startAttentionSignal, stopAttentionSignal } from '../../shared/lib/attentionSignal'
 import type { CyclePhase } from '../../entities/prompt-iteration/types'
 import { useProjectStore } from '../../app/store/projectStore'
+import { useCanEditProject } from '../../app/store/viewingModeStore'
 import { Button } from '../../shared/ui/Button'
 import { Card, CardHeader } from '../../shared/ui/Card'
 import { PageHeader } from '../../shared/ui/PageHeader'
 import { Badge } from '../../shared/ui/Badge'
 import { EmptyState } from '../../shared/ui/EmptyState'
-import { mockPromptService } from '../../mocks/services/promptService'
+import { getPromptLoopApi } from '../../shared/api'
+import { CommentsPanel } from '../../shared/ui/CommentsPanel'
 import { generateId } from '../../shared/lib/id'
 import { promptIterationToMarkdown } from '../../shared/lib/markdown/exportArtifactToMarkdown'
 import { copyMarkdown } from '../../shared/lib/clipboard/copyMarkdown'
@@ -78,6 +80,7 @@ function CycleContextBar({
 
 export function PromptLoopPage() {
   const navigate = useNavigate()
+  const canEdit = useCanEditProject()
   const {
     activeProject,
     specPack,
@@ -117,7 +120,7 @@ export function PromptLoopPage() {
     if (!specPack || !architectureDraft || !activeProject || !projectType) return
     setGenerating(true)
     try {
-      const iteration = await mockPromptService.generateFirstPrompt(
+      const iteration = await getPromptLoopApi().generateFirstPrompt(
         specPack,
         architectureDraft,
         projectType,
@@ -140,7 +143,7 @@ export function PromptLoopPage() {
     if (!activeIteration || !responseInput.trim()) return
     setParsing(true)
     try {
-      const parsed = mockPromptService.parseClaudeResponse(responseInput)
+      const parsed = getPromptLoopApi().parseClaudeResponse(responseInput)
       stopAttentionSignal('awaiting_confirmation')
       updatePromptIteration(activeIteration.id, {
         claudeResponseRaw: responseInput,
@@ -160,7 +163,7 @@ export function PromptLoopPage() {
     if (!activeProject || !latestIteration?.parsedSummary || !projectType) return
     setGenerating(true)
     try {
-      const next = await mockPromptService.generateNextPrompt(
+      const next = await getPromptLoopApi().generateNextPrompt(
         latestIteration,
         latestIteration.parsedSummary,
         projectType,
@@ -283,8 +286,8 @@ export function PromptLoopPage() {
         </Card>
       )}
 
-      {/* Generate first prompt */}
-      {promptIterations.length === 0 && (
+      {/* Generate first prompt — hidden for viewers */}
+      {promptIterations.length === 0 && canEdit && (
         <Card>
           <CardHeader
             title="Сгенерировать первый промпт для Claude Code"
@@ -398,8 +401,8 @@ export function PromptLoopPage() {
         </Card>
       )}
 
-      {/* Paste Claude response */}
-      {activeIteration && activeIteration.status !== 'parsed' && (
+      {/* Paste Claude response — hidden for viewers */}
+      {activeIteration && activeIteration.status !== 'parsed' && canEdit && (
         <Card>
           <CardHeader
             title="Вставьте ответ Claude"
@@ -535,8 +538,8 @@ export function PromptLoopPage() {
             </div>
           </Card>
 
-          {/* Generate next */}
-          {(() => {
+          {/* Generate next — hidden for viewers */}
+          {canEdit && (() => {
             const advanceGate = canAdvanceFromPromptLoop(latestIteration)
             const reviewGate = canAdvanceToReview(latestIteration)
             const reviewBlockedReasons = reviewGate.canAdvance
@@ -595,6 +598,16 @@ export function PromptLoopPage() {
             )
           })()}
         </div>
+      )}
+
+      {/* Comments — visible to all roles when an iteration is active */}
+      {activeIteration && activeProject && (
+        <CommentsPanel
+          projectId={activeProject.id}
+          artifactType="prompt_iteration"
+          artifactId={activeIteration.id}
+          canPost={canEdit}
+        />
       )}
 
       {/* Iteration switcher */}

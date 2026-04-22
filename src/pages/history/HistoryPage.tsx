@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useProjectStore } from '../../app/store/projectStore'
 import { useProjectRegistry, selectSelectedProject } from '../../app/store/projectRegistryStore'
+import { useCanEditProject, useCanManageSharing } from '../../app/store/viewingModeStore'
 import { Card, CardHeader } from '../../shared/ui/Card'
 import { PageHeader } from '../../shared/ui/PageHeader'
 import { Badge } from '../../shared/ui/Badge'
@@ -117,12 +118,14 @@ function TaskProgressPanel({
   onMarkReviewComplete,
   recommendedTaskId,
   completedReviewTaskIds,
+  isReadOnly,
 }: {
   iterations: PromptIteration[]
   onOpenPromptLoop: () => void
   onMarkReviewComplete: (taskId: string) => void
   recommendedTaskId?: string | null
   completedReviewTaskIds: string[]
+  isReadOnly?: boolean
 }) {
   const [phaseFilter, setPhaseFilter] = useState<PhaseFilter>('all')
   const [testFilter, setTestFilter] = useState<TestFilter>('all')
@@ -281,7 +284,7 @@ function TaskProgressPanel({
                           Открыть в Цикле промптов →
                         </button>
                       )}
-                      {row.hasTests && row.taskId !== '(unassigned)' && (
+                      {row.hasTests && row.taskId !== '(unassigned)' && !isReadOnly && (
                         <button
                           onClick={() => onMarkReviewComplete(row.taskId)}
                           className="rounded-md border border-emerald-300 bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-100 dark:border-emerald-700/50 dark:bg-emerald-950/20 dark:text-emerald-400 dark:hover:bg-emerald-950/40"
@@ -569,6 +572,8 @@ function ReviewChecklist() {
 
 export function HistoryPage() {
   const navigate = useNavigate()
+  const canEdit = useCanEditProject()
+  const canManageSharing = useCanManageSharing()
   const {
     activeProject,
     ideaDraft,
@@ -730,6 +735,7 @@ export function HistoryPage() {
           onMarkReviewComplete={markTaskReviewComplete}
           recommendedTaskId={recommendedTaskId}
           completedReviewTaskIds={completedReviewTaskIds}
+          isReadOnly={!canEdit}
         />
       </Card>
 
@@ -886,7 +892,8 @@ export function HistoryPage() {
         <DecisionsPanel />
       </Card>
 
-      {/* Project completion action — T-213 */}
+      {/* Project completion action — T-213; owner-only (T-405) */}
+      {canManageSharing && (
       <div className="flex flex-wrap items-center gap-3 rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900/40">
         {isProjectCompleted ? (
           <div className="flex items-center gap-2">
@@ -919,6 +926,7 @@ export function HistoryPage() {
           </>
         )}
       </div>
+      )}
 
       <div className="flex flex-wrap gap-2">
         <Button variant="secondary" onClick={() => navigate('/prompt-loop')}>

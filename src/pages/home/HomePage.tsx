@@ -1,6 +1,11 @@
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useProjectStore } from '../../app/store/projectStore'
 import { useProjectRegistry, selectSelectedProject } from '../../app/store/projectRegistryStore'
+import { getSharingApi } from '../../shared/api'
+import type { SharingAuditEvent, ProjectCollaborator } from '../../shared/api'
+import { isSharingEnabled } from '../../shared/config/features'
+import { useCanManageSharing } from '../../app/store/viewingModeStore'
 import { Button } from '../../shared/ui/Button'
 import { Card, CardHeader } from '../../shared/ui/Card'
 import { Badge } from '../../shared/ui/Badge'
@@ -28,8 +33,35 @@ const WORKFLOW_STEPS = [
   { icon: '🔄', label: 'Цикл сборки', description: 'Итерируйте с ответами Claude Code' },
 ]
 
+type InviteStatus = 'idle' | 'sending' | 'sent' | 'error'
+
+function formatAuditEvent(event: SharingAuditEvent): string {
+  const date = new Date(event.timestamp).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' })
+  switch (event.type) {
+    case 'share_link_created':
+      return `Ссылка создана — ${date}`
+    case 'share_invite_sent':
+      return `Приглашение отправлено на ${event.targetEmail ?? '—'} — ${date}`
+    case 'share_link_opened':
+      return `Ссылку открыл ${event.actorLabel ?? 'viewer'} — ${date}`
+  }
+}
+
 export function HomePage() {
   const navigate = useNavigate()
+  const [shareCopied, setShareCopied] = useState(false)
+  const [currentShareId, setCurrentShareId] = useState<string | null>(null)
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteRole, setInviteRole] = useState<'viewer' | 'editor'>('viewer')
+  const [inviteStatus, setInviteStatus] = useState<InviteStatus>('idle')
+  const [inviteErrorMsg, setInviteErrorMsg] = useState<string | null>(null)
+  const [auditEvents, setAuditEvents] = useState<SharingAuditEvent[] | null>(null)
+  const [auditLoading, setAuditLoading] = useState(false)
+  const [auditError, setAuditError] = useState<string | null>(null)
+  const [collaborators, setCollaborators] = useState<ProjectCollaborator[]>([])
+  const [collaboratorsLoading, setCollaboratorsLoading] = useState(false)
+  const [collaboratorsError, setCollaboratorsError] = useState<string | null>(null)
+  const canManageSharing = useCanManageSharing()
 
   // Registry: canonical list + selected project identity
   const { selectProject } = useProjectRegistry()
@@ -55,6 +87,38 @@ export function HomePage() {
   )
   const recommendedPhaseId = getRecommendedPhaseId(nextAction)
 
+  useEffect(() => {
+    if (!isSharingEnabled() || !canManageSharing || !selectedProject) return
+    setAuditLoading(true)
+    setAuditError(null)
+    getSharingApi()
+      .getAuditTrail(selectedProject.id)
+      .then((events) => { setAuditEvents(events) })
+      .catch((err) => {
+        setAuditError(err instanceof Error ? err.message : 'Не удалось загрузить историю доступа')
+      })
+      .finally(() => { setAuditLoading(false) })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedProject?.id, canManageSharing])
+
+  function loadCollaborators() {
+    if (!isSharingEnabled() || !canManageSharing || !selectedProject) return
+    setCollaboratorsLoading(true)
+    setCollaboratorsError(null)
+    getSharingApi()
+      .listCollaborators(selectedProject.id)
+      .then((list) => { setCollaborators(list) })
+      .catch((err) => {
+        setCollaboratorsError(err instanceof Error ? err.message : 'Не удалось загрузить участников')
+      })
+      .finally(() => { setCollaboratorsLoading(false) })
+  }
+
+  useEffect(() => {
+    loadCollaborators()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedProject?.id, canManageSharing])
+
   function loadMockProject() {
     // 1. Select the demo project in the registry (bridges to projectStore.setActiveProject)
     selectProject(mockProject.id)
@@ -71,6 +135,54 @@ export function HomePage() {
 
   function startNew() {
     navigate('/project/new')
+  }
+
+  async function handleShareProject() {
+    if (!selectedProject) return
+    try {
+      const { shareId, shareUrl } = await getSharingApi().generateShareToken(selectedProject.id)
+      const fullUrl = `${window.location.origin}${shareUrl}`
+      await navigator.clipboard.writeText(fullUrl)
+      setCurrentShareId(shareId)
+      setShareCopied(true)
+      setTimeout(() => setShareCopied(false), 2000)
+    } catch {
+      // clipboard or API failure — silently ignore
+    }
+  }
+
+  async function handleInviteByEmail() {
+    if (!currentShareId || !inviteEmail.trim()) return
+    setInviteStatus('sending')
+    setInviteErrorMsg(null)
+    try {
+      await getSharingApi().inviteByEmail(currentShareId, inviteEmail.trim(), inviteRole)
+      setInviteStatus('sent')
+      setInviteEmail('')
+      loadCollaborators()
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Не удалось отправить приглашение'
+      setInviteErrorMsg(msg)
+      setInviteStatus('error')
+    }
+  }
+
+  async function handleChangeRole(collaboratorId: string, role: 'viewer' | 'editor') {
+    try {
+      const updated = await getSharingApi().updateCollaboratorRole(collaboratorId, role)
+      setCollaborators((prev) => prev.map((c) => (c.id === collaboratorId ? updated : c)))
+    } catch {
+      // silently ignore — list stays as-is
+    }
+  }
+
+  async function handleRevoke(collaboratorId: string) {
+    try {
+      await getSharingApi().revokeCollaborator(collaboratorId)
+      setCollaborators((prev) => prev.filter((c) => c.id !== collaboratorId))
+    } catch {
+      // silently ignore
+    }
   }
 
   return (
@@ -148,7 +260,149 @@ export function HomePage() {
             <Button size="sm" variant="secondary" onClick={() => navigate('/history')}>
               Обзор
             </Button>
+            {isSharingEnabled() && canManageSharing && (
+              <Button size="sm" variant="ghost" onClick={handleShareProject}>
+                {shareCopied ? '✓ Ссылка скопирована' : '🔗 Поделиться'}
+              </Button>
+            )}
           </div>
+
+          {/* Email invite panel — shown after share link is generated; owner-only (T-405/T-406) */}
+          {isSharingEnabled() && canManageSharing && currentShareId && (
+            <div
+              className="mt-4 rounded-xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-700/60 dark:bg-zinc-800/40"
+              data-testid="invite-panel"
+            >
+              <p className="mb-2 text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                Пригласить по email
+              </p>
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  value={inviteEmail}
+                  onChange={(e) => {
+                    setInviteEmail(e.target.value)
+                    if (inviteStatus !== 'idle') {
+                      setInviteStatus('idle')
+                      setInviteErrorMsg(null)
+                    }
+                  }}
+                  placeholder="user@example.com"
+                  className="min-w-0 flex-1 rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-violet-400 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100"
+                  aria-label="Email для приглашения"
+                />
+                <select
+                  value={inviteRole}
+                  onChange={(e) => setInviteRole(e.target.value as 'viewer' | 'editor')}
+                  aria-label="Роль приглашённого"
+                  className="rounded-lg border border-zinc-300 bg-white px-2 py-1.5 text-sm outline-none focus:border-violet-400 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100"
+                >
+                  <option value="viewer">Просмотр</option>
+                  <option value="editor">Редактор</option>
+                </select>
+                <Button
+                  size="sm"
+                  onClick={handleInviteByEmail}
+                  disabled={inviteStatus === 'sending' || !inviteEmail.trim()}
+                >
+                  {inviteStatus === 'sending' ? '…' : 'Пригласить'}
+                </Button>
+              </div>
+              {inviteStatus === 'sent' && (
+                <p className="mt-1.5 text-xs text-emerald-600 dark:text-emerald-400">
+                  ✓ Приглашение отправлено
+                </p>
+              )}
+              {inviteStatus === 'error' && (
+                <p className="mt-1.5 text-xs text-red-600 dark:text-red-400">
+                  {inviteErrorMsg ?? 'Ошибка отправки'}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Collaborator management panel — T-406 — owner-only */}
+          {isSharingEnabled() && canManageSharing && (
+            <div
+              className="mt-4 rounded-xl border border-zinc-200 bg-zinc-50/60 p-3 dark:border-zinc-700/60 dark:bg-zinc-800/30"
+              data-testid="collaborator-panel"
+            >
+              <p className="mb-2 text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                Участники
+              </p>
+              {collaboratorsLoading && (
+                <p className="text-xs text-zinc-400 dark:text-zinc-500">Загрузка…</p>
+              )}
+              {collaboratorsError && (
+                <p className="text-xs text-red-600 dark:text-red-400">{collaboratorsError}</p>
+              )}
+              {!collaboratorsLoading && !collaboratorsError && collaborators.length === 0 && (
+                <p className="text-xs text-zinc-400 dark:text-zinc-500">
+                  Пока нет приглашённых участников
+                </p>
+              )}
+              {!collaboratorsLoading && collaborators.length > 0 && (
+                <ul className="space-y-2">
+                  {collaborators.map((c) => (
+                    <li
+                      key={c.id}
+                      className="flex items-center gap-2 text-xs text-zinc-700 dark:text-zinc-300"
+                      data-testid={`collaborator-row-${c.id}`}
+                    >
+                      <span className="min-w-0 flex-1 truncate">{c.email}</span>
+                      <select
+                        value={c.role}
+                        onChange={(e) => handleChangeRole(c.id, e.target.value as 'viewer' | 'editor')}
+                        aria-label={`Роль ${c.email}`}
+                        className="rounded border border-zinc-300 bg-white px-1.5 py-0.5 text-xs outline-none focus:border-violet-400 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100"
+                      >
+                        <option value="viewer">viewer</option>
+                        <option value="editor">editor</option>
+                      </select>
+                      <span className="text-zinc-400 dark:text-zinc-500">{c.status}</span>
+                      <button
+                        onClick={() => handleRevoke(c.id)}
+                        className="ml-1 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                        aria-label={`Отозвать ${c.email}`}
+                      >
+                        Отозвать
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
+          {/* Sharing audit trail — T-404 — owner-only via canManageSharing (T-405) */}
+          {isSharingEnabled() && canManageSharing && (
+            <div
+              className="mt-4 rounded-xl border border-zinc-200 bg-zinc-50/60 p-3 dark:border-zinc-700/60 dark:bg-zinc-800/30"
+              data-testid="audit-panel"
+            >
+              <p className="mb-2 text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                История доступа
+              </p>
+              {auditLoading && (
+                <p className="text-xs text-zinc-400 dark:text-zinc-500">Загрузка…</p>
+              )}
+              {auditError && (
+                <p className="text-xs text-red-600 dark:text-red-400">{auditError}</p>
+              )}
+              {!auditLoading && !auditError && auditEvents !== null && auditEvents.length === 0 && (
+                <p className="text-xs text-zinc-400 dark:text-zinc-500">Пока нет действий по доступу</p>
+              )}
+              {!auditLoading && auditEvents && auditEvents.length > 0 && (
+                <ul className="space-y-1">
+                  {auditEvents.map((event) => (
+                    <li key={event.id} className="text-xs text-zinc-600 dark:text-zinc-400">
+                      {formatAuditEvent(event)}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
         </Card>
       ) : (
         <Card className="border-dashed border-zinc-300 dark:border-zinc-600">

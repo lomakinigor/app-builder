@@ -2,17 +2,19 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { startAttentionSignal, stopAttentionSignal } from '../../shared/lib/attentionSignal'
 import { useProjectStore } from '../../app/store/projectStore'
+import { useCanEditProject } from '../../app/store/viewingModeStore'
 import { Button } from '../../shared/ui/Button'
 import { Card, CardHeader } from '../../shared/ui/Card'
 import { PageHeader } from '../../shared/ui/PageHeader'
 import { Badge } from '../../shared/ui/Badge'
 import { EmptyState } from '../../shared/ui/EmptyState'
-import { mockSpecService } from '../../mocks/services/specService'
+import { getSpecApi } from '../../shared/api'
 import { canAdvanceFromArchitecture } from '../../shared/lib/stageGates'
 import { GateDiagnostics } from '../../shared/ui/GateDiagnostics'
 import { EditableArchitectureDraft } from '../../features/architecture-output/EditableArchitectureDraft'
 import { architectureDraftToMarkdown } from '../../shared/lib/markdown/exportArtifactToMarkdown'
 import { copyMarkdown } from '../../shared/lib/clipboard/copyMarkdown'
+import { CommentsPanel } from '../../shared/ui/CommentsPanel'
 import type { ArchitectureDraft } from '../../shared/types'
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -21,6 +23,7 @@ export function ArchitecturePage() {
   const navigate = useNavigate()
   const { activeProject, specPack, architectureDraft, setArchitectureDraft, updateArchitectureDraft, setCurrentStage } =
     useProjectStore()
+  const canEdit = useCanEditProject()
   const [generating, setGenerating] = useState(false)
   const [archCopied, setArchCopied] = useState(false)
 
@@ -44,7 +47,7 @@ export function ArchitecturePage() {
     if (!specPack) return
     setGenerating(true)
     try {
-      const arch = await mockSpecService.generateArchitecture(specPack, projectType)
+      const arch = await getSpecApi().generateArchitecture(specPack, projectType)
       setArchitectureDraft(arch)
       setCurrentStage('architecture')
       startAttentionSignal('task_completed')
@@ -107,8 +110,8 @@ export function ArchitecturePage() {
         </Card>
       )}
 
-      {/* Generate panel — shown when spec exists but no arch yet */}
-      {specPack && !architectureDraft && (
+      {/* Generate panel — shown when spec exists but no arch yet; hidden for viewers */}
+      {specPack && !architectureDraft && canEdit && (
         <Card>
           <CardHeader
             title="Генерация архитектуры"
@@ -146,8 +149,18 @@ export function ArchitecturePage() {
               {archCopied ? '✓ Скопировано' : '↓ Скопировать как markdown'}
             </Button>
           </div>
-          <EditableArchitectureDraft arch={architectureDraft} onSave={handleSaveArch} />
+          <EditableArchitectureDraft arch={architectureDraft} onSave={canEdit ? handleSaveArch : () => {}} />
         </>
+      )}
+
+      {/* Comments — visible to all roles when arch exists */}
+      {architectureDraft && activeProject && (
+        <CommentsPanel
+          projectId={activeProject.id}
+          artifactType="architecture"
+          artifactId={activeProject.id}
+          canPost={canEdit}
+        />
       )}
 
       {/* Bottom action bar */}
@@ -155,9 +168,11 @@ export function ArchitecturePage() {
         <div className="space-y-3">
           <GateDiagnostics reasons={archGate.canAdvance || !archGate.reason ? [] : [archGate.reason]} />
           <div className="flex gap-3">
-            <Button variant="secondary" onClick={handleGenerate} loading={generating} disabled={!specPack}>
-              Перегенерировать
-            </Button>
+            {canEdit && (
+              <Button variant="secondary" onClick={handleGenerate} loading={generating} disabled={!specPack}>
+                Перегенерировать
+              </Button>
+            )}
             <Button
               onClick={() => navigate('/prompt-loop')}
               disabled={!archGate.canAdvance}

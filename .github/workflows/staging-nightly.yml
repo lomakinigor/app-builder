@@ -1,0 +1,80 @@
+# T-311 — Nightly staging smoke against a real backend.
+#
+# Runs once per day (02:00 UTC) and on manual dispatch.
+# Skipped automatically when secrets are not configured — safe to merge without a backend.
+#
+# Required GitHub repository secrets:
+#   VITE_API_BASE_URL     — staging backend base URL (e.g. https://api-staging.example.com)
+#   VITE_API_BEARER_TOKEN — bearer token for staging auth (optional; omit header if absent)
+#
+# Run-level correlation (T-311):
+#   VITE_SESSION_ID is generated as staging-<run_id>-<run_attempt> so every
+#   HTTP request in a nightly run carries the same X-Session-Id header.
+#   Backend logs can be filtered by this id to reconstruct the full request trace.
+
+name: staging-nightly
+
+on:
+  schedule:
+    # 02:00 UTC daily
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      session_id:
+        description: 'Override VITE_SESSION_ID (leave blank to auto-generate)'
+        required: false
+        default: ''
+
+jobs:
+  staging-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    # Skip the whole job when the required secret is not configured.
+    # An empty secret evaluates to falsy — the if condition handles it.
+    if: ${{ vars.STAGING_ENABLED == 'true' || secrets.VITE_API_BASE_URL != '' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Derive run-level session id
+        id: session
+        run: |
+          if [ -n "${{ github.event.inputs.session_id }}" ]; then
+            SESSION_ID="${{ github.event.inputs.session_id }}"
+          else
+            SESSION_ID="staging-${{ github.run_id }}-${{ github.run_attempt }}"
+          fi
+          echo "id=${SESSION_ID}" >> "$GITHUB_OUTPUT"
+          echo "[staging] VITE_SESSION_ID=${SESSION_ID}"
+
+      - name: Run staging smoke (SMOKE-001)
+        env:
+          VITE_API_MODE: real
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+          VITE_API_BEARER_TOKEN: ${{ secrets.VITE_API_BEARER_TOKEN }}
+          VITE_SESSION_ID: ${{ steps.session.outputs.id }}
+        run: npm run test:e2e:staging
+
+      - name: Upload staging artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          # Artifact name includes session id for direct log correlation.
+          name: staging-smoke-${{ steps.session.outputs.id }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 30

@@ -10,6 +10,7 @@ import { PromptLoopPage } from '../../pages/prompt-loop/PromptLoopPage'
 import { HistoryPage } from '../../pages/history/HistoryPage'
 import { BlogPage } from '../../pages/blog/BlogPage'
 import { SettingsPage } from '../../pages/settings/SettingsPage'
+import { SharedProjectPage } from '../../pages/shared-project/SharedProjectPage'
 
 export const router = createBrowserRouter([
   {
@@ -26,6 +27,7 @@ export const router = createBrowserRouter([
       { path: 'history', element: <HistoryPage /> },
       { path: 'blog', element: <BlogPage /> },
       { path: 'settings', element: <SettingsPage /> },
+      { path: 'shared/:shareId', element: <SharedProjectPage /> },
     ],
   },
 ])

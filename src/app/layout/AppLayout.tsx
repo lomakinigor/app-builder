@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
+import { ReadOnlyBanner } from '../../shared/ui/ReadOnlyBanner'
 
 export function AppLayout() {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
@@ -30,6 +31,7 @@ export function AppLayout() {
       {/* Main content area */}
       <div className="flex flex-1 flex-col overflow-hidden">
         <TopBar onMenuClick={() => setMobileSidebarOpen(true)} />
+        <ReadOnlyBanner />
 
         <main className="flex-1 overflow-y-auto">
           <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
