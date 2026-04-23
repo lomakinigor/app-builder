@@ -368,7 +368,7 @@ Proceed to T-006.`)
     const iter2 = await p2
 
     // The next prompt should reference iteration #1
-    expect(iter2.promptText).toContain('iteration #1')
+    expect(iter2.promptText).toContain('итерации #1')
   })
 
   it('partial parse scenario: cycle does NOT get stuck — generateNext still works', async () => {
@@ -411,6 +411,6 @@ Proceed to T-006.`)
     expect(useProjectStore.getState().promptIterations).toHaveLength(2)
 
     // Missing tests warning injected into the next prompt
-    expect(iter2.promptText).toContain('Missing tests from iteration')
+    expect(iter2.promptText).toContain('Отсутствующие тесты из итерации')
   })
 })

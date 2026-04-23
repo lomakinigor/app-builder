@@ -363,7 +363,7 @@ describe('parseClaudeResponse — partial parsing', () => {
     })
 
     it('adds "Brief analysis" warning', () => {
-      expect(result.warnings.some((w) => w.includes('Brief analysis'))).toBe(true)
+      expect(result.warnings.some((w) => w.includes('Краткий анализ'))).toBe(true)
     })
 
     it('nextStep is still extracted correctly despite missing analysis', () => {
@@ -391,7 +391,7 @@ describe('parseClaudeResponse — partial parsing', () => {
 
     it('adds "Recommended next step" warning (REG-002)', () => {
       // Regression: early parser did not emit this warning on missing next section.
-      expect(result.warnings.some((w) => w.includes('Recommended next step'))).toBe(true)
+      expect(result.warnings.some((w) => w.includes('Рекомендуемый следующий шаг'))).toBe(true)
     })
 
     it('nextTaskId is null', () => {
@@ -405,8 +405,8 @@ describe('parseClaudeResponse — partial parsing', () => {
 
     it('warnings include both missing-section messages', () => {
       const text = result.warnings.join(' ')
-      expect(text).toContain('Brief analysis')
-      expect(text).toContain('Recommended next step')
+      expect(text).toContain('Краткий анализ')
+      expect(text).toContain('Рекомендуемый следующий шаг')
     })
   })
 
@@ -456,26 +456,26 @@ describe('parseClaudeResponse — warning strings contract', () => {
   // These exact substrings are consumed by PromptLoopPage.tsx.
   // Changing them without updating the UI is a breaking change.
 
-  it('missing analysis → warning contains "Brief analysis"', () => {
+  it('missing analysis → warning contains "Краткий анализ"', () => {
     const w = mockPromptService.parseClaudeResponse('5. Recommended next step\nDo T-001.').warnings
-    expect(w.some((s) => s.includes('Brief analysis'))).toBe(true)
+    expect(w.some((s) => s.includes('Краткий анализ'))).toBe(true)
   })
 
-  it('missing next step → warning contains "Recommended next step"', () => {
+  it('missing next step → warning contains "Рекомендуемый следующий шаг"', () => {
     const w = mockPromptService.parseClaudeResponse('1. Brief analysis\nDid stuff.').warnings
-    expect(w.some((s) => s.includes('Recommended next step'))).toBe(true)
+    expect(w.some((s) => s.includes('Рекомендуемый следующий шаг'))).toBe(true)
   })
 
-  it('no test files → warning contains "test files"', () => {
+  it('no test files → warning contains "тестовые"', () => {
     const raw = makeFullResponse({ files: '`src/foo.ts`' })
     const w = mockPromptService.parseClaudeResponse(raw).warnings
-    expect(w.some((s) => s.toLowerCase().includes('test files'))).toBe(true)
+    expect(w.some((s) => s.toLowerCase().includes('тестовые'))).toBe(true)
   })
 
   it('test files present → no-test warning is NOT produced', () => {
     const raw = makeFullResponse({ files: '`src/foo.test.ts`' })
     const w = mockPromptService.parseClaudeResponse(raw).warnings
-    expect(w.some((s) => s.toLowerCase().includes('test files'))).toBe(false)
+    expect(w.some((s) => s.toLowerCase().includes('тестовые'))).toBe(false)
   })
 
   it('warnings is always an array (never null/undefined)', () => {
@@ -528,8 +528,8 @@ describe('parseClaudeResponse — degenerate inputs', () => {
 
     it('warnings include both missing-section messages', () => {
       const text = result.warnings.join(' ')
-      expect(text).toContain('Brief analysis')
-      expect(text).toContain('Recommended next step')
+      expect(text).toContain('Краткий анализ')
+      expect(text).toContain('Рекомендуемый следующий шаг')
     })
   })
 
@@ -555,8 +555,8 @@ describe('parseClaudeResponse — degenerate inputs', () => {
 
     it('warnings include both missing-section messages', () => {
       const text = result.warnings.join(' ')
-      expect(text).toContain('Brief analysis')
-      expect(text).toContain('Recommended next step')
+      expect(text).toContain('Краткий анализ')
+      expect(text).toContain('Рекомендуемый следующий шаг')
     })
   })
 
@@ -673,7 +673,7 @@ describe('parseClaudeResponse — regression', () => {
   it('REG-002: missing next step produces a warning — was silently empty in early versions', () => {
     const raw = ['1. Brief analysis', 'Feature implemented.'].join('\n')
     const result = mockPromptService.parseClaudeResponse(raw)
-    expect(result.warnings.some((w) => w.includes('Recommended next step'))).toBe(true)
+    expect(result.warnings.some((w) => w.includes('Рекомендуемый следующий шаг'))).toBe(true)
   })
 
   it('REG-003: [TEST] path not double-counted when also backtick-wrapped', () => {

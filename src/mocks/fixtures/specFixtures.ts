@@ -5,8 +5,8 @@
  * a fresh SpecPack so tests cannot mutate a shared constant.
  *
  * Feature names here are the canonical vocabulary used in assertions:
- *   - Application: "User onboarding", "Core data management", "Dashboard / overview"
- *   - Website:     "Homepage", "Content pages", "Blog / articles"
+ *   - Application: "Онбординг пользователя", "Управление данными", "Дашборд / обзор"
+ *   - Website:     "Главная страница", "Контентные страницы", "Блог / статьи"
  */
 
 import type { SpecPack } from '../../shared/types'
@@ -18,16 +18,16 @@ import type { SpecPack } from '../../shared/types'
 export function createAppSpec(overrides: Partial<SpecPack> = {}): SpecPack {
   return {
     projectType: 'application',
-    productSummary: 'An application: A focused task manager',
-    MVPScope: 'Single-user CRUD with local persistence. No auth in V1.',
+    productSummary: 'Приложение: сфокусированный менеджер задач',
+    MVPScope: 'Однопользовательский CRUD с локальной персистентностью. Без аутентификации в V1.',
     featureList: [
-      { id: 'f-001', name: 'User onboarding', description: 'Sign-up / sign-in flow', priority: 'must' },
-      { id: 'f-002', name: 'Core data management', description: 'Create, view, edit, delete', priority: 'must' },
-      { id: 'f-003', name: 'Dashboard / overview', description: 'Summary view', priority: 'must' },
+      { id: 'f-001', name: 'Онбординг пользователя', description: 'Форма регистрации / входа', priority: 'must' },
+      { id: 'f-002', name: 'Управление данными', description: 'Создание, просмотр, редактирование, удаление', priority: 'must' },
+      { id: 'f-003', name: 'Дашборд / обзор', description: 'Сводный вид', priority: 'must' },
     ],
-    assumptions: ['Desktop browser primary'],
-    constraints: ['No backend in V1'],
-    acceptanceNotes: 'User can create tasks after reload.',
+    assumptions: ['Основная платформа — десктопный браузер'],
+    constraints: ['Нет бэкенда в V1'],
+    acceptanceNotes: 'Пользователь может создавать задачи после перезагрузки.',
     ...overrides,
   }
 }
@@ -39,16 +39,16 @@ export function createAppSpec(overrides: Partial<SpecPack> = {}): SpecPack {
 export function createWebSpec(overrides: Partial<SpecPack> = {}): SpecPack {
   return {
     projectType: 'website',
-    productSummary: 'A content-driven website: A focused blog platform',
-    MVPScope: 'Homepage, about page, markdown-based blog, and contact form. No CMS in V1.',
+    productSummary: 'Контентный сайт: сфокусированная блог-платформа',
+    MVPScope: 'Главная страница, страница "О нас", блог на Markdown и контактная форма. Без CMS в V1.',
     featureList: [
-      { id: 'f-001', name: 'Homepage', description: 'Hero section with value proposition, CTA', priority: 'must' },
-      { id: 'f-002', name: 'Content pages', description: 'About, services pages', priority: 'must' },
-      { id: 'f-003', name: 'Blog / articles', description: 'Markdown-based article list', priority: 'must' },
+      { id: 'f-001', name: 'Главная страница', description: 'Герой-секция с ценностным предложением, CTA', priority: 'must' },
+      { id: 'f-002', name: 'Контентные страницы', description: 'Страницы "О нас", услуги', priority: 'must' },
+      { id: 'f-003', name: 'Блог / статьи', description: 'Список статей на Markdown', priority: 'must' },
     ],
-    assumptions: ['Content authored in MDX'],
-    constraints: ['No authentication', 'No database in MVP'],
-    acceptanceNotes: 'Visitor can navigate homepage → blog.',
+    assumptions: ['Контент создаётся в MDX'],
+    constraints: ['Без аутентификации', 'Без базы данных в MVP'],
+    acceptanceNotes: 'Посетитель может перейти с главной страницы на блог.',
     ...overrides,
   }
 }

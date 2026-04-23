@@ -196,7 +196,7 @@ describe('A. Application full-cycle smoke — all canonical markers visible simu
     expect(screen.getAllByText('📱 Приложение').length).toBeGreaterThanOrEqual(1)
 
     // Stage: Spec — feature name badge from specPack.featureList
-    expect(screen.getByText('User onboarding')).toBeInTheDocument()
+    expect(screen.getByText('Онбординг пользователя')).toBeInTheDocument()
 
     // Stage: Spec — CycleTimeline confirms specPack reached
     expect(screen.getByText('Спек-пакет сгенерирован')).toBeInTheDocument()
@@ -208,7 +208,7 @@ describe('A. Application full-cycle smoke — all canonical markers visible simu
     expect(screen.getByText('TypeScript')).toBeInTheDocument()
 
     // Stage: Architecture roadmap — canonical application phase
-    expect(screen.getByText('Core flow')).toBeInTheDocument()
+    expect(screen.getByText('Основной поток')).toBeInTheDocument()
 
     // Stage: Prompt loop — first iteration snippet contains ## Stack
     const snippets = screen.getAllByTestId('prompt-text-snippet')
@@ -219,7 +219,7 @@ describe('A. Application full-cycle smoke — all canonical markers visible simu
 
     // Anti-contamination: no website-specific markers
     expect(screen.queryByText('Next.js')).not.toBeInTheDocument()
-    expect(screen.queryByText('Core pages')).not.toBeInTheDocument()
+    expect(screen.queryByText('Основные страницы')).not.toBeInTheDocument()
   })
 })
 
@@ -255,7 +255,7 @@ describe('B. Website full-cycle smoke — all canonical markers visible simultan
     expect(screen.getAllByText('🌐 Сайт').length).toBeGreaterThanOrEqual(1)
 
     // Stage: Spec — feature name badge from specPack.featureList
-    expect(screen.getByText('Homepage')).toBeInTheDocument()
+    expect(screen.getByText('Главная страница')).toBeInTheDocument()
 
     // Stage: Spec — CycleTimeline confirms specPack reached
     expect(screen.getByText('Спек-пакет сгенерирован')).toBeInTheDocument()
@@ -267,7 +267,7 @@ describe('B. Website full-cycle smoke — all canonical markers visible simultan
     expect(screen.getByText('TypeScript')).toBeInTheDocument()
 
     // Stage: Architecture roadmap — canonical website phase
-    expect(screen.getByText('Core pages')).toBeInTheDocument()
+    expect(screen.getByText('Основные страницы')).toBeInTheDocument()
 
     // Stage: Prompt loop — first iteration snippet contains ## Stack
     const snippets = screen.getAllByTestId('prompt-text-snippet')
@@ -278,6 +278,6 @@ describe('B. Website full-cycle smoke — all canonical markers visible simultan
 
     // Anti-contamination: no application-specific markers
     expect(screen.queryByText('React Router')).not.toBeInTheDocument()
-    expect(screen.queryByText('Core flow')).not.toBeInTheDocument()
+    expect(screen.queryByText('Основной поток')).not.toBeInTheDocument()
   })
 })

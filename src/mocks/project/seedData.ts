@@ -13,7 +13,7 @@ import type {
 
 export const mockProject: Project = {
   id: 'proj-001',
-  name: 'TaskFlow — AI-assisted project manager',
+  name: 'TaskFlow — менеджер задач с ИИ',
   projectType: 'application',
   createdAt: '2026-04-01T10:00:00Z',
   updatedAt: '2026-04-07T08:30:00Z',
@@ -24,53 +24,53 @@ export const mockProject: Project = {
 // ─── Mock idea ────────────────────────────────────────────────────────────────
 
 export const mockIdeaDraft: IdeaDraft = {
-  title: 'TaskFlow — AI-assisted project manager',
+  title: 'TaskFlow — менеджер задач с ИИ',
   rawIdea:
-    'A project management tool where AI helps break down goals into tasks, writes subtask descriptions, and suggests next actions based on what is overdue or blocked.',
-  targetUser: 'Solo developers and small teams who manage work across multiple projects',
+    'Инструмент управления проектами, где ИИ помогает разбивать цели на задачи, пишет описания подзадач и предлагает следующие шаги на основе просроченных или заблокированных задач.',
+  targetUser: 'Инди-разработчики и небольшие команды, ведущие несколько проектов одновременно',
   problem:
-    'Most PM tools require too much manual structure. People skip planning and end up with vague todos that block progress.',
+    'Большинство PM-инструментов требуют слишком много ручной структуризации. Люди пропускают планирование и в итоге получают расплывчатые задачи, которые тормозят прогресс.',
   constraints:
-    'Must work offline. Should not require account creation to try it. Mobile-friendly.',
-  notes: 'Inspired by Linear + Notion but much simpler. Think 20% of features, 80% of value.',
+    'Должно работать офлайн. Не требовать создания аккаунта для начала работы. Мобильная версия.',
+  notes: 'Вдохновлён Linear + Notion, но намного проще. 20% функций — 80% ценности.',
 }
 
 // ─── Mock research brief ──────────────────────────────────────────────────────
 
 export const mockResearchBrief: ResearchBrief = {
   problemSummary:
-    'Solo developers and small teams struggle to maintain structured task management. Existing tools are either too heavy (Jira, Notion) or too simple (plain notes). There is a gap for a lightweight tool that uses AI to reduce the friction of structuring work.',
+    'Инди-разработчики и небольшие команды с трудом поддерживают структурированное управление задачами. Существующие инструменты либо слишком тяжёлые (Jira, Notion), либо слишком простые (обычные заметки). Есть ниша для лёгкого инструмента, который использует ИИ для снижения трудозатрат на структуризацию работы.',
   targetUsers: [
-    'Solo developers managing side projects',
-    'Small engineering teams (2–8 people)',
-    'Freelancers juggling multiple client projects',
-    'Technical founders building the first version of a product',
+    'Инди-разработчики, ведущие побочные проекты',
+    'Небольшие инженерные команды (2–8 человек)',
+    'Фрилансеры, ведущие несколько клиентских проектов',
+    'Технические основатели, строящие первую версию продукта',
   ],
   valueHypothesis:
-    'By automating task breakdown and next-action suggestions, TaskFlow reduces planning overhead by 60–80%, making it practical to maintain structured work even during high-velocity development.',
+    'Автоматизируя декомпозицию задач и подсказки следующих шагов, TaskFlow снижает накладные расходы на планирование на 60–80%, делая поддержку структурированной работы практичной даже в условиях высокого темпа разработки.',
   competitorNotes:
-    'Linear: strong dev focus, lacks AI planning. Notion: flexible but slow for task management. Todoist: simple but no project context. ClickUp: feature overload. No clear winner in the lightweight AI-native PM space.',
+    'Linear: сильный фокус на разработчиках, нет ИИ-планирования. Notion: гибкий, но медленный для управления задачами. Todoist: простой, но нет контекста проекта. ClickUp: перегруженность функциями. Чёткого лидера в нише лёгких ИИ-нативных PM-инструментов нет.',
   risks: [
-    'AI suggestions may be irrelevant without enough project context',
-    'Users may not trust AI-generated subtasks without ability to easily override',
-    'Offline-first architecture adds complexity for sync',
-    'Market is crowded — positioning must be sharp',
+    'Предложения ИИ могут быть нерелевантны без достаточного контекста проекта',
+    'Пользователи могут не доверять подзадачам от ИИ без возможности легко их отредактировать',
+    'Офлайн-архитектура усложняет синхронизацию данных',
+    'Рынок переполнен — позиционирование должно быть чётким',
   ],
   opportunities: [
-    'First-mover advantage in lightweight AI-native PM tools',
-    'Strong developer-to-developer word of mouth potential',
-    'Natural integration point with Claude Code workflows',
-    'Low barrier to trial if no account required',
+    'Преимущество первопроходца в нише лёгких ИИ-нативных PM-инструментов',
+    'Высокий потенциал сарафанного радио среди разработчиков',
+    'Естественная точка интеграции с рабочими процессами Claude Code',
+    'Низкий порог входа без необходимости создавать аккаунт',
   ],
   recommendedMVP:
-    'A single-user task manager with: project + goal creation, AI-generated task breakdowns, next-action suggestions, and a simple kanban-style view. No collaboration, no billing, no accounts in V1.',
+    'Однопользовательский менеджер задач с: созданием проектов и целей, ИИ-декомпозицией задач, подсказками следующих шагов и простым канбан-видом. Без совместной работы, биллинга и аккаунтов в V1.',
   openQuestions: [
-    'What is the right AI trigger — on-demand or automatic?',
-    'Should task hierarchy be unlimited or capped at 2 levels?',
-    'How do we handle context handoff when switching between projects?',
-    'What is the minimum viable offline experience?',
+    'Когда должен срабатывать ИИ — по запросу или автоматически?',
+    'Должна ли иерархия задач быть неограниченной или ограниченной 2 уровнями?',
+    'Как обрабатывать передачу контекста при переключении между проектами?',
+    'Какой минимальный офлайн-опыт является достаточным?',
   ],
-  sourcesNote: 'Research generated via mock provider. Replace with real Perplexity run in Phase 2.',
+  sourcesNote: 'Исследование сгенерировано через mock-провайдер. Заменить на реальный запрос к Perplexity в Фазе 2.',
   sourceIds: ['src-001', 'src-002'],
   briefSource: 'generated',
 }
@@ -80,35 +80,35 @@ export const mockResearchBrief: ResearchBrief = {
 export const mockSpecPack: SpecPack = {
   projectType: 'application',
   productSummary:
-    'TaskFlow is a lightweight, AI-native project manager for solo developers and small teams. It reduces planning friction by generating structured task breakdowns and recommending next actions from natural language project goals.',
+    'TaskFlow — лёгкий ИИ-нативный менеджер задач для инди-разработчиков и небольших команд. Снижает трудозатраты на планирование за счёт структурированной декомпозиции задач и рекомендаций следующих шагов на основе описаний целей на естественном языке.',
   MVPScope:
-    'Single-user mode. Create projects. Add goals. Generate task list from goal description. Mark tasks done. View next-action suggestion. No authentication, no collaboration, no export in V1.',
+    'Однопользовательский режим. Создание проектов. Добавление целей. Генерация списка задач из описания цели. Отметка задач выполненными. Просмотр следующего рекомендуемого действия. Без аутентификации, совместной работы и экспорта в V1.',
   featureList: [
-    { id: 'f-001', name: 'Project creation', description: 'Create and name a project with a one-line description.', priority: 'must' },
-    { id: 'f-002', name: 'Goal input', description: 'Add a high-level goal with plain language description.', priority: 'must' },
-    { id: 'f-003', name: 'AI task breakdown', description: 'Generate subtasks from a goal description using AI.', priority: 'must' },
-    { id: 'f-004', name: 'Task status tracking', description: 'Mark tasks as todo, in-progress, or done.', priority: 'must' },
-    { id: 'f-005', name: 'Next-action suggestion', description: 'AI recommends the single most important next task.', priority: 'must' },
-    { id: 'f-006', name: 'Project overview', description: 'Summary of project progress and open tasks.', priority: 'should' },
-    { id: 'f-007', name: 'Offline support', description: 'App works without internet; data stored locally.', priority: 'should' },
-    { id: 'f-008', name: 'Task notes', description: 'Add freeform notes to any task.', priority: 'could' },
-    { id: 'f-009', name: 'Export to markdown', description: 'Export project task list as a markdown file.', priority: 'could' },
-    { id: 'f-010', name: 'Team collaboration', description: 'Share projects with teammates.', priority: 'wont' },
+    { id: 'f-001', name: 'Создание проектов', description: 'Создать и назвать проект с однострочным описанием.', priority: 'must' },
+    { id: 'f-002', name: 'Ввод целей', description: 'Добавить высокоуровневую цель с описанием на обычном языке.', priority: 'must' },
+    { id: 'f-003', name: 'ИИ-декомпозиция задач', description: 'Генерировать подзадачи из описания цели с помощью ИИ.', priority: 'must' },
+    { id: 'f-004', name: 'Отслеживание статуса', description: 'Отмечать задачи как "к выполнению", "в процессе" или "выполнено".', priority: 'must' },
+    { id: 'f-005', name: 'Подсказка следующего шага', description: 'ИИ рекомендует одну наиболее важную следующую задачу.', priority: 'must' },
+    { id: 'f-006', name: 'Обзор проекта', description: 'Сводка прогресса проекта и открытых задач.', priority: 'should' },
+    { id: 'f-007', name: 'Офлайн-режим', description: 'Приложение работает без интернета; данные хранятся локально.', priority: 'should' },
+    { id: 'f-008', name: 'Заметки к задачам', description: 'Добавлять произвольные заметки к любой задаче.', priority: 'could' },
+    { id: 'f-009', name: 'Экспорт в Markdown', description: 'Экспортировать список задач проекта в файл Markdown.', priority: 'could' },
+    { id: 'f-010', name: 'Командная работа', description: 'Делиться проектами с коллегами.', priority: 'wont' },
   ],
   assumptions: [
-    'Users are comfortable with AI-generated content that may need editing',
-    'Local storage is sufficient for single-user MVP',
-    'A Claude API key will be user-provided in V1',
-    'No authentication means no cross-device sync in V1',
+    'Пользователи готовы работать с ИИ-контентом, который может потребовать редактирования',
+    'Локальное хранилище достаточно для однопользовательского MVP',
+    'API-ключ Claude предоставляется пользователем в V1',
+    'Без аутентификации нет синхронизации между устройствами в V1',
   ],
   constraints: [
-    'No backend server in MVP',
-    'No user accounts',
-    'No billing',
-    'Must work on mobile',
+    'Нет серверного бэкенда в MVP',
+    'Нет аккаунтов пользователей',
+    'Нет биллинга',
+    'Должно работать на мобильных устройствах',
   ],
   acceptanceNotes:
-    'A user can create a project, describe a goal, get AI-generated tasks, mark progress, and see the next recommended action — all without an account or backend.',
+    'Пользователь может создать проект, описать цель, получить задачи от ИИ, отметить прогресс и увидеть следующее рекомендуемое действие — без аккаунта и бэкенда.',
 }
 
 // ─── Mock architecture draft ──────────────────────────────────────────────────
@@ -116,54 +116,54 @@ export const mockSpecPack: SpecPack = {
 export const mockArchitectureDraft: ArchitectureDraft = {
   projectType: 'application',
   recommendedStack: [
-    { name: 'React', role: 'UI layer', rationale: 'Component-based, excellent mobile support, strong ecosystem' },
-    { name: 'TypeScript', role: 'Type safety', rationale: 'Prevents runtime errors, self-documenting domain models' },
-    { name: 'Vite', role: 'Build tool', rationale: 'Fast dev server, small bundle, ideal for local-first apps' },
-    { name: 'Zustand', role: 'State management', rationale: 'Lightweight, easy local persistence with zustand/persist' },
-    { name: 'Tailwind CSS', role: 'Styling', rationale: 'Utility-first, responsive, mobile-first by default' },
-    { name: 'Claude API', role: 'AI provider', rationale: 'Best-in-class instruction following for task generation' },
+    { name: 'React', role: 'UI-слой', rationale: 'Компонентный подход, отличная поддержка мобильных, сильная экосистема' },
+    { name: 'TypeScript', role: 'Типобезопасность', rationale: 'Предотвращает ошибки в рантайме, самодокументирующиеся доменные модели' },
+    { name: 'Vite', role: 'Инструмент сборки', rationale: 'Быстрый dev-сервер, небольшой бандл, идеален для локальных приложений' },
+    { name: 'Zustand', role: 'Управление состоянием', rationale: 'Лёгкий, простая локальная персистентность через zustand/persist' },
+    { name: 'Tailwind CSS', role: 'Стилизация', rationale: 'Утилитарный подход, адаптивный, mobile-first по умолчанию' },
+    { name: 'Claude API', role: 'ИИ-провайдер', rationale: 'Лучшее в классе следование инструкциям для генерации задач' },
   ],
   moduleArchitecture:
-    'Feature-sliced architecture: app shell → pages → feature modules → domain entities → shared utilities. Provider adapters isolate AI calls from business logic.',
+    'Фиче-слайс архитектура: оболочка приложения → страницы → модули фич → доменные сущности → общие утилиты. Адаптеры провайдеров изолируют ИИ-вызовы от бизнес-логики.',
   dataFlow:
-    'User input → domain action → store update → UI re-render. AI calls go through service adapters that return typed results into the store. No direct AI calls from components.',
+    'Ввод пользователя → доменное действие → обновление стора → перерисовка UI. ИИ-вызовы проходят через адаптеры сервисов, возвращающие типизированные результаты в стор. Нет прямых ИИ-вызовов из компонентов.',
   roadmapPhases: [
     {
       phase: 0,
-      title: 'Foundation',
-      goals: ['App shell', 'Routing', 'State store', 'Typed models', 'Mock data'],
+      title: 'Фундамент',
+      goals: ['Оболочка приложения', 'Маршрутизация', 'Стор состояния', 'Типизированные модели', 'Mock-данные'],
       estimatedComplexity: 'low',
     },
     {
       phase: 1,
-      title: 'Core workflow',
-      goals: ['Project creation', 'Goal input', 'Task view', 'Status tracking'],
+      title: 'Основной рабочий процесс',
+      goals: ['Создание проекта', 'Ввод цели', 'Просмотр задач', 'Отслеживание статуса'],
       estimatedComplexity: 'medium',
     },
     {
       phase: 2,
-      title: 'AI integration',
-      goals: ['Claude API adapter', 'Task breakdown prompt', 'Next-action prompt', 'Response parser'],
+      title: 'Интеграция ИИ',
+      goals: ['Адаптер Claude API', 'Промпт декомпозиции задач', 'Промпт следующего шага', 'Парсер ответов'],
       estimatedComplexity: 'medium',
     },
     {
       phase: 3,
-      title: 'Polish and offline',
-      goals: ['Local persistence', 'Offline detection', 'Empty states', 'Error handling'],
+      title: 'Полировка и офлайн',
+      goals: ['Локальная персистентность', 'Определение офлайн-состояния', 'Пустые состояния', 'Обработка ошибок'],
       estimatedComplexity: 'medium',
     },
     {
       phase: 4,
-      title: 'Export and sharing',
-      goals: ['Markdown export', 'Shareable project URL (read-only)', 'Feedback loop'],
+      title: 'Экспорт и шаринг',
+      goals: ['Экспорт в Markdown', 'URL проекта только для чтения', 'Цикл обратной связи'],
       estimatedComplexity: 'high',
     },
   ],
   technicalRisks: [
-    'Claude API latency may feel slow on mobile — need optimistic UI',
-    'Local storage limit (~5MB) may be hit with large projects',
-    'Prompt quality for task generation needs iteration — plan for prompt versioning',
-    'Offline/online sync is complex if collaboration is added later',
+    'Задержка Claude API может ощущаться медленной на мобильных — нужен оптимистичный UI',
+    'Лимит localStorage (~5МБ) может быть исчерпан на больших проектах',
+    'Качество промптов для генерации задач требует итераций — запланировать версионирование промптов',
+    'Офлайн/онлайн синхронизация сложна при добавлении совместной работы в будущем',
   ],
 }
 
@@ -174,61 +174,61 @@ export const mockPromptIterations: PromptIteration[] = [
     id: 'prompt-001',
     projectId: 'proj-001',
     iterationNumber: 1,
-    promptText: `You are a senior full-stack engineer building an application.
+    promptText: `Ты — старший full-stack инженер, создающий приложение.
 
-## Build context
-Project: TaskFlow — a lightweight, AI-native project manager for solo developers and small teams.
-Type: application
-Stage: Code + Tests (Superpowers cycle — Stage 5 of 6)
+## Контекст проекта
+Проект: TaskFlow — лёгкий ИИ-нативный менеджер задач для инди-разработчиков и небольших команд.
+Тип: приложение
+Стадия: Код + Тесты (цикл Superpowers — Стадия 5 из 6)
 
-## Documents to read before writing any code
-1. docs/PRD.md — goals, success criteria, non-goals
-2. docs/features.md — feature definitions (F-xxx) and status
-3. docs/tech-spec.md — architecture decisions and module structure
-4. docs/data-model.md — typed entity definitions
-5. docs/tasks.md — task list (T-xxx) — this defines your exact scope
-6. docs/user-stories.md — acceptance direction for Review
+## Документы для изучения перед написанием кода
+1. docs/PRD.md — цели, критерии успеха, non-goals
+2. docs/features.md — определения фич (F-xxx) и статусы
+3. docs/tech-spec.md — архитектурные решения и структура модулей
+4. docs/data-model.md — типизированные определения сущностей
+5. docs/tasks.md — список задач (T-xxx) — определяет точный скоуп
+6. docs/user-stories.md — направление приёмки для Review
 
-## Stack
+## Стек
 React + TypeScript + Vite + Zustand + Tailwind CSS + Claude API
 
-## Phase 0: Foundation
-Goals:
-- App shell
-- Routing
-- State store
-- Typed models
-- Mock data
+## Фаза 0: Фундамент
+Цели:
+- Оболочка приложения
+- Маршрутизация
+- Стор состояния
+- Типизированные модели
+- Mock-данные
 
-## Target task
-You are implementing Phase 0. The relevant tasks are T-001 through T-004 in docs/tasks.md.
-Read each task's Definition of Done before you write any code.
-Reference T-xxx and F-xxx IDs in your response.
+## Целевая задача
+Ты реализуешь Фазу 0. Соответствующие задачи — T-001 по T-004 в docs/tasks.md.
+Прочитай Definition of Done каждой задачи перед написанием кода.
+Ссылайся на T-xxx и F-xxx ID в своём ответе.
 
-## Must-have features (Phase 0 scope)
-- F-019 Strict TypeScript — no 'any' in production paths
-- F-020 Responsive layout — mobile-first
-- F-021 Dark mode — Tailwind CSS
-- F-022 Modular architecture — entities/, features/, pages/, shared/
+## Обязательные фичи (скоуп Фазы 0)
+- F-019 Строгий TypeScript — нет 'any' в production-путях
+- F-020 Адаптивная вёрстка — mobile-first
+- F-021 Тёмная тема — Tailwind CSS
+- F-022 Модульная архитектура — entities/, features/, pages/, shared/
 
-## Constraints
-- No backend server in MVP
-- No user accounts
-- No billing
-- Must work on mobile
+## Ограничения
+- Нет серверного бэкенда в MVP
+- Нет аккаунтов пользователей
+- Нет биллинга
+- Должно работать на мобильных устройствах
 
-## TDD rule
-You must write tests as part of this task — not after.
-Include at least one unit or integration test per non-trivial function or component.
-Mark test files clearly in your files list: [TEST] src/path/to/file.test.ts
-A response that implements code with no test files will be flagged in the Review stage.
+## Правило TDD
+Ты должен писать тесты как часть задачи — не после.
+Включи хотя бы один юнит- или интеграционный тест на каждую нетривиальную функцию или компонент.
+Отмечай тестовые файлы в списке файлов префиксом: [TEST]
+Ответ, реализующий код без файлов [TEST], будет отмечен на стадии Review.
 
-## Required response format
-1. Brief analysis — what you are implementing and why (reference T-xxx, F-xxx)
-2. Implementation plan — list every change, include test approach
-3. Files created/changed — list all files; mark [TEST] on test files
-4. Implementation — the actual code
-5. Recommended next step — the next T-xxx task and why`,
+## Требуемый формат ответа
+1. Краткий анализ — что реализуешь и почему (со ссылками на T-xxx, F-xxx)
+2. План реализации — перечисли каждое изменение, включая подход к тестам
+3. Созданные/изменённые файлы — перечисли все файлы; пометь [TEST] тестовые файлы
+4. Реализация — сам код
+5. Рекомендуемый следующий шаг — следующая задача T-xxx и почему`,
     claudeResponseRaw: null,
     parsedSummary: null,
     recommendedNextStep: null,
@@ -246,33 +246,33 @@ A response that implements code with no test files will be flagged in the Review
 export const mockImportedArtifact: ImportedResearchArtifact = {
   id: 'artifact-001',
   projectId: 'proj-001',
-  title: 'Competitor analysis — PM tools for developers (2026)',
+  title: 'Анализ конкурентов — PM-инструменты для разработчиков (2026)',
   sourceType: 'markdown_notes',
-  sourceLabel: 'Internal analysis notes',
-  rawContent: `# PM Tools Competitive Analysis
+  sourceLabel: 'Внутренние аналитические заметки',
+  rawContent: `# Конкурентный анализ PM-инструментов
 
 ## Linear
-- Pros: Fast, developer-focused, keyboard shortcuts, clean UI
-- Cons: No AI, no subtask generation, team-focused pricing
+- Плюсы: быстрый, ориентирован на разработчиков, горячие клавиши, чистый интерфейс
+- Минусы: нет ИИ, нет генерации подзадач, ценообразование для команд
 
 ## Notion
-- Pros: Flexible, all-in-one, good templates
-- Cons: Slow, too generic, poor mobile experience
+- Плюсы: гибкий, всё-в-одном, хорошие шаблоны
+- Минусы: медленный, слишком универсальный, плохой опыт на мобильных
 
 ## Todoist
-- Pros: Simple, cross-platform, good habits
-- Cons: No project hierarchy, no AI, no developer focus
+- Плюсы: простой, кросс-платформенный, хорошие привычки
+- Минусы: нет иерархии проектов, нет ИИ, нет фокуса на разработчиках
 
-## Opportunity
-There is no lightweight PM tool that:
-1. Requires no account to try
-2. Uses AI to generate tasks from goals
-3. Works offline
-4. Is designed specifically for developers
+## Возможность
+Нет лёгкого PM-инструмента, который:
+1. Не требует аккаунта для старта
+2. Использует ИИ для генерации задач из целей
+3. Работает офлайн
+4. Разработан специально для разработчиков
 
-TaskFlow addresses all four gaps.`,
+TaskFlow закрывает все четыре пробела.`,
   importedAt: '2026-04-05T14:00:00Z',
-  notes: 'Used as supplementary input for research brief generation.',
+  notes: 'Использованы как дополнительный материал для генерации исследовательского брифа.',
 }
 
 // ─── Mock research run ────────────────────────────────────────────────────────

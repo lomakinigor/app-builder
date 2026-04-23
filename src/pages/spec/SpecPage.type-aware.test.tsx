@@ -184,52 +184,52 @@ describe('B. Type description — shown when specPack present; correct per type'
 // ─── C. Feature list — type-specific names visible in UI ─────────────────────
 
 describe('C. Feature list — type-specific names rendered; no cross-type bleed', () => {
-  it('application spec shows "User onboarding" feature', () => {
+  it('application spec shows "Онбординг пользователя" feature', () => {
     renderPage({
       activeProject: makeProject({ projectType: 'application' }),
       specPack: makeApplicationSpec(),
     })
-    expect(screen.getByText('User onboarding')).toBeInTheDocument()
+    expect(screen.getByText('Онбординг пользователя')).toBeInTheDocument()
   })
 
-  it('application spec shows "Core data management" feature', () => {
+  it('application spec shows "Управление данными" feature', () => {
     renderPage({
       activeProject: makeProject({ projectType: 'application' }),
       specPack: makeApplicationSpec(),
     })
-    expect(screen.getByText('Core data management')).toBeInTheDocument()
+    expect(screen.getByText('Управление данными')).toBeInTheDocument()
   })
 
-  it('website spec shows "Homepage" feature', () => {
+  it('website spec shows "Главная страница" feature', () => {
     renderPage({
       activeProject: makeProject({ projectType: 'website' }),
       specPack: makeWebsiteSpec(),
     })
-    expect(screen.getByText('Homepage')).toBeInTheDocument()
+    expect(screen.getByText('Главная страница')).toBeInTheDocument()
   })
 
-  it('website spec shows "Blog / articles" feature', () => {
+  it('website spec shows "Блог / статьи" feature', () => {
     renderPage({
       activeProject: makeProject({ projectType: 'website' }),
       specPack: makeWebsiteSpec(),
     })
-    expect(screen.getByText('Blog / articles')).toBeInTheDocument()
+    expect(screen.getByText('Блог / статьи')).toBeInTheDocument()
   })
 
-  it('application spec does NOT show "Homepage" feature', () => {
+  it('application spec does NOT show "Главная страница" feature', () => {
     renderPage({
       activeProject: makeProject({ projectType: 'application' }),
       specPack: makeApplicationSpec(),
     })
-    expect(screen.queryByText('Homepage')).not.toBeInTheDocument()
+    expect(screen.queryByText('Главная страница')).not.toBeInTheDocument()
   })
 
-  it('website spec does NOT show "User onboarding" feature', () => {
+  it('website spec does NOT show "Онбординг пользователя" feature', () => {
     renderPage({
       activeProject: makeProject({ projectType: 'website' }),
       specPack: makeWebsiteSpec(),
     })
-    expect(screen.queryByText('User onboarding')).not.toBeInTheDocument()
+    expect(screen.queryByText('Онбординг пользователя')).not.toBeInTheDocument()
   })
 })
 

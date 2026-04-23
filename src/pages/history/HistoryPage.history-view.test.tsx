@@ -301,44 +301,44 @@ describe('A. Type & stack summary', () => {
 // ─── B. Roadmap & stage history ───────────────────────────────────────────────
 
 describe('B. Roadmap & stage history', () => {
-  it('application arch → roadmap shows "Core flow" phase title', () => {
+  it('application arch → roadmap shows "Основной поток" phase title', () => {
     renderPage({
       activeProject: makeProject({ projectType: 'application' }),
       architectureDraft: APP_ARCH,
     })
-    expect(screen.getByText('Core flow')).toBeInTheDocument()
+    expect(screen.getByText('Основной поток')).toBeInTheDocument()
   })
 
-  it('application arch → roadmap shows "Dashboard and navigation" phase title', () => {
+  it('application arch → roadmap shows "Дашборд и навигация" phase title', () => {
     renderPage({
       activeProject: makeProject({ projectType: 'application' }),
       architectureDraft: APP_ARCH,
     })
-    expect(screen.getByText('Dashboard and navigation')).toBeInTheDocument()
+    expect(screen.getByText('Дашборд и навигация')).toBeInTheDocument()
   })
 
-  it('website arch → roadmap shows "Core pages" phase title', () => {
+  it('website arch → roadmap shows "Основные страницы" phase title', () => {
     renderPage({
       activeProject: makeProject({ projectType: 'website' }),
       architectureDraft: WEB_ARCH,
     })
-    expect(screen.getByText('Core pages')).toBeInTheDocument()
+    expect(screen.getByText('Основные страницы')).toBeInTheDocument()
   })
 
-  it('website arch → roadmap shows "Blog" phase title', () => {
+  it('website arch → roadmap shows "Блог" phase title', () => {
     renderPage({
       activeProject: makeProject({ projectType: 'website' }),
       architectureDraft: WEB_ARCH,
     })
-    expect(screen.getByText('Blog')).toBeInTheDocument()
+    expect(screen.getByText('Блог')).toBeInTheDocument()
   })
 
-  it('website arch → roadmap shows "SEO and contact" phase title', () => {
+  it('website arch → roadmap shows "SEO и контакты" phase title', () => {
     renderPage({
       activeProject: makeProject({ projectType: 'website' }),
       architectureDraft: WEB_ARCH,
     })
-    expect(screen.getByText('SEO and contact')).toBeInTheDocument()
+    expect(screen.getByText('SEO и контакты')).toBeInTheDocument()
   })
 
   it('CycleTimeline shows "Спецификация" stage when specPack present', () => {
@@ -357,13 +357,12 @@ describe('B. Roadmap & stage history', () => {
     expect(screen.getByText('Код + Тесты')).toBeInTheDocument()
   })
 
-  it('arch card shows "Foundation" as the first roadmap phase for application', () => {
+  it('arch card shows "Фундамент" as the first roadmap phase for application', () => {
     renderPage({
       activeProject: makeProject({ projectType: 'application' }),
       architectureDraft: APP_ARCH,
     })
-    // 'Foundation' appears for both application and website — just verify it's in the DOM
-    expect(screen.getAllByText('Foundation').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Фундамент').length).toBeGreaterThanOrEqual(1)
   })
 })
 
@@ -508,22 +507,22 @@ describe('D. Cross-type comparison — application vs website stack & roadmap', 
     expect(screen.queryByText('React')).not.toBeInTheDocument()
   })
 
-  it('application roadmap contains "Core flow" but NOT "Core pages"', () => {
+  it('application roadmap contains "Основной поток" but NOT "Основные страницы"', () => {
     renderPage({
       activeProject: makeProject({ projectType: 'application' }),
       architectureDraft: APP_ARCH,
     })
-    expect(screen.getByText('Core flow')).toBeInTheDocument()
-    expect(screen.queryByText('Core pages')).not.toBeInTheDocument()
+    expect(screen.getByText('Основной поток')).toBeInTheDocument()
+    expect(screen.queryByText('Основные страницы')).not.toBeInTheDocument()
   })
 
-  it('website roadmap contains "Core pages" but NOT "Core flow"', () => {
+  it('website roadmap contains "Основные страницы" but NOT "Основной поток"', () => {
     renderPage({
       activeProject: makeProject({ projectType: 'website' }),
       architectureDraft: WEB_ARCH,
     })
-    expect(screen.getByText('Core pages')).toBeInTheDocument()
-    expect(screen.queryByText('Core flow')).not.toBeInTheDocument()
+    expect(screen.getByText('Основные страницы')).toBeInTheDocument()
+    expect(screen.queryByText('Основной поток')).not.toBeInTheDocument()
   })
 
   it('application stack does NOT contain "MDX" (website-specific)', () => {
@@ -542,22 +541,22 @@ describe('D. Cross-type comparison — application vs website stack & roadmap', 
     expect(screen.queryByText('Zustand')).not.toBeInTheDocument()
   })
 
-  it('spec summary shows application feature names ("User onboarding") not website names', () => {
+  it('spec summary shows application feature names ("Онбординг пользователя") not website names', () => {
     renderPage({
       activeProject: makeProject({ projectType: 'application' }),
       specPack: makeApplicationSpec(),
     })
-    expect(screen.getByText('User onboarding')).toBeInTheDocument()
-    expect(screen.queryByText('Homepage')).not.toBeInTheDocument()
+    expect(screen.getByText('Онбординг пользователя')).toBeInTheDocument()
+    expect(screen.queryByText('Главная страница')).not.toBeInTheDocument()
   })
 
-  it('spec summary shows website feature names ("Homepage") not application names', () => {
+  it('spec summary shows website feature names ("Главная страница") not application names', () => {
     renderPage({
       activeProject: makeProject({ projectType: 'website' }),
       specPack: makeWebsiteSpec(),
     })
-    expect(screen.getByText('Homepage')).toBeInTheDocument()
-    expect(screen.queryByText('User onboarding')).not.toBeInTheDocument()
+    expect(screen.getByText('Главная страница')).toBeInTheDocument()
+    expect(screen.queryByText('Онбординг пользователя')).not.toBeInTheDocument()
   })
 })
 

@@ -216,12 +216,12 @@ describe('A. generateFirstPrompt', () => {
 
   it('prompt includes TDD rule regardless of taskId', async () => {
     const iter = await runGenerateFirst(null, null)
-    expect(iter.promptText).toContain('TDD rule')
+    expect(iter.promptText).toContain('Правило TDD')
   })
 
   it('prompt includes required response format section', async () => {
     const iter = await runGenerateFirst()
-    expect(iter.promptText).toContain('Required response format')
+    expect(iter.promptText).toContain('Требуемый формат ответа')
   })
 
   it('prompt includes stack entry from arch', async () => {
@@ -280,14 +280,14 @@ const x = 1`
     const parsed = mockPromptService.parseClaudeResponse(raw)
     expect(parsed.hasTests).toBe(false)
     expect(parsed.warnings.length).toBeGreaterThan(0)
-    expect(parsed.warnings.some((w) => w.includes('test'))).toBe(true)
+    expect(parsed.warnings.some((w) => w.toLowerCase().includes('тест'))).toBe(true)
   })
 
   it('partial response without section 5 adds nextStep warning', () => {
     const raw = `1. Brief analysis
 Something.\n3. Files created/changed\n\`src/x.ts\``
     const parsed = mockPromptService.parseClaudeResponse(raw)
-    expect(parsed.warnings.some((w) => w.includes('next step') || w.includes('Recommended'))).toBe(true)
+    expect(parsed.warnings.some((w) => w.includes('следующий шаг') || w.includes('Рекомендуемый'))).toBe(true)
   })
 
   it('gross-error / empty response still returns a ParsedClaudeResponse (no throw)', () => {
@@ -415,7 +415,7 @@ describe('C. generateNextPrompt', () => {
 
   it('prompt references previous iteration number', async () => {
     const next = await runGenerateNext(prevIteration, makeParsedFull())
-    expect(next.promptText).toContain(`iteration #${prevIteration.iterationNumber}`)
+    expect(next.promptText).toContain(`итерации #${prevIteration.iterationNumber}`)
   })
 
   it('prompt contains changed files from previous iteration', async () => {
@@ -427,7 +427,7 @@ describe('C. generateNextPrompt', () => {
   it('prompt contains missing-tests warning when hasTests=false and phase=code_and_tests', async () => {
     const parsed = makeParsedPartial()
     const next = await runGenerateNext(prevIteration, parsed, 'code_and_tests')
-    expect(next.promptText).toContain('Missing tests from iteration')
+    expect(next.promptText).toContain('Отсутствующие тесты из итерации')
   })
 
   it('omits missing-tests warning when hasTests=true', async () => {
@@ -455,12 +455,12 @@ describe('C. generateNextPrompt', () => {
 
   it('prompt includes review task section when phase=review', async () => {
     const next = await runGenerateNext(prevIteration, makeParsedFull(), 'review')
-    expect(next.promptText).toContain('Review task')
+    expect(next.promptText).toContain('Задача Review')
   })
 
   it('prompt includes TDD rule when phase=code_and_tests', async () => {
     const next = await runGenerateNext(prevIteration, makeParsedFull(), 'code_and_tests')
-    expect(next.promptText).toContain('TDD rule')
+    expect(next.promptText).toContain('Правило TDD')
   })
 
   it('partial parse scenario C: generateNextPrompt accepts a partial-parsed iteration (cycle continues)', async () => {

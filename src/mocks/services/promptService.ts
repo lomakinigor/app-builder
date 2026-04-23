@@ -13,30 +13,30 @@ import type {
 
 // ─── Internal helpers ─────────────────────────────────────────────────────────
 
-const TDD_RULE = `## TDD rule (mandatory)
-You must write tests as part of this task — not after.
-Include at least one unit or integration test per non-trivial function or component.
-Mark test files in your files list with the prefix: [TEST]
-Example: [TEST] src/features/auth/__tests__/validateToken.test.ts
-A response that implements code with no [TEST] files will be flagged during Review.`
+const TDD_RULE = `## Правило TDD (обязательно)
+Ты должен писать тесты как часть задачи — не после.
+Включи хотя бы один юнит- или интеграционный тест на каждую нетривиальную функцию или компонент.
+Отмечай тестовые файлы в списке файлов префиксом: [TEST]
+Пример: [TEST] src/features/auth/__tests__/validateToken.test.ts
+Ответ, реализующий код без файлов [TEST], будет отмечен на стадии Review.`
 
-const RESPONSE_FORMAT = `## Required response format
-1. Brief analysis — what you are implementing and why (reference T-xxx, F-xxx)
-2. Implementation plan — list every change; include test approach
-3. Files created/changed — list all files; prefix test files with [TEST]
-4. Implementation — the actual code
-5. Recommended next step — the next T-xxx task and why`
+const RESPONSE_FORMAT = `## Требуемый формат ответа
+1. Краткий анализ — что реализуешь и почему (со ссылками на T-xxx, F-xxx)
+2. План реализации — перечисли каждое изменение; включи подход к тестам
+3. Созданные/изменённые файлы — перечисли все файлы; пометь [TEST] тестовые файлы
+4. Реализация — сам код
+5. Рекомендуемый следующий шаг — следующая задача T-xxx и почему`
 
-const DOCS_SECTION = `## Documents to read before writing any code
-1. docs/PRD.md — goals, success criteria, non-goals
-2. docs/features.md — feature definitions (F-xxx) and status
-3. docs/tech-spec.md — architecture decisions and module structure
-4. docs/data-model.md — typed entity definitions
-5. docs/tasks.md — task list (T-xxx) — this defines your exact scope
-6. docs/user-stories.md — acceptance direction for Review`
+const DOCS_SECTION = `## Документы для изучения перед написанием кода
+1. docs/PRD.md — цели, критерии успеха, non-goals
+2. docs/features.md — определения фич (F-xxx) и статусы
+3. docs/tech-spec.md — архитектурные решения и структура модулей
+4. docs/data-model.md — типизированные определения сущностей
+5. docs/tasks.md — список задач (T-xxx) — определяет точный скоуп
+6. docs/user-stories.md — направление приёмки для Review`
 
 function projectTypeLabel(projectType: ProjectType): string {
-  return projectType === 'website' ? 'website' : 'application'
+  return projectType === 'website' ? 'сайт' : 'приложение'
 }
 
 // ─── Type-specific implementation guidance ────────────────────────────────────
@@ -45,21 +45,21 @@ function projectTypeLabel(projectType: ProjectType): string {
 
 export function typeAwareGuidance(projectType: ProjectType): string {
   if (projectType === 'website') {
-    return `## Website implementation guidance
-You are building a website (multi-page, content-first). Apply these patterns throughout:
-- Think in **pages and routes** — each route is a discrete, independently renderable content surface.
-- Apply **SSG or SSR** patterns where content is largely static or SEO-critical; prefer static generation unless personalisation requires runtime data.
-- Keep **layout, navigation, and semantic HTML** consistent across all pages; heading hierarchy matters for accessibility and SEO.
-- **SEO**: every page must have a descriptive title, a meta description, and correct Open Graph tags. Content must be indexable (no JS-only render for primary text).
-- **Testing**: assert that pages render key content, navigation links resolve, and that no critical text is gated behind client-only state.`
+    return `## Руководство по реализации сайта
+Ты создаёшь сайт (многостраничный, контент-первичный). Применяй эти паттерны везде:
+- Думай в терминах **страниц и маршрутов** — каждый маршрут является отдельной, независимо рендерируемой контентной поверхностью.
+- Применяй паттерны **SSG или SSR** там, где контент в основном статичен или критичен для SEO; предпочитай статическую генерацию, если персонализация не требует данных в рантайме.
+- Поддерживай **единообразие лейаута, навигации и семантического HTML** на всех страницах; иерархия заголовков важна для доступности и SEO.
+- **SEO**: каждая страница должна иметь описательный title, мета-описание и корректные Open Graph теги. Контент должен быть индексируемым (никакого рендеринга только на JS для основного текста).
+- **Тестирование**: проверяй, что страницы рендерят ключевой контент, навигационные ссылки разрешаются, и что критический текст не скрыт за client-only состоянием.`
   }
-  return `## Application implementation guidance
-You are building a SPA (Single Page Application). Apply these patterns throughout:
-- All routing is **client-side** (React Router); there is no server-side rendering — plan for a fallback route in production.
-- State changes must go through the **Zustand store** — no prop-drilling for cross-component shared data.
-- Keep each **component focused**; extract shared logic into custom hooks or store actions, not into component bodies.
-- **Testing (TDD order)**: write tests for components (props → render), store actions (state transitions), and user flows (simulate interaction → assert outcome) before implementing them.
-- **No premature optimisation**: implement the feature to the Definition of Done, then let review decide if caching or memoisation is needed.`
+  return `## Руководство по реализации приложения
+Ты создаёшь SPA (Single Page Application). Применяй эти паттерны везде:
+- Вся маршрутизация **клиентская** (React Router); серверного рендеринга нет — запланируй fallback-маршрут в production.
+- Изменения состояния должны проходить через **Zustand стор** — никакого prop-drilling для данных, общих между компонентами.
+- Держи каждый **компонент сфокусированным**; выноси общую логику в кастомные хуки или экшены стора, а не в тела компонентов.
+- **Тестирование (TDD-порядок)**: пиши тесты для компонентов (props → рендер), экшенов стора (переходы состояния) и пользовательских потоков (симулируй взаимодействие → проверяй результат) перед реализацией.
+- **Без преждевременной оптимизации**: реализуй фичу до Definition of Done, потом пусть review решит, нужны ли кэширование или мемоизация.`
 }
 
 // ─── Phase inference keywords ─────────────────────────────────────────────────
@@ -138,50 +138,50 @@ export const mockPromptService = {
     const constraints = spec.constraints.map((c) => `- ${c}`).join('\n')
     const phaseGoals = phase.goals.map((g) => `- ${g}`).join('\n')
 
-    const taskDescLine = taskDescription ? `\nTask description: ${taskDescription}` : ''
+    const taskDescLine = taskDescription ? `\nОписание задачи: ${taskDescription}` : ''
     const taskSection = taskId
-      ? `## Target task: ${taskId}${taskDescLine}
-Read the Definition of Done for **${taskId}** in docs/tasks.md.
-This is your exact scope for this iteration — do not implement other tasks.
-Reference **${taskId}** and its parent F-xxx feature ID in every section of your response.
+      ? `## Целевая задача: ${taskId}${taskDescLine}
+Прочитай Definition of Done для **${taskId}** в docs/tasks.md.
+Это твой точный скоуп для данной итерации — не реализуй другие задачи.
+Ссылайся на **${taskId}** и родительский F-xxx ID фичи в каждом разделе ответа.
 
-Approach (in this order):
-1. Outline the tests for ${taskId} first — what will you assert?
-2. Implement ${taskId} to make those tests pass.
-3. Write a brief self-review — does the implementation satisfy the Definition of Done?`
-      : `## Target task
-Find the first incomplete T-xxx entry in docs/tasks.md for Phase ${phase.phase}.
-Read its Definition of Done before writing any code.
-Reference T-xxx and F-xxx IDs in your response wherever applicable.`
+Подход (в этом порядке):
+1. Сначала опиши тесты для ${taskId} — что будешь проверять?
+2. Реализуй ${taskId}, чтобы тесты прошли.
+3. Напиши краткое саморевью — удовлетворяет ли реализация Definition of Done?`
+      : `## Целевая задача
+Найди первую незавершённую запись T-xxx в docs/tasks.md для Фазы ${phase.phase}.
+Прочитай её Definition of Done перед написанием кода.
+Ссылайся на T-xxx и F-xxx ID в ответе везде, где применимо.`
 
-    const promptText = `You are a senior full-stack engineer building a ${kind}.
+    const promptText = `Ты — старший full-stack инженер, создающий ${kind}.
 
-## Build context
-Project: ${spec.productSummary}
-Type: ${kind}
-Stage: Code + Tests (Superpowers cycle — Stage 5 of 6)
+## Контекст проекта
+Проект: ${spec.productSummary}
+Тип: ${kind}
+Стадия: Код + Тесты (цикл Superpowers — Стадия 5 из 6)
 
 ${DOCS_SECTION}
 
 ${typeAwareGuidance(projectType)}
 
-## Stack
+## Стек
 ${stack}
 
-## Phase ${phase.phase}: ${phase.title}
-Goals:
+## Фаза ${phase.phase}: ${phase.title}
+Цели:
 ${phaseGoals}
-Estimated complexity: ${phase.estimatedComplexity}
+Оценочная сложность: ${phase.estimatedComplexity}
 
 ${taskSection}
 
-## MVP scope
+## Скоуп MVP
 ${spec.MVPScope}
 
-## Must-have features (this phase)
+## Обязательные фичи (эта фаза)
 ${mustHaveFeatures}
 
-## Constraints
+## Ограничения
 ${constraints}
 
 ${TDD_RULE}
@@ -230,8 +230,8 @@ ${RESPONSE_FORMAT}`
     }
 
     const warnings: string[] = []
-    if (!sections.analysis) warnings.push('Could not parse "Brief analysis" section.')
-    if (!sections.next) warnings.push('Could not parse "Recommended next step" section.')
+    if (!sections.analysis) warnings.push('Не удалось распарсить раздел "Краткий анализ".')
+    if (!sections.next) warnings.push('Не удалось распарсить раздел "Рекомендуемый следующий шаг".')
 
     // Extract file names from files section
     const changedFiles: string[] = []
@@ -254,7 +254,7 @@ ${RESPONSE_FORMAT}`
 
     if (!hasTests) {
       warnings.push(
-        'No test files detected in this response. The next prompt will request missing tests before continuing.'
+        'Тестовые файлы не обнаружены в этом ответе. Следующий промпт запросит недостающие тесты перед продолжением.'
       )
     }
 
@@ -310,72 +310,72 @@ ${RESPONSE_FORMAT}`
     const prevTaskId = previousIteration.targetTaskId
 
     const missingTestsWarning = !parsedResponse.hasTests && !isReviewPhase
-      ? `\n## ⚠️ Missing tests from iteration #${previousIteration.iterationNumber}
-The previous iteration did not include test files. Before continuing to new features:
-1. Review what was implemented in iteration #${previousIteration.iterationNumber}.
-2. Write the missing tests first.
-3. Only then proceed to the next task.
-This is the Code (+Tests) rule — tests are not optional.\n`
+      ? `\n## ⚠️ Отсутствующие тесты из итерации #${previousIteration.iterationNumber}
+Предыдущая итерация не включала тестовые файлы. Перед продолжением к новым фичам:
+1. Проверь, что было реализовано в итерации #${previousIteration.iterationNumber}.
+2. Сначала напиши недостающие тесты.
+3. Только затем переходи к следующей задаче.
+Это правило Код (+Тесты) — тесты не опциональны.\n`
       : ''
 
     const nextTaskId = parsedResponse.nextTaskId ?? prevTaskId
     const taskRef = isReviewPhase
-      ? `## Review task: ${prevTaskId ?? 'previous task'}
-Check the implementation of **${prevTaskId ?? 'the previous task'}** against:
-- Its Definition of Done in docs/tasks.md
-- The acceptance criteria in docs/user-stories.md
-- The TDD rule — confirm test files exist and cover the non-trivial paths
+      ? `## Задача Review: ${prevTaskId ?? 'предыдущая задача'}
+Проверь реализацию **${prevTaskId ?? 'предыдущей задачи'}** по:
+- Definition of Done в docs/tasks.md
+- Критериям приёмки в docs/user-stories.md
+- Правилу TDD — убедись, что тестовые файлы существуют и покрывают нетривиальные пути
 
-Report: what passes, what gaps remain, and whether the task can be marked done.`
+Отчёт: что выполнено, какие пробелы остались, и можно ли задачу отметить выполненной.`
       : nextTaskId
-        ? `## Next target task: ${nextTaskId}
-Read the Definition of Done for **${nextTaskId}** in docs/tasks.md.
-This is your exact scope — do not implement other tasks in this prompt.
-Reference **${nextTaskId}** and its parent F-xxx feature ID throughout your response.
+        ? `## Следующая целевая задача: ${nextTaskId}
+Прочитай Definition of Done для **${nextTaskId}** в docs/tasks.md.
+Это твой точный скоуп — не реализуй другие задачи в этом промпте.
+Ссылайся на **${nextTaskId}** и родительский F-xxx ID фичи по всему ответу.
 
-Approach (in this order):
-1. Outline the tests for ${nextTaskId} first.
-2. Implement ${nextTaskId} to make those tests pass.
-3. Write a brief self-review — does the implementation satisfy the Definition of Done?`
-        : `## Next target task
-Check docs/tasks.md for the next incomplete T-xxx task.
-Read its Definition of Done before writing any code.`
+Подход (в этом порядке):
+1. Сначала опиши тесты для ${nextTaskId}.
+2. Реализуй ${nextTaskId}, чтобы тесты прошли.
+3. Напиши краткое саморевью — удовлетворяет ли реализация Definition of Done?`
+        : `## Следующая целевая задача
+Проверь docs/tasks.md на предмет следующей незавершённой задачи T-xxx.
+Прочитай её Definition of Done перед написанием кода.`
 
     const implementedIds = parsedResponse.implementedTaskIds.length > 0
-      ? `Tasks referenced in iteration #${previousIteration.iterationNumber}: ${parsedResponse.implementedTaskIds.join(', ')}`
+      ? `Задачи, упомянутые в итерации #${previousIteration.iterationNumber}: ${parsedResponse.implementedTaskIds.join(', ')}`
       : ''
 
     const changedFilesList = parsedResponse.changedFiles.length > 0
       ? parsedResponse.changedFiles.map((f) => `- ${f}`).join('\n')
-      : 'Not specified'
+      : 'Не указаны'
 
     const stageLabel = isReviewPhase
-      ? 'Review (Superpowers cycle — Stage 6 of 6)'
-      : 'Code + Tests (Superpowers cycle — Stage 5 of 6)'
+      ? 'Review (цикл Superpowers — Стадия 6 из 6)'
+      : 'Код + Тесты (цикл Superpowers — Стадия 5 из 6)'
 
-    const promptText = `You are a senior full-stack engineer continuing the implementation of a ${kind}.
+    const promptText = `Ты — старший full-stack инженер, продолжающий реализацию ${kind}.
 
-## Build context
-Stage: ${stageLabel}
-Type: ${kind}
+## Контекст проекта
+Стадия: ${stageLabel}
+Тип: ${kind}
 ${implementedIds}
 ${missingTestsWarning}
 ${typeAwareGuidance(projectType)}
 
-## What was implemented — iteration #${previousIteration.iterationNumber}
-${parsedResponse.implementationSummary || 'See previous response.'}
+## Что было реализовано — итерация #${previousIteration.iterationNumber}
+${parsedResponse.implementationSummary || 'Смотри предыдущий ответ.'}
 
-## Files changed in iteration #${previousIteration.iterationNumber}
+## Изменённые файлы в итерации #${previousIteration.iterationNumber}
 ${changedFilesList}
-${parsedResponse.hasTests ? '✓ Tests were included in the previous iteration.' : '⚠️ No test files were detected in the previous iteration (see above).'}
+${parsedResponse.hasTests ? '✓ Тесты были включены в предыдущую итерацию.' : '⚠️ Тестовые файлы не обнаружены в предыдущей итерации (см. выше).'}
 
-## Recommended next step (from iteration #${previousIteration.iterationNumber})
-${parsedResponse.nextStep || previousIteration.recommendedNextStep || 'Continue implementation — check docs/tasks.md.'}
+## Рекомендуемый следующий шаг (из итерации #${previousIteration.iterationNumber})
+${parsedResponse.nextStep || previousIteration.recommendedNextStep || 'Продолжай реализацию — проверь docs/tasks.md.'}
 
 ${taskRef}
 
-## Rule
-One prompt = one task. Do not refactor what already works. Do not build ahead of the current task.
+## Правило
+Один промпт = одна задача. Не рефактори то, что уже работает. Не строй вперёд текущей задачи.
 
 ${isReviewPhase ? '' : TDD_RULE + '\n\n'}${RESPONSE_FORMAT}`
 

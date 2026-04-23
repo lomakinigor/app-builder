@@ -161,7 +161,7 @@ describe('A. generateFirstPrompt — website tech context (stack + guidance)', (
 
   it('website prompt contains "website" type label in intro', async () => {
     const iter = await runFirst(WEB_SPEC, WEB_ARCH, 'website')
-    expect(iter.promptText).toContain('building a website')
+    expect(iter.promptText).toContain('создающий сайт')
   })
 
   it('application prompt contains "React" (from recommendedStack[0].name)', async () => {
@@ -186,7 +186,7 @@ describe('A. generateFirstPrompt — website tech context (stack + guidance)', (
 
   it('application prompt contains "application" type label in intro', async () => {
     const iter = await runFirst(APP_SPEC, APP_ARCH, 'application')
-    expect(iter.promptText).toContain('building a application')
+    expect(iter.promptText).toContain('создающий приложение')
   })
 })
 
@@ -195,24 +195,24 @@ describe('A. generateFirstPrompt — website tech context (stack + guidance)', (
 // Type-specific technologies must not leak into the opposing type's prompt.
 
 describe('B. generateFirstPrompt — stack format and no cross-contamination', () => {
-  it('application stack: "React — UI layer" appears as formatted stack entry', async () => {
+  it('application stack: "React — UI-слой" appears as formatted stack entry', async () => {
     const iter = await runFirst(APP_SPEC, APP_ARCH, 'application')
-    expect(iter.promptText).toContain('React — UI layer')
+    expect(iter.promptText).toContain('React — UI-слой')
   })
 
-  it('application stack: "TypeScript — Type safety" appears as formatted stack entry', async () => {
+  it('application stack: "TypeScript — Типобезопасность" appears as formatted stack entry', async () => {
     const iter = await runFirst(APP_SPEC, APP_ARCH, 'application')
-    expect(iter.promptText).toContain('TypeScript — Type safety')
+    expect(iter.promptText).toContain('TypeScript — Типобезопасность')
   })
 
-  it('website stack: "Next.js — Framework" appears as formatted stack entry', async () => {
+  it('website stack: "Next.js — Фреймворк" appears as formatted stack entry', async () => {
     const iter = await runFirst(WEB_SPEC, WEB_ARCH, 'website')
-    expect(iter.promptText).toContain('Next.js — Framework')
+    expect(iter.promptText).toContain('Next.js — Фреймворк')
   })
 
-  it('website stack: "TypeScript — Type safety" appears as formatted stack entry', async () => {
+  it('website stack: "TypeScript — Типобезопасность" appears as formatted stack entry', async () => {
     const iter = await runFirst(WEB_SPEC, WEB_ARCH, 'website')
-    expect(iter.promptText).toContain('TypeScript — Type safety')
+    expect(iter.promptText).toContain('TypeScript — Типобезопасность')
   })
 
   it('application prompt does NOT contain "Next.js" (not in application stack)', async () => {
@@ -243,54 +243,54 @@ describe('B. generateFirstPrompt — stack format and no cross-contamination', (
 // The phase title and goals must appear verbatim in the prompt text.
 
 describe('C. generateFirstPrompt — roadmap phase vocabulary from arch', () => {
-  it('application "Foundation" phase (phase 0) → "Foundation" in prompt', async () => {
+  it('application "Фундамент" phase (phase 0) → "Фундамент" in prompt', async () => {
     const iter = await runFirst(APP_SPEC, APP_ARCH, 'application')
-    expect(iter.promptText).toContain('Foundation')
+    expect(iter.promptText).toContain('Фундамент')
   })
 
-  it('application "Foundation" phase → phase 0 number appears in prompt', async () => {
+  it('application "Фундамент" phase → phase 0 number appears in prompt', async () => {
     const iter = await runFirst(APP_SPEC, APP_ARCH, 'application')
-    expect(iter.promptText).toContain('Phase 0')
+    expect(iter.promptText).toContain('Фаза 0')
   })
 
-  it('application "Foundation" goals appear in prompt ("App shell")', async () => {
+  it('application "Фундамент" goals appear in prompt ("Оболочка приложения")', async () => {
     const iter = await runFirst(APP_SPEC, APP_ARCH, 'application')
-    expect(iter.promptText).toContain('App shell')
+    expect(iter.promptText).toContain('Оболочка приложения')
   })
 
-  it('application "Foundation" goals appear in prompt ("Routing")', async () => {
+  it('application "Фундамент" goals appear in prompt ("Маршрутизация")', async () => {
     const iter = await runFirst(APP_SPEC, APP_ARCH, 'application')
-    expect(iter.promptText).toContain('Routing')
+    expect(iter.promptText).toContain('Маршрутизация')
   })
 
-  it('application "Core flow" phase (phase 1 as first phase) → "Core flow" in prompt', async () => {
+  it('application "Основной поток" phase (phase 1 as first phase) → "Основной поток" in prompt', async () => {
     const iter = await runFirst(APP_SPEC, APP_ARCH_CORE_FLOW, 'application')
-    expect(iter.promptText).toContain('Core flow')
+    expect(iter.promptText).toContain('Основной поток')
   })
 
-  it('application "Core flow" goals appear ("Onboarding screen")', async () => {
+  it('application "Основной поток" goals appear ("Экран онбординга")', async () => {
     const iter = await runFirst(APP_SPEC, APP_ARCH_CORE_FLOW, 'application')
-    expect(iter.promptText).toContain('Onboarding screen')
+    expect(iter.promptText).toContain('Экран онбординга')
   })
 
-  it('website "Core pages" phase → "Core pages" in prompt', async () => {
+  it('website "Основные страницы" phase → "Основные страницы" in prompt', async () => {
     const iter = await runFirst(WEB_SPEC, WEB_ARCH_CORE_PAGES, 'website')
-    expect(iter.promptText).toContain('Core pages')
+    expect(iter.promptText).toContain('Основные страницы')
   })
 
-  it('website "Core pages" goals appear ("MDX pipeline")', async () => {
+  it('website "Основные страницы" goals appear ("MDX-пайплайн")', async () => {
     const iter = await runFirst(WEB_SPEC, WEB_ARCH_CORE_PAGES, 'website')
-    expect(iter.promptText).toContain('MDX pipeline')
+    expect(iter.promptText).toContain('MDX-пайплайн')
   })
 
-  it('website "Blog" phase → "Blog" in prompt', async () => {
+  it('website "Блог" phase → "Блог" in prompt', async () => {
     const iter = await runFirst(WEB_SPEC, WEB_ARCH_BLOG, 'website')
-    expect(iter.promptText).toContain('Blog')
+    expect(iter.promptText).toContain('Блог')
   })
 
-  it('website "Blog" goals appear ("Article list page")', async () => {
+  it('website "Блог" goals appear ("Страница списка статей")', async () => {
     const iter = await runFirst(WEB_SPEC, WEB_ARCH_BLOG, 'website')
-    expect(iter.promptText).toContain('Article list page')
+    expect(iter.promptText).toContain('Страница списка статей')
   })
 
   it('complexity label appears for the current phase (low / medium / high)', async () => {
@@ -302,12 +302,12 @@ describe('C. generateFirstPrompt — roadmap phase vocabulary from arch', () => 
   it('roadmap phase vocabulary differs between application and website (Foundation goals differ)', async () => {
     const appIter = await runFirst(APP_SPEC, APP_ARCH, 'application')
     const webIter = await runFirst(WEB_SPEC, WEB_ARCH, 'website')
-    // Application Foundation goals: 'App shell', 'Routing'
-    // Website Foundation goals: 'Next.js scaffold', 'Tailwind setup'
-    expect(appIter.promptText).toContain('App shell')
-    expect(webIter.promptText).not.toContain('App shell')
-    expect(webIter.promptText).toContain('Next.js scaffold')
-    expect(appIter.promptText).not.toContain('Next.js scaffold')
+    // Application Фундамент goals: 'Оболочка приложения', 'Маршрутизация'
+    // Website Фундамент goals: 'Скаффолд Next.js', 'Настройка Tailwind'
+    expect(appIter.promptText).toContain('Оболочка приложения')
+    expect(webIter.promptText).not.toContain('Оболочка приложения')
+    expect(webIter.promptText).toContain('Скаффолд Next.js')
+    expect(appIter.promptText).not.toContain('Скаффолд Next.js')
   })
 })
 
@@ -361,7 +361,7 @@ describe('D. generateNextPrompt — type-aware guidance inherited per type', () 
   it('website next prompt references "website" type label', async () => {
     const prev = makeIteration({ projectType: 'website' })
     const iter = await runNext(prev, makeParsed(), 'website')
-    expect(iter.promptText).toContain('website')
+    expect(iter.promptText).toContain('сайт')
   })
 })
 
@@ -372,54 +372,54 @@ describe('D. generateNextPrompt — type-aware guidance inherited per type', () 
 //   - task linkage: nextTaskId propagation
 
 describe('E. generateNextPrompt — cycle-aware structural behavior', () => {
-  it('code_and_tests phase: stage label says "Stage 5 of 6"', async () => {
+  it('code_and_tests phase: stage label says "Стадия 5 из 6"', async () => {
     const prev = makeIteration()
     const iter = await runNext(prev, makeParsed(), 'application', 'code_and_tests')
-    expect(iter.promptText).toContain('Stage 5 of 6')
+    expect(iter.promptText).toContain('Стадия 5 из 6')
   })
 
-  it('review phase: stage label says "Stage 6 of 6"', async () => {
+  it('review phase: stage label says "Стадия 6 из 6"', async () => {
     const prev = makeIteration()
     const iter = await runNext(prev, makeParsed(), 'application', 'review')
-    expect(iter.promptText).toContain('Stage 6 of 6')
+    expect(iter.promptText).toContain('Стадия 6 из 6')
   })
 
-  it('review phase: prompt contains "Review task" section', async () => {
+  it('review phase: prompt contains "Задача Review" section', async () => {
     const prev = makeIteration({ targetTaskId: 'T-001' })
     const iter = await runNext(prev, makeParsed(), 'application', 'review')
-    expect(iter.promptText).toContain('Review task')
+    expect(iter.promptText).toContain('Задача Review')
   })
 
   it('review phase: prompt does NOT contain the mandatory TDD rule block (review has no new code work)', async () => {
-    // The review task checklist references "TDD rule" by name, but the mandatory
-    // ## TDD rule (mandatory) block is NOT injected in review prompts.
+    // The review task checklist references "TDD" by name, but the mandatory
+    // ## Правило TDD (обязательно) block is NOT injected in review prompts.
     const prev = makeIteration()
     const iter = await runNext(prev, makeParsed(), 'application', 'review')
-    expect(iter.promptText).not.toContain('## TDD rule (mandatory)')
+    expect(iter.promptText).not.toContain('## Правило TDD (обязательно)')
   })
 
-  it('code_and_tests phase: prompt contains "TDD rule"', async () => {
+  it('code_and_tests phase: prompt contains "Правило TDD"', async () => {
     const prev = makeIteration()
     const iter = await runNext(prev, makeParsed(), 'application', 'code_and_tests')
-    expect(iter.promptText).toContain('TDD rule')
+    expect(iter.promptText).toContain('Правило TDD')
   })
 
-  it('hasTests=false in previous iteration → "Missing tests" warning injected in next prompt', async () => {
+  it('hasTests=false in previous iteration → "Отсутствующие тесты" warning injected in next prompt', async () => {
     const prev = makeIteration()
     const iter = await runNext(prev, makeParsed({ hasTests: false }), 'application', 'code_and_tests')
-    expect(iter.promptText).toContain('Missing tests from iteration')
+    expect(iter.promptText).toContain('Отсутствующие тесты из итерации')
   })
 
-  it('hasTests=true → no "Missing tests" warning in next prompt', async () => {
+  it('hasTests=true → no "Отсутствующие тесты" warning in next prompt', async () => {
     const prev = makeIteration()
     const iter = await runNext(prev, makeParsed({ hasTests: true }), 'application', 'code_and_tests')
-    expect(iter.promptText).not.toContain('Missing tests from iteration')
+    expect(iter.promptText).not.toContain('Отсутствующие тесты из итерации')
   })
 
-  it('hasTests=false but review phase → no "Missing tests" warning', async () => {
+  it('hasTests=false but review phase → no "Отсутствующие тесты" warning', async () => {
     const prev = makeIteration()
     const iter = await runNext(prev, makeParsed({ hasTests: false }), 'application', 'review')
-    expect(iter.promptText).not.toContain('Missing tests from iteration')
+    expect(iter.promptText).not.toContain('Отсутствующие тесты из итерации')
   })
 
   it('next prompt contains implementation summary from previous iteration', async () => {
@@ -429,10 +429,10 @@ describe('E. generateNextPrompt — cycle-aware structural behavior', () => {
     expect(iter.promptText).toContain('Implemented the onboarding flow.')
   })
 
-  it('next prompt references "iteration #1" (the previous iteration)', async () => {
+  it('next prompt references "итерации #1" (the previous iteration)', async () => {
     const prev = makeIteration({ iterationNumber: 1 })
     const iter = await runNext(prev, makeParsed(), 'application')
-    expect(iter.promptText).toContain('iteration #1')
+    expect(iter.promptText).toContain('итерации #1')
   })
 
   it('next prompt includes "T-002" as the next task when nextTaskId=T-002', async () => {
@@ -449,37 +449,37 @@ describe('E. generateNextPrompt — cycle-aware structural behavior', () => {
 // next  = continuation with previous iteration context, no arch stack re-embedding
 
 describe('F. First vs Next — structural differences', () => {
-  it('generateFirstPrompt includes "## Stack" section (arch embedded)', async () => {
+  it('generateFirstPrompt includes "## Стек" section (arch embedded)', async () => {
     const iter = await runFirst(APP_SPEC, APP_ARCH, 'application')
-    expect(iter.promptText).toContain('## Stack')
+    expect(iter.promptText).toContain('## Стек')
   })
 
-  it('generateNextPrompt does NOT include "## Stack" section (arch not re-embedded)', async () => {
+  it('generateNextPrompt does NOT include "## Стек" section (arch not re-embedded)', async () => {
     const prev = makeIteration()
     const iter = await runNext(prev, makeParsed(), 'application')
-    expect(iter.promptText).not.toContain('## Stack')
+    expect(iter.promptText).not.toContain('## Стек')
   })
 
-  it('generateFirstPrompt includes "## MVP scope" from spec', async () => {
+  it('generateFirstPrompt includes "## Скоуп MVP" from spec', async () => {
     const iter = await runFirst(APP_SPEC, APP_ARCH, 'application')
-    expect(iter.promptText).toContain('## MVP scope')
+    expect(iter.promptText).toContain('## Скоуп MVP')
   })
 
-  it('generateNextPrompt does NOT include "## MVP scope" (focus shifts to next task)', async () => {
+  it('generateNextPrompt does NOT include "## Скоуп MVP" (focus shifts to next task)', async () => {
     const prev = makeIteration()
     const iter = await runNext(prev, makeParsed(), 'application')
-    expect(iter.promptText).not.toContain('## MVP scope')
+    expect(iter.promptText).not.toContain('## Скоуп MVP')
   })
 
-  it('generateFirstPrompt starts with "building a" (first engagement)', async () => {
+  it('generateFirstPrompt starts with "создающий" (first engagement)', async () => {
     const iter = await runFirst(APP_SPEC, APP_ARCH, 'application')
-    expect(iter.promptText).toContain('building a application')
+    expect(iter.promptText).toContain('создающий приложение')
   })
 
-  it('generateNextPrompt starts with "continuing the implementation" (not first engagement)', async () => {
+  it('generateNextPrompt starts with "продолжающий реализацию" (not first engagement)', async () => {
     const prev = makeIteration()
     const iter = await runNext(prev, makeParsed(), 'application')
-    expect(iter.promptText).toContain('continuing the implementation')
+    expect(iter.promptText).toContain('продолжающий реализацию')
   })
 
   it('generateFirstPrompt has iterationNumber = 1', async () => {
@@ -492,7 +492,7 @@ describe('F. First vs Next — structural differences', () => {
 // These tests confirm that all three dimensions are simultaneously present.
 
 describe('G. Combined: type + stack + phase all present', () => {
-  it('application + React stack + "Core flow" phase → all three in one prompt', async () => {
+  it('application + React stack + "Основной поток" phase → all three in one prompt', async () => {
     const iter = await runFirst(APP_SPEC, APP_ARCH_CORE_FLOW, 'application')
     // type context
     expect(iter.promptText).toMatch(/\bSPA\b|Single Page Application/)
@@ -500,10 +500,10 @@ describe('G. Combined: type + stack + phase all present', () => {
     expect(iter.promptText).toContain('React')
     expect(iter.promptText).toContain('TypeScript')
     // phase
-    expect(iter.promptText).toContain('Core flow')
+    expect(iter.promptText).toContain('Основной поток')
   })
 
-  it('website + Next.js stack + "Core pages" phase → all three in one prompt', async () => {
+  it('website + Next.js stack + "Основные страницы" phase → all three in one prompt', async () => {
     const iter = await runFirst(WEB_SPEC, WEB_ARCH_CORE_PAGES, 'website')
     // type context
     expect(iter.promptText).toMatch(/SSG|SSR/)
@@ -512,24 +512,24 @@ describe('G. Combined: type + stack + phase all present', () => {
     expect(iter.promptText).toContain('Next.js')
     expect(iter.promptText).toContain('TypeScript')
     // phase
-    expect(iter.promptText).toContain('Core pages')
+    expect(iter.promptText).toContain('Основные страницы')
   })
 
-  it('website + Next.js stack + "Blog" phase → all three in one prompt', async () => {
+  it('website + Next.js stack + "Блог" phase → all three in one prompt', async () => {
     const iter = await runFirst(WEB_SPEC, WEB_ARCH_BLOG, 'website')
     // type context
     expect(iter.promptText).toMatch(/SSG|SSR/)
     // stack
     expect(iter.promptText).toContain('Next.js')
     // phase
-    expect(iter.promptText).toContain('Blog')
-    expect(iter.promptText).toContain('Article list page')
+    expect(iter.promptText).toContain('Блог')
+    expect(iter.promptText).toContain('Страница списка статей')
   })
 
-  it('application + React stack + "Foundation" phase: no Next.js and no "Core pages"', async () => {
+  it('application + React stack + "Фундамент" phase: no Next.js and no "Основные страницы"', async () => {
     const iter = await runFirst(APP_SPEC, APP_ARCH, 'application')
     expect(iter.promptText).not.toContain('Next.js')
-    expect(iter.promptText).not.toContain('Core pages')
+    expect(iter.promptText).not.toContain('Основные страницы')
   })
 
   it('website + website stack + "Core pages" phase: no React Router and no "Core flow"', async () => {

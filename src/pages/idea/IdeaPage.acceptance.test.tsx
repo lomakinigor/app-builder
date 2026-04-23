@@ -105,7 +105,7 @@ describe('A. Entry guard — no project', () => {
 
   it('does NOT render the idea description textarea', () => {
     renderPage({ activeProject: null })
-    expect(screen.queryByPlaceholderText(/A project management tool/)).not.toBeInTheDocument()
+    expect(screen.queryByPlaceholderText(/Инструмент управления проектами/)).not.toBeInTheDocument()
   })
 
   it('does NOT show the project type selector', () => {
@@ -126,7 +126,7 @@ describe('B. Idea form — project present, idea empty', () => {
   it('renders the idea description textarea', () => {
     renderPage()
     // Textarea is identified by its placeholder (label not linked via htmlFor)
-    expect(screen.getByPlaceholderText(/A project management tool/)).toBeInTheDocument()
+    expect(screen.getByPlaceholderText(/Инструмент управления проектами/)).toBeInTheDocument()
   })
 
   it('renders the project type selector', () => {
@@ -204,7 +204,7 @@ describe('D. Idea happy path — valid idea and projectType in store', () => {
       activeProject: makeProject({ projectType: 'application' }),
       ideaDraft: makeIdeaDraft({ rawIdea: VALID_RAW_IDEA }),
     })
-    expect(screen.getByPlaceholderText(/A project management tool/)).toHaveValue(VALID_RAW_IDEA)
+    expect(screen.getByPlaceholderText(/Инструмент управления проектами/)).toHaveValue(VALID_RAW_IDEA)
   })
 
   it('form is pre-populated with stored title', () => {
@@ -283,7 +283,7 @@ describe('E. Persistence contract — form reflects stored ideaDraft', () => {
       activeProject: makeProject(),
       ideaDraft: makeIdeaDraft({ rawIdea: storedIdea }),
     })
-    expect(screen.getByPlaceholderText(/A project management tool/)).toHaveValue(storedIdea)
+    expect(screen.getByPlaceholderText(/Инструмент управления проектами/)).toHaveValue(storedIdea)
   })
 
   it('no error banner shown when stored idea is valid and not yet submitted', () => {

@@ -17,7 +17,7 @@ import {
 import type { IdeaDraft, ProjectType } from '../../shared/types'
 
 const PLACEHOLDER_IDEA =
-  'A project management tool where AI helps break down goals into tasks, writes subtask descriptions, and suggests next actions based on what is overdue or blocked.'
+  'Инструмент управления проектами, где ИИ помогает разбивать цели на задачи, пишет описания подзадач и предлагает следующие шаги на основе просроченных или заблокированных задач.'
 
 // ─── Project type segmented control ───────────────────────────────────────────
 

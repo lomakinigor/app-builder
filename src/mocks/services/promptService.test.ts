@@ -143,11 +143,11 @@ describe('typeAwareGuidance', () => {
     })
 
     it('mentions "state" (cross-component data)', () => {
-      expect(appGuidance.toLowerCase()).toContain('state')
+      expect(appGuidance.toLowerCase()).toContain('состояни')
     })
 
     it('mentions "component" (UI decomposition pattern)', () => {
-      expect(appGuidance.toLowerCase()).toContain('component')
+      expect(appGuidance.toLowerCase()).toContain('компонент')
     })
   })
 
@@ -157,11 +157,11 @@ describe('typeAwareGuidance', () => {
     const webGuidance = typeAwareGuidance('website')
 
     it('mentions "website" (project type declaration)', () => {
-      expect(webGuidance.toLowerCase()).toContain('website')
+      expect(webGuidance.toLowerCase()).toContain('сайт')
     })
 
     it('mentions "pages" or "routes" (content surfaces)', () => {
-      expect(webGuidance.toLowerCase()).toMatch(/\bpages?\b|\broutes?\b/)
+      expect(webGuidance.toLowerCase()).toMatch(/страниц|маршрут/)
     })
 
     it('mentions "SSG" or "SSR" (server-side rendering patterns)', () => {
@@ -173,11 +173,11 @@ describe('typeAwareGuidance', () => {
     })
 
     it('mentions "semantic HTML" (accessibility + SEO structure)', () => {
-      expect(webGuidance.toLowerCase()).toContain('semantic html')
+      expect(webGuidance.toLowerCase()).toContain('семантическ')
     })
 
     it('mentions "layout" or "navigation" (page-level structure)', () => {
-      expect(webGuidance.toLowerCase()).toMatch(/layout|navigation/)
+      expect(webGuidance.toLowerCase()).toMatch(/лейаут|навигац/)
     })
   })
 
