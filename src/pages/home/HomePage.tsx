@@ -50,6 +50,7 @@ function formatAuditEvent(event: SharingAuditEvent): string {
 export function HomePage() {
   const navigate = useNavigate()
   const [shareCopied, setShareCopied] = useState(false)
+  const [shareError, setShareError] = useState<string | null>(null)
   const [currentShareId, setCurrentShareId] = useState<string | null>(null)
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole, setInviteRole] = useState<'viewer' | 'editor'>('viewer')
@@ -61,6 +62,7 @@ export function HomePage() {
   const [collaborators, setCollaborators] = useState<ProjectCollaborator[]>([])
   const [collaboratorsLoading, setCollaboratorsLoading] = useState(false)
   const [collaboratorsError, setCollaboratorsError] = useState<string | null>(null)
+  const [collaboratorActionError, setCollaboratorActionError] = useState<string | null>(null)
   const canManageSharing = useCanManageSharing()
 
   // Registry: canonical list + selected project identity
@@ -139,15 +141,16 @@ export function HomePage() {
 
   async function handleShareProject() {
     if (!selectedProject) return
+    setShareError(null)
     try {
       const { shareId, shareUrl } = await getSharingApi().generateShareToken(selectedProject.id)
       const fullUrl = `${window.location.origin}${shareUrl}`
-      await navigator.clipboard.writeText(fullUrl)
+      await navigator.clipboard.writeText(fullUrl).catch(() => {})
       setCurrentShareId(shareId)
       setShareCopied(true)
       setTimeout(() => setShareCopied(false), 2000)
-    } catch {
-      // clipboard or API failure — silently ignore
+    } catch (err) {
+      setShareError(err instanceof Error ? err.message : 'Не удалось создать ссылку общего доступа')
     }
   }
 
@@ -168,20 +171,22 @@ export function HomePage() {
   }
 
   async function handleChangeRole(collaboratorId: string, role: 'viewer' | 'editor') {
+    setCollaboratorActionError(null)
     try {
       const updated = await getSharingApi().updateCollaboratorRole(collaboratorId, role)
       setCollaborators((prev) => prev.map((c) => (c.id === collaboratorId ? updated : c)))
-    } catch {
-      // silently ignore — list stays as-is
+    } catch (err) {
+      setCollaboratorActionError(err instanceof Error ? err.message : 'Не удалось изменить роль')
     }
   }
 
   async function handleRevoke(collaboratorId: string) {
+    setCollaboratorActionError(null)
     try {
       await getSharingApi().revokeCollaborator(collaboratorId)
       setCollaborators((prev) => prev.filter((c) => c.id !== collaboratorId))
-    } catch {
-      // silently ignore
+    } catch (err) {
+      setCollaboratorActionError(err instanceof Error ? err.message : 'Не удалось отозвать доступ')
     }
   }
 
@@ -266,6 +271,11 @@ export function HomePage() {
               </Button>
             )}
           </div>
+          {shareError && (
+            <p className="mt-2 text-xs text-red-600 dark:text-red-400" data-testid="share-error">
+              {shareError}
+            </p>
+          )}
 
           {/* Email invite panel — shown after share link is generated; owner-only (T-405/T-406) */}
           {isSharingEnabled() && canManageSharing && currentShareId && (
@@ -370,6 +380,11 @@ export function HomePage() {
                     </li>
                   ))}
                 </ul>
+              )}
+              {collaboratorActionError && (
+                <p className="mt-2 text-xs text-red-600 dark:text-red-400" data-testid="collaborator-action-error">
+                  {collaboratorActionError}
+                </p>
               )}
             </div>
           )}

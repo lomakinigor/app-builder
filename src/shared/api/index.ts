@@ -43,4 +43,4 @@ export function getCommentsApi(): CommentsApi {
   return isRealMode() ? commentsApiHttp : commentsApiMock
 }
 
-export type { SpecApi, PromptLoopApi, ResearchApi, SharingApi, CommentsApi, ShareInfo, ResolvedShare, InviteResult, SharingAuditEvent, ProjectCollaborator, ArtifactComment, ArtifactType, AddCommentInput } from './types'
+export type { SpecApi, PromptLoopApi, ResearchApi, SharingApi, CommentsApi, ShareInfo, ResolvedShare, InviteResult, InviteInfo, AcceptedInvite, SharingAuditEvent, ProjectCollaborator, ArtifactComment, ArtifactType, AddCommentInput } from './types'

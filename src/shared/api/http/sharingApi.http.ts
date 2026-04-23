@@ -3,6 +3,7 @@
 // T-404 — getAuditTrail: GET /api/projects/:projectId/sharing-audit
 // T-406 — listCollaborators, updateCollaboratorRole, revokeCollaborator;
 //          inviteByEmail now sends role in body
+// T-408 — resolveInvite, acceptInvite
 //
 // Activated when VITE_API_MODE=real.
 // Backend contracts:
@@ -13,6 +14,8 @@
 //   GET    /api/projects/:projectId/collaborators                                    → ProjectCollaborator[]
 //   PATCH  /api/collaborators/:collaboratorId                { role }                → ProjectCollaborator
 //   DELETE /api/collaborators/:collaboratorId                                         → { success: true }
+//   GET    /api/invites/:inviteToken                                                  → InviteInfo
+//   POST   /api/invites/:inviteToken/accept                                           → AcceptedInvite
 //
 // Error handling: all methods throw ApiError on non-2xx (from shared client helpers).
 // ApiError.requestId is populated from backend error body or x-request-id header.
@@ -22,6 +25,8 @@ import type {
   ShareInfo,
   ResolvedShare,
   InviteResult,
+  InviteInfo,
+  AcceptedInvite,
   SharingAuditEvent,
   ProjectCollaborator,
 } from '../types'
@@ -61,5 +66,13 @@ export const sharingApiHttp: SharingApi = {
 
   async revokeCollaborator(collaboratorId: string): Promise<{ success: true }> {
     return deleteJson<{ success: true }>(`/api/collaborators/${encodeURIComponent(collaboratorId)}`)
+  },
+
+  async resolveInvite(inviteToken: string): Promise<InviteInfo> {
+    return getJson<InviteInfo>(`/api/invites/${encodeURIComponent(inviteToken)}`)
+  },
+
+  async acceptInvite(inviteToken: string): Promise<AcceptedInvite> {
+    return postJson<AcceptedInvite>(`/api/invites/${encodeURIComponent(inviteToken)}/accept`, {})
   },
 }

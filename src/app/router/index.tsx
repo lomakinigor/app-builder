@@ -11,6 +11,7 @@ import { HistoryPage } from '../../pages/history/HistoryPage'
 import { BlogPage } from '../../pages/blog/BlogPage'
 import { SettingsPage } from '../../pages/settings/SettingsPage'
 import { SharedProjectPage } from '../../pages/shared-project/SharedProjectPage'
+import { InviteAcceptPage } from '../../pages/invite-accept/InviteAcceptPage'
 
 export const router = createBrowserRouter([
   {
@@ -28,6 +29,7 @@ export const router = createBrowserRouter([
       { path: 'blog', element: <BlogPage /> },
       { path: 'settings', element: <SettingsPage /> },
       { path: 'shared/:shareId', element: <SharedProjectPage /> },
+      { path: 'invite/:inviteToken', element: <InviteAcceptPage /> },
     ],
   },
 ])

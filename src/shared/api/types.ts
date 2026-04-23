@@ -105,6 +105,20 @@ export interface SharingAuditEvent {
   shareId?: string | null
 }
 
+/** T-408 — Data returned when resolving an invite token (before accepting). */
+export interface InviteInfo {
+  projectId: string
+  projectName: string
+  role: 'viewer' | 'editor'
+  email: string
+}
+
+/** T-408 — Data returned after an invite is accepted. */
+export interface AcceptedInvite {
+  projectId: string
+  role: 'viewer' | 'editor'
+}
+
 export interface SharingApi {
   /** Generate a share token for the given project. */
   generateShareToken(projectId: string): Promise<ShareInfo>
@@ -120,6 +134,10 @@ export interface SharingApi {
   updateCollaboratorRole(collaboratorId: string, role: 'viewer' | 'editor'): Promise<ProjectCollaborator>
   /** T-406 — Revoke a collaborator's access. */
   revokeCollaborator(collaboratorId: string): Promise<{ success: true }>
+  /** T-408 — Resolve an invite token to project info + role (before accepting). */
+  resolveInvite(inviteToken: string): Promise<InviteInfo>
+  /** T-408 — Accept an invite — transitions collaborator status invited → active. */
+  acceptInvite(inviteToken: string): Promise<AcceptedInvite>
 }
 
 // ─── Prompt loop ──────────────────────────────────────────────────────────────

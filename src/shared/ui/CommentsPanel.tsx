@@ -48,6 +48,7 @@ export function CommentsPanel({ projectId, artifactType, artifactId, canPost }: 
     const trimmed = body.trim()
     if (!trimmed || trimmed.length > MAX_COMMENT_LENGTH) return
     setSubmitting(true)
+    setError(null)
     try {
       const comment = await getCommentsApi().addComment({ projectId, artifactType, artifactId, body: trimmed })
       setComments((prev) => [...prev, comment])

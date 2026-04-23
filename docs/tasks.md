@@ -1271,3 +1271,70 @@ Definition of done:
 - src/pages/prompt-loop/PromptLoopPage.comments.test.tsx: 6 tests — visibility, hidden when no iteration, listComments args, body render, editor add, viewer read-only
 - sharing flag OFF does not affect comments (no isSharingEnabled gate)
 - All 1733 tests pass across 66 files
+
+
+## T-408 — Invite acceptance flow for collaborators (invited → active)
+Type: impl+test
+Links: T-406, T-407
+Status: done
+Owner: AI
+Definition of done:
+- src/shared/api/types.ts: InviteInfo interface (projectId, projectName, role, email); AcceptedInvite interface (projectId, role); SharingApi extended with resolveInvite(inviteToken) and acceptInvite(inviteToken)
+- src/shared/api/index.ts: InviteInfo, AcceptedInvite exported from barrel
+- src/shared/api/mock/sharingApi.mock.ts: makeInviteToken(collaboratorId) exported — token = "invite-<collaboratorId>"; resolveInvite extracts collaboratorId from token, returns InviteInfo with projectId (from shareId) + projectName (mockProjectName helper) + role + email; acceptInvite updates collaborator status from 'invited' to 'active', returns AcceptedInvite; throws descriptive Error on invalid/missing token
+- src/shared/api/http/sharingApi.http.ts: resolveInvite via GET /api/invites/:inviteToken; acceptInvite via POST /api/invites/:inviteToken/accept with empty body; both throw ApiError on non-2xx
+- src/pages/invite-accept/InviteAcceptPage.tsx: route /invite/:inviteToken; resolves invite on mount; shows project name + role label + email; "Принять приглашение" CTA; on accept: calls acceptInvite → selectProject → setViewingMode(editor|viewer) → navigate('/history'); error states for invalid token, failed accept; loading/accepting spinner states; data-testids: invite-project-name, invite-role, accept-invite-btn, invite-error
+- src/app/router/index.tsx: { path: 'invite/:inviteToken', element: <InviteAcceptPage /> } added
+- src/shared/api/http/inviteApi.contract.test.ts (Group L): 5 tests — resolveInvite GET URL, acceptInvite POST URL, resolveInvite 404 ApiError, acceptInvite 410 ApiError, viewer role mapped correctly
+- src/pages/invite-accept/InviteAcceptPage.test.tsx: 9 tests — shows project name+role, accept button visible, acceptInvite called with token, selectProject+navigate on accept, editor invite → viewingMode=editor, viewer invite → viewingMode=viewer, resolveInvite error → error state, acceptInvite error → error state, missing token → error state
+- No full auth/signup flow (out of scope)
+- All tests pass
+
+## T-409 — Real backend rollout prep: collaboration and comments staging smoke
+Type: ops+test
+Links: T-401, T-402, T-403, T-404, T-405, T-406, T-407, T-408
+Status: done
+Owner: AI
+Definition of done:
+- tests/e2e/collaboration-real-backend.spec.ts created with 3 staging smoke tests:
+  - SMOKE-002: POST /api/shares → invite-panel visible; GET /api/shares/:shareId → redirect to /history; POST /api/shares/:shareId/invite → InviteResult (skipped when VITE_FEATURE_SHARING≠true)
+  - SMOKE-003: GET /api/projects/:projectId/comments → comments-panel loads; POST /api/projects/:projectId/comments → comment appears in CommentsPanel
+  - SMOKE-004: GET /api/invites/:token → InviteAcceptPage shows project+role; POST /api/invites/:token/accept → redirect to /history (skipped when VITE_FEATURE_SHARING≠true or backend does not return inviteToken)
+- playwright.staging.config.ts updated: testMatch now includes both critical-real-backend.spec.ts and collaboration-real-backend.spec.ts; VITE_FEATURE_SHARING documented in header
+- .env.staging.example created: all 5 env vars documented with required/optional/skip info and full endpoint coverage map
+- docs/testing-strategy.md updated: staging smoke section expanded with T-409 collaboration path table, SMOKE-002/003/004 descriptions, updated env vars table (VITE_FEATURE_SHARING added), .env.staging.example reference, documented endpoints not yet covered (collaborators CRUD, audit trail)
+- HTTP adapter contract alignment: all existing adapters (Groups A–L) verified against documented contracts — no divergence found; no adapter changes required
+- Backend status: no backend exists in this repo — staging smoke cannot run end-to-end yet; tests are designed to skip cleanly when VITE_API_BASE_URL is absent; .env.staging.example documents the full env setup needed when a backend is available
+- All existing unit/RTL tests unchanged — 1747 tests pass (68 files)
+- Constraints: no new API surface added; no mock-mode changes; no adapter changes
+
+## T-410 — MVP launch hardening for closed beta
+Type: impl+test
+Links: T-401, T-406, T-407, T-408, T-409
+Status: done
+Owner: AI
+Definition of done:
+- Launch blockers identified via ruthless audit:
+  1. handleShareProject silently swallowed API errors → user had zero feedback on failure
+  2. handleChangeRole / handleRevoke silently swallowed errors → owner had no feedback on collaborator action failure
+  3. CommentsPanel.handleSubmit did not clear previous error before retry → stale error persisted while submitting
+  4. InviteAcceptPage had no retry path after acceptInvite failure → user had to navigate away and re-click invite link
+- src/pages/home/HomePage.tsx:
+  - Added shareError state; handleShareProject now sets shareError on catch; shows data-testid="share-error" below share button
+  - clipboard failure separated from API failure (clipboard uses .catch(() => {}) to not hide API errors)
+  - Added collaboratorActionError state; handleChangeRole and handleRevoke set error on catch; shows data-testid="collaborator-action-error" below collaborator list
+- src/pages/invite-accept/InviteAcceptPage.tsx:
+  - error state now shows data-testid="retry-invite-btn" (Попробовать снова) when inviteInfo is loaded (accept failed, resolve succeeded)
+  - retry button resets status to 'ready' so accept button re-appears
+  - No retry shown when resolveInvite itself failed (no project context available)
+- src/shared/ui/CommentsPanel.tsx:
+  - setError(null) added at start of handleSubmit so previous submission error clears before retry
+- Tests added (9 new tests across 2 new files):
+  - src/pages/home/HomePage.shareError.test.tsx: 3 tests — API failure shows share-error, success shows no error, error cleared on next attempt
+  - src/pages/home/HomePage.collaboratorActions.test.tsx: 3 tests — revoke failure shows error, role change failure shows error, successful revoke shows no error
+  - src/pages/invite-accept/InviteAcceptPage.test.tsx: 3 new tests in group G — retry button shown after accept failure, retry restores accept button, no retry when resolve fails
+- docs/beta-checklist.md: new file with operational beta-readiness checklist
+- docs/plan.md: T-410 row added
+- Non-blockers explicitly accepted: reply threads, notifications, advanced export, auth, full real-time collaboration
+- All 70 test files pass — 1756 tests (was 1747)
+- Staging smoke remains cleanly skipped without VITE_API_BASE_URL

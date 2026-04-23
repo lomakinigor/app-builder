@@ -78,9 +78,11 @@ When to write: whenever a new HTTP adapter endpoint is added, an existing compac
 RTL tests and E2E Playwright mock-mode tests never touch the HTTP adapters and are unaffected by MSW.
 
 ### Staging smoke
-What: minimal real-backend smoke that proves the frontend ↔ backend integration works end-to-end. Not a regression suite — one short test covering the critical API path.
+What: minimal real-backend smoke that proves the frontend ↔ backend integration works end-to-end. Not a regression suite — a small set of tests covering the critical API paths.
 
-Test file: `tests/e2e/critical-real-backend.spec.ts`
+Test files:
+- `tests/e2e/critical-real-backend.spec.ts` — core flow (SMOKE-001)
+- `tests/e2e/collaboration-real-backend.spec.ts` — sharing and comments (SMOKE-002/003/004, T-409)
 
 Config: `playwright.staging.config.ts` (port 5174, no retries, 3-minute test timeout, always captures trace + video)
 
@@ -93,14 +95,17 @@ Config: `playwright.staging.config.ts` (port 5174, no retries, 3-minute test tim
 
 **Required env vars:**
 
-| Variable | Required | Purpose |
-|----------|----------|---------|
-| `VITE_API_MODE` | yes (`real`) | Activates HTTP adapters instead of mocks |
-| `VITE_API_BASE_URL` | yes | Base URL of the staging backend |
+| Variable | Required for | Purpose |
+|----------|-------------|---------|
+| `VITE_API_MODE` | all tests | Set to `real` — activates HTTP adapters instead of mocks |
+| `VITE_API_BASE_URL` | all tests | Base URL of the staging backend (no trailing slash) |
 | `VITE_API_BEARER_TOKEN` | optional | Bearer auth; omitted from requests when absent |
 | `VITE_SESSION_ID` | recommended | Run-level session id — all HTTP requests send `X-Session-Id: <id>` |
+| `VITE_FEATURE_SHARING` | SMOKE-002, SMOKE-004 | Set to `true` — enables sharing UI (share button, invite panel). Tests skipped when absent |
 
-**Skip strategy:** when `VITE_API_BASE_URL` is not set, every test in the file is skipped with an explicit reason before any network call is attempted. A missing env = skip; an unreachable backend = real failure.
+See `.env.staging.example` for a ready-to-copy template with all variables.
+
+**Skip strategy:** when `VITE_API_BASE_URL` is not set, every test is skipped with an explicit reason before any network call is attempted. A missing env = skip; an unreachable backend = real failure. SMOKE-002 and SMOKE-004 additionally skip when `VITE_FEATURE_SHARING` ≠ `true`.
 
 **Run-level session correlation (T-311):**
 
@@ -111,12 +116,14 @@ Every smoke run should have a unique `VITE_SESSION_ID` so all backend log entrie
 VITE_API_MODE=real \
 VITE_API_BASE_URL=https://api-staging.example.com \
 VITE_API_BEARER_TOKEN=<token> \
+VITE_FEATURE_SHARING=true \
 npm run test:e2e:staging:session
 
 # Manual override:
 VITE_SESSION_ID=smoke-debug-001 \
 VITE_API_MODE=real \
 VITE_API_BASE_URL=https://api-staging.example.com \
+VITE_FEATURE_SHARING=true \
 npm run test:e2e:staging
 ```
 
@@ -129,13 +136,33 @@ The session id appears in:
 - `X-Session-Id` annotation on every test in the Playwright report
 - Artifact name: `staging-smoke-<session-id>` for direct log correlation
 
-**Critical path covered (SMOKE-001):**
+**Critical path covered (SMOKE-001) — `critical-real-backend.spec.ts`:**
 1. App boots with `VITE_API_MODE=real`
 2. Project created + idea filled
 3. `POST /api/research/run` — brief badge appears
 4. `POST /api/spec/generate` — "Сгенерировано" badge appears
 5. `POST /api/architecture/generate` — "Сгенерировано" badge appears
 6. `POST /api/prompt-loop/first` — "Итерация 1" card appears
+
+**Collaboration path covered (T-409) — `collaboration-real-backend.spec.ts`:**
+
+State seeding: SMOKE-002/003/004 seed a project into localStorage at test start so
+the expensive research/spec LLM flow is not repeated. Only the collaboration/comments
+API calls under test are real.
+
+| Smoke | Endpoints tested | Skip condition |
+|-------|-----------------|----------------|
+| SMOKE-002 | `POST /api/shares` → invite panel visible; `GET /api/shares/:shareId` → redirect to /history; `POST /api/shares/:shareId/invite` → InviteResult | `VITE_FEATURE_SHARING≠true` |
+| SMOKE-003 | `GET /api/projects/:projectId/comments` → comments-panel loads; `POST /api/projects/:projectId/comments` → comment appears in list | none |
+| SMOKE-004 | `GET /api/invites/:token` → InviteAcceptPage shows project+role; `POST /api/invites/:token/accept` → redirect to /history | `VITE_FEATURE_SHARING≠true`; also skipped when backend does not return `inviteToken` in InviteResult |
+
+**Endpoints not yet covered by staging smoke (backend not implemented):**
+- `GET /api/projects/:projectId/collaborators`
+- `PATCH /api/collaborators/:id`
+- `DELETE /api/collaborators/:id`
+- `GET /api/projects/:projectId/sharing-audit`
+
+These endpoints have complete HTTP adapters and MSW contract tests (Groups I, J) but no staging smoke coverage until a real backend implements them.
 
 Assertions are content-agnostic (presence of badges and headings, not exact LLM text) to stay resilient to backend output variation.
 

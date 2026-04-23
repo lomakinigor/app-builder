@@ -374,6 +374,38 @@ interface ArtifactComment {
 
 **CommentsPanel (`src/shared/ui/CommentsPanel.tsx`, data-testid="comments-panel"):** Reusable. Shown in SpecPage (when specPack present), ArchitecturePage (when architectureDraft present), PromptLoopPage (when activeIteration present). NOT gated by `isSharingEnabled()` — comments are collaboration, not sharing management. All roles see the list. `canPost=true` (owner/editor) → shows textarea + submit. `canPost=false` (viewer) → shows "Только для чтения". Max 1000 chars. Empty body disables submit. On success, new comment appended optimistically. Cancellation token prevents state update after unmount.
 
+### Invite acceptance flow (T-408)
+
+**Invite types:**
+```ts
+interface InviteInfo {
+  projectId: string
+  projectName: string
+  role: 'viewer' | 'editor'
+  email: string
+}
+interface AcceptedInvite {
+  projectId: string
+  role: 'viewer' | 'editor'
+}
+```
+
+**InviteApi HTTP contract:**
+| Method | Endpoint | HTTP | Body | Response |
+|--------|----------|------|------|----------|
+| `resolveInvite` | `/api/invites/:inviteToken` | GET | — | `InviteInfo` |
+| `acceptInvite` | `/api/invites/:inviteToken/accept` | POST | `{}` | `AcceptedInvite` |
+
+**Mock token convention:** `inviteToken = invite-<collaboratorId>` (e.g. `invite-collab-2`). Deterministic — owner invites produce a collaborator whose accept URL is `/invite/invite-<id>`.
+
+**Status transition:** `resolveInvite` reads collaborator at-rest (status=`invited`). `acceptInvite` mutates status to `active` and returns `AcceptedInvite`.
+
+**InviteAcceptPage (`src/pages/invite-accept/InviteAcceptPage.tsx`, route `/invite/:inviteToken`):**
+1. On mount: calls `resolveInvite(token)` → shows project name, role (редактор / просмотр), email.
+2. CTA "Принять приглашение" → `acceptInvite(token)` → `selectProject(projectId)` → `setViewingMode(role === 'editor' ? 'editor' : 'viewer')` → `navigate('/history', { replace: true })`.
+3. Invalid/expired token or failed accept → error state with `data-testid="invite-error"`.
+4. No auth/signup flow — operates on existing in-session project registry.
+
 ### Feature flags (T-402)
 
 Feature flags are managed in `src/shared/config/features.ts` as plain typed boolean functions reading Vite env vars.

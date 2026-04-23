@@ -4,10 +4,12 @@
 // T-405 — Added editor share tokens: share-edit-<projectId> → canEdit:true
 // T-406 — Added listCollaborators, updateCollaboratorRole, revokeCollaborator;
 //          inviteByEmail now accepts optional role ('viewer' | 'editor')
+// T-408 — Added resolveInvite, acceptInvite; inviteToken = invite-<collaboratorId>
 //
 // Token conventions:
-//   share-<projectId>      → viewer  (canEdit: false)
-//   share-edit-<projectId> → editor  (canEdit: true)
+//   share-<projectId>            → viewer  (canEdit: false)
+//   share-edit-<projectId>       → editor  (canEdit: true)
+//   invite-<collaboratorId>      → resolves to collaborator info for acceptance
 // resolveShare reverses both formats to extract projectId.
 // Works entirely offline — no network, no auth required for demo/dev mode.
 
@@ -16,6 +18,8 @@ import type {
   ShareInfo,
   ResolvedShare,
   InviteResult,
+  InviteInfo,
+  AcceptedInvite,
   SharingAuditEvent,
   ProjectCollaborator,
 } from '../types'
@@ -41,6 +45,23 @@ function canEditFromShareId(shareId: string): boolean {
 
 function isValidEmail(email: string): boolean {
   return email.includes('@') && email.includes('.')
+}
+
+/** T-408 — Derive invite token from collaboratorId. */
+export function makeInviteToken(collaboratorId: string): string {
+  return `invite-${collaboratorId}`
+}
+
+/** T-408 — Extract collaboratorId from invite token, or null if malformed. */
+function extractCollaboratorId(inviteToken: string): string | null {
+  if (inviteToken.startsWith('invite-')) return inviteToken.slice('invite-'.length)
+  return null
+}
+
+/** T-408 — Best-effort project name from projectId (mock only). */
+function mockProjectName(projectId: string): string {
+  if (projectId === 'proj-demo') return 'AI Product Studio Demo'
+  return `Project ${projectId}`
 }
 
 // ─── In-memory collaborator store (T-406) ────────────────────────────────────
@@ -170,5 +191,30 @@ export const sharingApiMock: SharingApi = {
     }
     _collaborators.delete(collaboratorId)
     return { success: true }
+  },
+
+  async resolveInvite(inviteToken: string): Promise<InviteInfo> {
+    const collaboratorId = extractCollaboratorId(inviteToken)
+    if (!collaboratorId) throw new Error(`Invalid invite token: ${inviteToken}`)
+    const collab = _collaborators.get(collaboratorId)
+    if (!collab) throw new Error(`Invite not found or already used: ${inviteToken}`)
+    const projectId = extractProjectId(collab.shareId ?? '') ?? collaboratorId
+    return {
+      projectId,
+      projectName: mockProjectName(projectId),
+      role: collab.role,
+      email: collab.email,
+    }
+  },
+
+  async acceptInvite(inviteToken: string): Promise<AcceptedInvite> {
+    const collaboratorId = extractCollaboratorId(inviteToken)
+    if (!collaboratorId) throw new Error(`Invalid invite token: ${inviteToken}`)
+    const collab = _collaborators.get(collaboratorId)
+    if (!collab) throw new Error(`Invite not found or already used: ${inviteToken}`)
+    const updated: ProjectCollaborator = { ...collab, status: 'active' }
+    _collaborators.set(collaboratorId, updated)
+    const projectId = extractProjectId(collab.shareId ?? '') ?? collaboratorId
+    return { projectId, role: collab.role }
   },
 }
