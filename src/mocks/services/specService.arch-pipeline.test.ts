@@ -332,50 +332,50 @@ describe('architecture generation — _spec parameter is ignored (type arg wins)
 describe('architecture generation — roadmap domain coverage vs spec', () => {
   it('application: roadmap phase goals collectively mention onboarding/user concerns', async () => {
     const arch = await runGenerateArch('application')
-    const allGoals = arch.roadmapPhases.flatMap((p) => p.goals).join(' ').toLowerCase()
-    expect(allGoals).toMatch(/onboard|user|sign/i)
+    const allGoals = arch.roadmapPhases.flatMap((p) => p.goals).join(' ')
+    expect(allGoals).toMatch(/onboard|user|sign|онборд|пользовател/i)
   })
 
   it('application: roadmap phase goals collectively mention data/entity management', async () => {
     const arch = await runGenerateArch('application')
-    const allGoals = arch.roadmapPhases.flatMap((p) => p.goals).join(' ').toLowerCase()
-    expect(allGoals).toMatch(/entity|data|crud|create|edit|list/i)
+    const allGoals = arch.roadmapPhases.flatMap((p) => p.goals).join(' ')
+    expect(allGoals).toMatch(/entity|data|crud|create|edit|list|сущност|создан|редактир|список/i)
   })
 
   it('application: roadmap phase goals collectively mention dashboard/overview', async () => {
     const arch = await runGenerateArch('application')
-    const allGoals = arch.roadmapPhases.flatMap((p) => p.goals).join(' ').toLowerCase()
-    expect(allGoals).toMatch(/dashboard|overview|summary/i)
+    const allGoals = arch.roadmapPhases.flatMap((p) => p.goals).join(' ')
+    expect(allGoals).toMatch(/dashboard|overview|summary|дашборд|сводн/i)
   })
 
   it('application: roadmap phase goals collectively mention search or settings', async () => {
     const arch = await runGenerateArch('application')
-    const allGoals = arch.roadmapPhases.flatMap((p) => p.goals).join(' ').toLowerCase()
-    expect(allGoals).toMatch(/search|filter|setting/i)
+    const allGoals = arch.roadmapPhases.flatMap((p) => p.goals).join(' ')
+    expect(allGoals).toMatch(/search|filter|setting|поиск|фильтр|настройк/i)
   })
 
   it('website: roadmap phase goals collectively mention homepage/content pages', async () => {
     const arch = await runGenerateArch('website')
-    const allGoals = arch.roadmapPhases.flatMap((p) => p.goals).join(' ').toLowerCase()
-    expect(allGoals).toMatch(/homepage|page|content/i)
+    const allGoals = arch.roadmapPhases.flatMap((p) => p.goals).join(' ')
+    expect(allGoals).toMatch(/homepage|page|content|главн|страниц|контент/i)
   })
 
   it('website: roadmap phase goals collectively mention blog/articles', async () => {
     const arch = await runGenerateArch('website')
-    const allGoals = arch.roadmapPhases.flatMap((p) => p.goals).join(' ').toLowerCase()
-    expect(allGoals).toMatch(/blog|article|post/i)
+    const allGoals = arch.roadmapPhases.flatMap((p) => p.goals).join(' ')
+    expect(allGoals).toMatch(/blog|article|post|блог|стать|публикац/i)
   })
 
   it('website: roadmap phase goals collectively mention SEO or meta', async () => {
     const arch = await runGenerateArch('website')
-    const allGoals = arch.roadmapPhases.flatMap((p) => p.goals).join(' ').toLowerCase()
-    expect(allGoals).toMatch(/seo|meta|sitemap|open graph/i)
+    const allGoals = arch.roadmapPhases.flatMap((p) => p.goals).join(' ')
+    expect(allGoals).toMatch(/seo|meta|sitemap|open graph|мета|карта/i)
   })
 
   it('website: roadmap phase goals collectively mention contact form', async () => {
     const arch = await runGenerateArch('website')
-    const allGoals = arch.roadmapPhases.flatMap((p) => p.goals).join(' ').toLowerCase()
-    expect(allGoals).toMatch(/contact|form/i)
+    const allGoals = arch.roadmapPhases.flatMap((p) => p.goals).join(' ')
+    expect(allGoals).toMatch(/contact|form|контакт|форм/i)
   })
 
   it('application: roadmap phase goals collectively cover all 5 phases worth of concerns', async () => {

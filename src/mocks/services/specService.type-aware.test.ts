@@ -58,14 +58,14 @@ afterEach(() => { vi.useRealTimers() })
 describe('spec generation — type differentiation', () => {
   it('application featureList first entry is user-onboarding oriented', async () => {
     const spec = await generateSpec('application')
-    const names = spec.featureList.map((f) => f.name.toLowerCase())
-    expect(names.some((n) => n.includes('onboard') || n.includes('dashboard') || n.includes('data'))).toBe(true)
+    const names = spec.featureList.map((f) => f.name)
+    expect(names.some((n) => /onboard|dashboard|data|онборд|дашборд|данн|управлен/i.test(n))).toBe(true)
   })
 
   it('website featureList first entry is content/homepage oriented', async () => {
     const spec = await generateSpec('website')
-    const names = spec.featureList.map((f) => f.name.toLowerCase())
-    expect(names.some((n) => n.includes('homepage') || n.includes('blog') || n.includes('content'))).toBe(true)
+    const names = spec.featureList.map((f) => f.name)
+    expect(names.some((n) => /homepage|blog|content|главн|блог|контент/i.test(n))).toBe(true)
   })
 
   it('application and website featureLists are completely different', async () => {
@@ -81,36 +81,36 @@ describe('spec generation — type differentiation', () => {
 
   it('application constraints mention client-only / no backend', async () => {
     const spec = await generateSpec('application')
-    const text = spec.constraints.join(' ').toLowerCase()
-    expect(text).toMatch(/no backend|client.only|local storage/i)
+    const text = spec.constraints.join(' ')
+    expect(text).toMatch(/no backend|client.only|local storage|без.*бэкенд|локальн/i)
   })
 
   it('website constraints mention SEO / Lighthouse / no database', async () => {
     const spec = await generateSpec('website')
-    const text = spec.constraints.join(' ').toLowerCase()
-    expect(text).toMatch(/lighthouse|seo|no database|no e.commerce/i)
+    const text = spec.constraints.join(' ')
+    expect(text).toMatch(/lighthouse|seo|no database|no e.commerce|без.*баз|без.*e.commerce/i)
   })
 
   it('application assumptions mention collaboration or single-user', async () => {
     const spec = await generateSpec('application')
-    const text = spec.assumptions.join(' ').toLowerCase()
-    expect(text).toMatch(/collaboration|single.user|local/i)
+    const text = spec.assumptions.join(' ')
+    expect(text).toMatch(/collaboration|single.user|local|совместн|однопользовател|локальн/i)
   })
 
   it('website assumptions mention file-based or no database', async () => {
     const spec = await generateSpec('website')
-    const text = spec.assumptions.join(' ').toLowerCase()
-    expect(text).toMatch(/file.based|no database|no cms|no backend/i)
+    const text = spec.assumptions.join(' ')
+    expect(text).toMatch(/file.based|no database|no cms|no backend|файловы|без.*баз|без.*cms/i)
   })
 
   it('application acceptanceNotes describes onboarding or entity flow', async () => {
     const spec = await generateSpec('application')
-    expect(spec.acceptanceNotes.toLowerCase()).toMatch(/onboard|entity|data/i)
+    expect(spec.acceptanceNotes).toMatch(/onboard|entity|data|онборд|сущност|данн/i)
   })
 
   it('website acceptanceNotes describes visitor navigation or SSG', async () => {
     const spec = await generateSpec('website')
-    expect(spec.acceptanceNotes.toLowerCase()).toMatch(/visitor|navigate|ssg|static|contact/i)
+    expect(spec.acceptanceNotes).toMatch(/visitor|navigate|ssg|static|contact|посетител|перейти|SSG|контакт/i)
   })
 
   it('application and website productSummary texts are distinct', async () => {
@@ -159,36 +159,36 @@ describe('architecture generation — type differentiation', () => {
 
   it('application moduleArchitecture describes feature-sliced or Zustand pattern', async () => {
     const arch = await generateArch('application')
-    expect(arch.moduleArchitecture.toLowerCase()).toMatch(/feature.sliced|zustand|store/i)
+    expect(arch.moduleArchitecture).toMatch(/feature.sliced|zustand|store|фиче.слайс|стор/i)
   })
 
   it('website moduleArchitecture describes Next.js app router or MDX', async () => {
     const arch = await generateArch('website')
-    expect(arch.moduleArchitecture.toLowerCase()).toMatch(/next\.js|app router|mdx|content/i)
+    expect(arch.moduleArchitecture).toMatch(/next\.js|app router|mdx|content|контент/i)
   })
 
   it('application roadmap phase 1 is core-flow oriented', async () => {
     const arch = await generateArch('application')
     const phase1 = arch.roadmapPhases.find((p) => p.phase === 1)
-    expect(phase1?.title.toLowerCase()).toMatch(/core|flow|entity/i)
+    expect(phase1?.title).toMatch(/core|flow|entity|основн|поток|сущност/i)
   })
 
   it('website roadmap phase 1 is content-pages oriented', async () => {
     const arch = await generateArch('website')
     const phase1 = arch.roadmapPhases.find((p) => p.phase === 1)
-    expect(phase1?.title.toLowerCase()).toMatch(/pages|content|core/i)
+    expect(phase1?.title).toMatch(/pages|content|core|страниц|контент|основн/i)
   })
 
   it('application technicalRisks mention localStorage or client persistence', async () => {
     const arch = await generateArch('application')
-    const text = arch.technicalRisks.join(' ').toLowerCase()
-    expect(text).toMatch(/local storage|storage|persistence|client/i)
+    const text = arch.technicalRisks.join(' ')
+    expect(text).toMatch(/local storage|storage|persistence|client|localStorage|хранилищ|персистент/i)
   })
 
   it('website technicalRisks mention SEO, MDX, or content', async () => {
     const arch = await generateArch('website')
-    const text = arch.technicalRisks.join(' ').toLowerCase()
-    expect(text).toMatch(/seo|mdx|content|lighthouse|cms/i)
+    const text = arch.technicalRisks.join(' ')
+    expect(text).toMatch(/seo|mdx|content|lighthouse|cms|SEO|MDX|контент|Lighthouse|CMS/i)
   })
 
   it('application and website dataFlow descriptions are distinct', async () => {

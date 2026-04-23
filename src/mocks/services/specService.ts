@@ -8,56 +8,56 @@ import type { ResearchBrief, SpecPack, ArchitectureDraft, ProjectType } from '..
 // ─── Application mock fixtures ────────────────────────────────────────────────
 
 const applicationSpecFeatures: SpecPack['featureList'] = [
-  { id: 'f-001', name: 'User onboarding', description: 'Sign-up / sign-in flow with clear first-use guidance and an empty-state dashboard.', priority: 'must' },
-  { id: 'f-002', name: 'Core data management', description: 'Create, view, edit, and delete the primary entities of the application.', priority: 'must' },
-  { id: 'f-003', name: 'Dashboard / overview', description: 'Summary view of the user\'s current state, key metrics, and pending actions.', priority: 'must' },
-  { id: 'f-004', name: 'In-app navigation', description: 'Sidebar or bottom-nav routing between major sections; breadcrumb context for nested flows.', priority: 'must' },
-  { id: 'f-005', name: 'User settings', description: 'Profile and preferences screen; ability to update account details.', priority: 'should' },
-  { id: 'f-006', name: 'Notifications / alerts', description: 'In-app feedback (toasts, banners) for async actions, errors, and important state changes.', priority: 'should' },
-  { id: 'f-007', name: 'Search and filtering', description: 'Filter or search the primary entity list by name, status, or date.', priority: 'should' },
-  { id: 'f-008', name: 'Export / share', description: 'Export key data as CSV, JSON, or markdown; optional shareable read-only link.', priority: 'could' },
-  { id: 'f-009', name: 'Keyboard shortcuts', description: 'Power-user shortcuts for common create/navigate/submit actions.', priority: 'could' },
-  { id: 'f-010', name: 'Multi-user collaboration', description: 'Invite team members, share workspaces, role-based permissions.', priority: 'wont' },
+  { id: 'f-001', name: 'Онбординг пользователя', description: 'Форма регистрации / входа с чётким руководством при первом использовании и пустым дашбордом.', priority: 'must' },
+  { id: 'f-002', name: 'Управление данными', description: 'Создание, просмотр, редактирование и удаление основных сущностей приложения.', priority: 'must' },
+  { id: 'f-003', name: 'Дашборд / обзор', description: 'Сводный вид текущего состояния пользователя, ключевых метрик и ожидающих действий.', priority: 'must' },
+  { id: 'f-004', name: 'Навигация', description: 'Боковое меню или нижняя навигация между основными разделами; хлебные крошки для вложенных потоков.', priority: 'must' },
+  { id: 'f-005', name: 'Настройки пользователя', description: 'Экран профиля и настроек; возможность обновить данные аккаунта.', priority: 'should' },
+  { id: 'f-006', name: 'Уведомления', description: 'Обратная связь в приложении (тосты, баннеры) для асинхронных действий, ошибок и важных изменений состояния.', priority: 'should' },
+  { id: 'f-007', name: 'Поиск и фильтрация', description: 'Фильтрация или поиск по списку основных сущностей по имени, статусу или дате.', priority: 'should' },
+  { id: 'f-008', name: 'Экспорт / шаринг', description: 'Экспорт ключевых данных в CSV, JSON или Markdown; опциональная ссылка только для чтения.', priority: 'could' },
+  { id: 'f-009', name: 'Горячие клавиши', description: 'Клавиатурные сокращения для создания, навигации и отправки.', priority: 'could' },
+  { id: 'f-010', name: 'Совместная работа', description: 'Приглашение участников команды, общие рабочие пространства, права доступа по ролям.', priority: 'wont' },
 ]
 
 const applicationArchStack: ArchitectureDraft['recommendedStack'] = [
-  { name: 'React', role: 'UI layer', rationale: 'Component-based SPA with strong ecosystem; ideal for stateful, interactive application UIs' },
-  { name: 'TypeScript', role: 'Type safety', rationale: 'Prevents runtime errors, self-documenting domain models and props contracts' },
-  { name: 'Vite', role: 'Build tool', rationale: 'Fast HMR, lean bundle, zero-config for React + TypeScript' },
-  { name: 'Zustand', role: 'State management', rationale: 'Lightweight store with built-in persistence; avoids boilerplate of Redux for MVP scope' },
-  { name: 'React Router', role: 'Client routing', rationale: 'Declarative SPA routing with nested layouts and protected route support' },
-  { name: 'Tailwind CSS', role: 'Styling', rationale: 'Utility-first, responsive, consistent design system without runtime CSS overhead' },
+  { name: 'React', role: 'UI-слой', rationale: 'Компонентный SPA с сильной экосистемой; идеален для интерактивных приложений' },
+  { name: 'TypeScript', role: 'Типобезопасность', rationale: 'Предотвращает ошибки в рантайме, самодокументирующиеся доменные модели' },
+  { name: 'Vite', role: 'Инструмент сборки', rationale: 'Быстрый HMR, лёгкий бандл, без конфигурации для React + TypeScript' },
+  { name: 'Zustand', role: 'Управление состоянием', rationale: 'Лёгкий стор со встроенной персистентностью; меньше шаблонного кода чем Redux' },
+  { name: 'React Router', role: 'Клиентская маршрутизация', rationale: 'Декларативная SPA-маршрутизация с вложенными лейаутами' },
+  { name: 'Tailwind CSS', role: 'Стилизация', rationale: 'Утилитарный подход, адаптивный, консистентная дизайн-система без накладных расходов CSS' },
 ]
 
 const applicationRoadmap: ArchitectureDraft['roadmapPhases'] = [
   {
     phase: 0,
-    title: 'Foundation',
-    goals: ['App shell', 'Routing', 'Layout and navigation', 'State store', 'Typed domain models', 'Mock data'],
+    title: 'Фундамент',
+    goals: ['Оболочка приложения', 'Маршрутизация', 'Лейаут и навигация', 'Стор состояния', 'Типизированные модели', 'Mock-данные'],
     estimatedComplexity: 'low',
   },
   {
     phase: 1,
-    title: 'Core flow',
-    goals: ['Onboarding screen', 'Primary entity list', 'Create/edit form', 'Delete with confirmation'],
+    title: 'Основной поток',
+    goals: ['Экран онбординга', 'Список основных сущностей', 'Форма создания/редактирования', 'Удаление с подтверждением'],
     estimatedComplexity: 'medium',
   },
   {
     phase: 2,
-    title: 'Dashboard and navigation',
-    goals: ['Summary dashboard', 'In-app navigation', 'Breadcrumbs', 'Empty states'],
+    title: 'Дашборд и навигация',
+    goals: ['Сводный дашборд', 'Навигация', 'Хлебные крошки', 'Пустые состояния'],
     estimatedComplexity: 'medium',
   },
   {
     phase: 3,
-    title: 'Search, filters, and settings',
-    goals: ['Entity filtering', 'Search bar', 'User settings page', 'Notification toasts'],
+    title: 'Поиск, фильтры и настройки',
+    goals: ['Фильтрация сущностей', 'Строка поиска', 'Страница настроек', 'Тост-уведомления'],
     estimatedComplexity: 'medium',
   },
   {
     phase: 4,
-    title: 'Polish and export',
-    goals: ['Export to CSV/JSON', 'Keyboard shortcuts', 'Error boundaries', 'Performance audit'],
+    title: 'Полировка и экспорт',
+    goals: ['Экспорт в CSV/JSON', 'Горячие клавиши', 'Границы ошибок', 'Аудит производительности'],
     estimatedComplexity: 'high',
   },
 ]
@@ -65,54 +65,54 @@ const applicationRoadmap: ArchitectureDraft['roadmapPhases'] = [
 // ─── Website mock fixtures ────────────────────────────────────────────────────
 
 const websiteSpecFeatures: SpecPack['featureList'] = [
-  { id: 'f-001', name: 'Homepage', description: 'Hero section with value proposition, CTA, and key highlights.', priority: 'must' },
-  { id: 'f-002', name: 'Content pages', description: 'About, services/product, and any static info pages.', priority: 'must' },
-  { id: 'f-003', name: 'Blog / articles', description: 'Markdown-based article list and detail pages with SEO metadata.', priority: 'must' },
-  { id: 'f-004', name: 'Contact form', description: 'Simple form that sends an inquiry email via a serverless function.', priority: 'should' },
-  { id: 'f-005', name: 'SEO optimization', description: 'Per-page meta tags, Open Graph, and sitemap.xml generation.', priority: 'should' },
-  { id: 'f-006', name: 'Dark mode', description: 'System-preference-aware colour scheme with manual toggle.', priority: 'could' },
-  { id: 'f-007', name: 'CMS integration', description: 'Swap markdown files for a headless CMS (e.g. Contentful).', priority: 'could' },
-  { id: 'f-008', name: 'Analytics', description: 'Privacy-friendly page-view tracking.', priority: 'could' },
-  { id: 'f-009', name: 'Multi-language', description: 'i18n support for additional locales.', priority: 'wont' },
+  { id: 'f-001', name: 'Главная страница', description: 'Герой-секция с ценностным предложением, CTA и ключевыми преимуществами.', priority: 'must' },
+  { id: 'f-002', name: 'Контентные страницы', description: 'Страницы «О нас», услуги/продукт и любые статические информационные страницы.', priority: 'must' },
+  { id: 'f-003', name: 'Блог / статьи', description: 'Список статей на Markdown и страницы статей с SEO-метаданными.', priority: 'must' },
+  { id: 'f-004', name: 'Контактная форма', description: 'Простая форма для отправки запроса по email через serverless-функцию.', priority: 'should' },
+  { id: 'f-005', name: 'SEO-оптимизация', description: 'Мета-теги для каждой страницы, Open Graph и генерация sitemap.xml.', priority: 'should' },
+  { id: 'f-006', name: 'Тёмная тема', description: 'Цветовая схема с учётом системных настроек и ручным переключением.', priority: 'could' },
+  { id: 'f-007', name: 'Интеграция CMS', description: 'Замена markdown-файлов на headless CMS (например, Contentful).', priority: 'could' },
+  { id: 'f-008', name: 'Аналитика', description: 'Отслеживание просмотров страниц без нарушения конфиденциальности.', priority: 'could' },
+  { id: 'f-009', name: 'Мультиязычность', description: 'Поддержка i18n для дополнительных локалей.', priority: 'wont' },
 ]
 
 const websiteArchStack: ArchitectureDraft['recommendedStack'] = [
-  { name: 'Next.js', role: 'Framework', rationale: 'SSR/SSG for SEO, file-based routing, built-in image optimisation, ideal for content-driven websites' },
-  { name: 'TypeScript', role: 'Type safety', rationale: 'Prevents runtime errors, self-documenting page props and API routes' },
-  { name: 'Tailwind CSS', role: 'Styling', rationale: 'Utility-first, responsive, consistent design system with minimal CSS overhead' },
-  { name: 'MDX', role: 'Content authoring', rationale: 'Markdown + JSX lets developers write content without a CMS in V1; easy to swap later' },
-  { name: 'Vercel', role: 'Hosting / deployment', rationale: 'Zero-config Next.js deployment, global CDN, automatic preview URLs, free tier' },
+  { name: 'Next.js', role: 'Фреймворк', rationale: 'SSR/SSG для SEO, файловая маршрутизация, встроенная оптимизация изображений, идеален для контентных сайтов' },
+  { name: 'TypeScript', role: 'Типобезопасность', rationale: 'Предотвращает ошибки в рантайме, самодокументирующиеся пропсы страниц и API-роуты' },
+  { name: 'Tailwind CSS', role: 'Стилизация', rationale: 'Утилитарный подход, адаптивный, консистентная дизайн-система с минимальным CSS overhead' },
+  { name: 'MDX', role: 'Создание контента', rationale: 'Markdown + JSX позволяет писать контент без CMS в V1; легко заменить позже' },
+  { name: 'Vercel', role: 'Хостинг / деплой', rationale: 'Деплой Next.js без настройки, глобальный CDN, автоматические preview URL, бесплатный тариф' },
 ]
 
 const websiteRoadmap: ArchitectureDraft['roadmapPhases'] = [
   {
     phase: 0,
-    title: 'Foundation',
-    goals: ['Next.js scaffold', 'Tailwind setup', 'Layout shell', 'Navigation', 'Dark mode'],
+    title: 'Фундамент',
+    goals: ['Скаффолд Next.js', 'Настройка Tailwind', 'Оболочка лейаута', 'Навигация', 'Тёмная тема'],
     estimatedComplexity: 'low',
   },
   {
     phase: 1,
-    title: 'Core pages',
-    goals: ['Homepage', 'About page', 'Content page template', 'MDX pipeline'],
+    title: 'Основные страницы',
+    goals: ['Главная страница', 'Страница «О нас»', 'Шаблон контентной страницы', 'MDX-пайплайн'],
     estimatedComplexity: 'low',
   },
   {
     phase: 2,
-    title: 'Blog',
-    goals: ['Article list page', 'Article detail page', 'Tag/category filtering', 'RSS feed'],
+    title: 'Блог',
+    goals: ['Страница списка статей', 'Страница статьи', 'Фильтрация по тегам', 'RSS-лента'],
     estimatedComplexity: 'medium',
   },
   {
     phase: 3,
-    title: 'SEO and contact',
-    goals: ['Per-page meta tags', 'Open Graph images', 'Sitemap.xml', 'Contact form + serverless handler'],
+    title: 'SEO и контакты',
+    goals: ['Мета-теги для страниц', 'Изображения Open Graph', 'Sitemap.xml', 'Контактная форма + serverless-обработчик'],
     estimatedComplexity: 'medium',
   },
   {
     phase: 4,
-    title: 'Polish and CMS',
-    goals: ['Analytics integration', 'Performance audit', 'Optional headless CMS adapter'],
+    title: 'Полировка и CMS',
+    goals: ['Интеграция аналитики', 'Аудит производительности', 'Опциональный адаптер headless CMS'],
     estimatedComplexity: 'high',
   },
 ]
@@ -128,26 +128,26 @@ export const mockSpecService = {
         projectType: 'website',
         productSummary:
           brief.valueHypothesis
-            ? `A content-driven website: ${brief.valueHypothesis}`
-            : 'A fast, SEO-optimised website with a blog, static content pages, and a contact form. Built for discoverability and ease of content authoring.',
+            ? `Контентный сайт: ${brief.valueHypothesis}`
+            : 'Быстрый SEO-оптимизированный сайт с блогом, статическими страницами и контактной формой. Создан для удобства контент-авторов и высокой видимости в поиске.',
         MVPScope:
           brief.recommendedMVP ||
-          'Homepage, about page, markdown-based blog, and contact form. No CMS, no authentication, no e-commerce in V1.',
+          'Главная страница, страница «О нас», блог на Markdown и контактная форма. Без CMS, без аутентификации, без e-commerce в V1.',
         featureList: websiteSpecFeatures,
         assumptions: [
-          'Content is authored by developers in MDX for V1',
-          'No database required for V1 — all content is file-based',
-          'Contact form uses a serverless function; no backend server',
-          ...(brief.targetUsers?.slice(0, 2).map((u) => `Primary audience: ${u}`) ?? []),
+          'Контент создаётся разработчиками в MDX для V1',
+          'База данных не требуется для V1 — весь контент файловый',
+          'Контактная форма использует serverless-функцию; без бэкенд-сервера',
+          ...(brief.targetUsers?.slice(0, 2).map((u) => `Целевая аудитория: ${u}`) ?? []),
         ],
         constraints: [
-          'No authentication',
-          'No database in MVP',
-          'No e-commerce',
-          'Must achieve Lighthouse score ≥ 90 on mobile',
+          'Без аутентификации',
+          'Без базы данных в MVP',
+          'Без e-commerce',
+          'Оценка Lighthouse ≥ 90 на мобильных',
         ],
         acceptanceNotes:
-          'A visitor can navigate homepage → blog → article and fill the contact form — all without JavaScript required for core content (SSG).',
+          'Посетитель может перейти с главной страницы в блог, открыть статью и заполнить контактную форму — весь основной контент доступен без JavaScript (SSG).',
       }
     }
 
@@ -155,26 +155,26 @@ export const mockSpecService = {
     return {
       projectType: 'application',
       productSummary: brief.valueHypothesis
-        ? `An application: ${brief.valueHypothesis}`
-        : 'A stateful web application with user onboarding, core entity management, and a dashboard.',
+        ? `Приложение: ${brief.valueHypothesis}`
+        : 'Интерактивное веб-приложение с онбордингом пользователя, управлением основными сущностями и дашбордом.',
       MVPScope:
         brief.recommendedMVP ||
-        'Single-user mode. Onboarding flow, core entity CRUD, dashboard overview. No collaboration, no billing, no export in V1.',
+        'Однопользовательский режим. Онбординг, CRUD основных сущностей, обзор на дашборде. Без совместной работы, биллинга и экспорта в V1.',
       featureList: applicationSpecFeatures,
       assumptions: [
-        'Users interact primarily through a desktop or tablet browser',
-        'No real-time collaboration required in V1',
-        'Local state persistence is sufficient for single-user MVP',
-        ...(brief.targetUsers?.slice(0, 2).map((u) => `Primary audience: ${u}`) ?? []),
+        'Пользователи работают преимущественно через десктопный или планшетный браузер',
+        'Совместная работа в реальном времени не требуется в V1',
+        'Локальная персистентность достаточна для однопользовательского MVP',
+        ...(brief.targetUsers?.slice(0, 2).map((u) => `Целевая аудитория: ${u}`) ?? []),
       ],
       constraints: [
-        'No backend server in MVP — client-only with local storage',
-        'No authentication in V1',
-        'No billing',
-        'Must be usable on mobile (responsive layout)',
+        'Без серверного бэкенда в MVP — только клиент с локальным хранилищем',
+        'Без аутентификации в V1',
+        'Без биллинга',
+        'Должно работать на мобильных (адаптивная вёрстка)',
       ],
       acceptanceNotes:
-        'A user can complete the onboarding flow, create and manage the core entities, see a dashboard summary, and return to their data after a page refresh.',
+        'Пользователь может пройти онбординг, создать и управлять основными сущностями, видеть сводку на дашборде и вернуться к своим данным после перезагрузки страницы.',
     }
   },
 
@@ -186,15 +186,15 @@ export const mockSpecService = {
         projectType: 'website',
         recommendedStack: websiteArchStack,
         moduleArchitecture:
-          'Next.js app router: app/ shell → pages/ → components/ → content/ MDX files → lib/ utilities. No database in V1 — content sourced from markdown files in the repo.',
+          'Next.js app router: оболочка app/ → страницы pages/ → компоненты components/ → контент MDX-файлов content/ → утилиты lib/. Без базы данных в V1 — контент берётся из Markdown-файлов в репозитории.',
         dataFlow:
-          'Static content at build time: MDX files → @next/mdx → static HTML pages. Dynamic paths (contact form) via Next.js API routes deployed as Vercel serverless functions.',
+          'Статический контент при сборке: MDX-файлы → @next/mdx → статические HTML-страницы. Динамические пути (контактная форма) через API-роуты Next.js, задеплоенные как Vercel serverless-функции.',
         roadmapPhases: websiteRoadmap,
         technicalRisks: [
-          'MDX build times grow with content volume — plan for incremental static regeneration if > 500 posts',
-          'Contact form serverless function requires environment variables for email provider — document setup clearly',
-          'SEO depends on correct canonical URLs and meta tags — review with Lighthouse before launch',
-          'Switching to a headless CMS later requires content migration — keep MDX schema simple and consistent',
+          'Время сборки MDX растёт с объёмом контента — запланировать инкрементальную статическую регенерацию при > 500 постах',
+          'Serverless-функция контактной формы требует переменных окружения для email-провайдера — задокументировать настройку',
+          'SEO зависит от корректных канонических URL и мета-тегов — проверить через Lighthouse перед запуском',
+          'Переход на headless CMS потребует миграции контента — держать MDX-схему простой и консистентной',
         ],
       }
     }
@@ -204,15 +204,15 @@ export const mockSpecService = {
       projectType: 'application',
       recommendedStack: applicationArchStack,
       moduleArchitecture:
-        'Feature-sliced architecture: app shell → route-level pages → feature modules → domain entities → shared utilities. State managed in Zustand stores; components are pure and receive data via props or store selectors.',
+        'Фиче-слайс архитектура: оболочка приложения → страницы → модули фич → доменные сущности → общие утилиты. Состояние в Zustand-сторах; компоненты чистые, получают данные через пропсы или селекторы стора.',
       dataFlow:
-        'User action → store action → state update → UI re-render. Async operations (future API calls) go through service adapters that return typed results into the store. No direct API calls from components.',
+        'Действие пользователя → экшен стора → обновление состояния → перерисовка UI. Асинхронные операции проходят через адаптеры сервисов, возвращающие типизированные результаты в стор. Нет прямых API-вызовов из компонентов.',
       roadmapPhases: applicationRoadmap,
       technicalRisks: [
-        'Local storage (~5 MB) may be hit with large entity lists — plan for IndexedDB if data grows',
-        'Client-only persistence means data is lost when browser storage is cleared — warn users',
-        'No auth in V1 limits sharing; adding it later requires refactoring routing and store shape',
-        'SPA routing requires a server fallback rule (e.g. 404 → index.html) for production deploys',
+        'Лимит localStorage (~5МБ) может быть исчерпан на больших списках сущностей — запланировать IndexedDB',
+        'Только клиентская персистентность: данные теряются при очистке хранилища браузера — предупреждать пользователей',
+        'Без аутентификации в V1 нельзя делиться данными; добавление позже потребует рефакторинга маршрутизации',
+        'SPA-маршрутизация требует fallback-правила на сервере (404 → index.html) для продакшен-деплоя',
       ],
     }
   },
