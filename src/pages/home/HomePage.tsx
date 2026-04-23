@@ -81,6 +81,7 @@ export function HomePage() {
     specPack: activeProject?.id === selectedProject?.id ? specPack : null,
     architectureDraft: activeProject?.id === selectedProject?.id ? architectureDraft : null,
     promptIterations: activeProject?.id === selectedProject?.id ? promptIterations : [],
+    completedReviewTaskIds: [],
   })
   const activePhase = cyclePhases.find((p) => p.status === 'in_progress') ?? cyclePhases.find((p) => p.status === 'not_started')
   const nextAction = computeNextAction(

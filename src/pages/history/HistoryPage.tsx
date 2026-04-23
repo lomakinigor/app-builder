@@ -632,7 +632,7 @@ export function HistoryPage() {
   const canCompleteProject = completedReviewTaskIds.length > 0 && !isProjectCompleted
 
   function handleCompleteProject() {
-    if (!canCompleteProject) return
+    if (!canCompleteProject || !activeProject) return
     markProjectCompleted(activeProject.id)
   }
 

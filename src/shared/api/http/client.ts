@@ -15,13 +15,18 @@
 // ApiError can be correlated with backend logs without extra instrumentation.
 
 export class ApiError extends Error {
+  readonly status: number
+  readonly requestId: string | null
+
   constructor(
-    public readonly status: number,
+    status: number,
     message: string,
-    public readonly requestId: string | null = null,
+    requestId: string | null = null,
   ) {
     super(message)
     this.name = 'ApiError'
+    this.status = status
+    this.requestId = requestId
   }
 }
 

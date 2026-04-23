@@ -234,7 +234,7 @@ export async function playTestBeep(): Promise<PlayBeepResult> {
         return 'blocked'
       }
       // resume() resolved but browser may have left the context suspended
-      if (audioCtx.state !== 'running') return 'blocked'
+      if ((audioCtx.state as string) !== 'running') return 'blocked'
     }
 
     doBeep()
